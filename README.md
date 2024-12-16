@@ -173,3 +173,7 @@ Evaluate the option to work with pangenome graph as well.
 Modify lambda.py to incorporate proper variables and also max normalized coverage and not only lower bound!!! IMPORTANT
 
 
+
+Add quality control to entrez in outgroup process to re try download if file is corrupted. IMPORTANT
+
+
