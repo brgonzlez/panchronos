@@ -170,5 +170,6 @@ Evaluate the option to work with pangenome graph as well.
 
 
 
+Modify lambda.py to incorporate proper variables and also max normalized coverage and not only lower bound!!! IMPORTANT
 
 
