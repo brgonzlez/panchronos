@@ -1,0 +1,9 @@
+name: consensusOutgroup
+channels:
+- bioconda
+- anaconda
+- conda-forge
+- defaults
+dependencies:
+- bcftools
+- seqtk
