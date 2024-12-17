@@ -1751,7 +1751,7 @@ process outgroupAlignmentFAndiltering {
 
 
 process makeOutgroupConsensus {
-	conda "${projectDir}/envs/consensus.yaml"
+	conda "${projectDir}/envs/consensusOutgroup.yaml"
 
 	input:
 	path outgroupFastaPostAlignment, stageAs: 'outgroupFastaPostAlignment.bam'
