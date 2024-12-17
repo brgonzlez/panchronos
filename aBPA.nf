@@ -645,6 +645,10 @@ process makeMatrix {
 	path pangenomeRtab, stageAs: 'pangenome/*'
 	path gMC, stageAs: 'gMC/*'
 	path normalized, stageAs: 'normalized/*'
+	path geneCompleteness
+	path lowerBound
+	path upperBound
+
 
 	output:
 	path 'matrix.tab', emit: matrix
@@ -671,7 +675,7 @@ process makeMatrix {
 	for i in *_index.tmp; do
 
 		sed -i -e 's/ /\t/g' "\$i"
-		lambda.py "\$i"
+		lambda.py "\$i" $geneCompleteness $lowerBound $upperBound
 
 	done
 	"""
@@ -1906,7 +1910,7 @@ workflow {
 
 	plotCoveragevsCompleteness(updateNormalization.out.geneNormalizedUpdated, geneCompleteness, normalizedCoverageDown)
         applyCoverageBounds(updateNormalization.out.geneNormalizedUpdated, normalizedCoverageDown, normalizedCoverageUp, geneCompleteness)
-	makeMatrix(makePangenome.out.initialMatrix , normalizationFunction.out.globalMeanCoverage, applyCoverageBounds.out.geneNormalizedUpdatedFiltered)
+	makeMatrix(makePangenome.out.initialMatrix , normalizationFunction.out.globalMeanCoverage, applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness, normalizedCoverageDown, normalizedCoverageUp)
 	buildHeatmap(makeMatrix.out.finalCsv, makeMatrix.out.INDEX ,makeMatrix.out.matrix, makeMatrix.out.sampleNames)
 	plotCoveragevsCompletenessOnFiltered(applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness,normalizedCoverageDown)
 	filterGeneAlignments(makePangenome.out.alignedGenesSeqs, extractedSequencesFasta, fastaDatabase.out.validFasta, downloadGenomes, makeOutgroupConsensus.out.extractedSequencesOutgroupFasta, buildHeatmap.out.blackListed)
