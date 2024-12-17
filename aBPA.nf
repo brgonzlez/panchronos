@@ -645,9 +645,9 @@ process makeMatrix {
 	path pangenomeRtab, stageAs: 'pangenome/*'
 	path gMC, stageAs: 'gMC/*'
 	path normalized, stageAs: 'normalized/*'
-	path gCompleteness
-	path lowerBound
-	path upperBound
+	val gCompleteness
+	val lowerBound
+	val upperBound
 
 
 	output:
