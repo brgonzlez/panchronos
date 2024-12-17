@@ -12,7 +12,7 @@ geneCompleteness = Channel.of(params.completeness)
 params.coverageDown = 0.5
 normalizedCoverageDown = Channel.of(params.coverageDown)
 
-params.coverageUp = 4
+params.coverageUp = 3
 normalizedCoverageUp = Channel.of(params.coverageUp)
 
 params.threads = 10
@@ -645,7 +645,7 @@ process makeMatrix {
 	path pangenomeRtab, stageAs: 'pangenome/*'
 	path gMC, stageAs: 'gMC/*'
 	path normalized, stageAs: 'normalized/*'
-	path geneCompleteness
+	path gCompleteness
 	path lowerBound
 	path upperBound
 
@@ -675,7 +675,7 @@ process makeMatrix {
 	for i in *_index.tmp; do
 
 		sed -i -e 's/ /\t/g' "\$i"
-		lambda.py "\$i" $geneCompleteness $lowerBound $upperBound
+		lambda.py "\$i" $gCompleteness $lowerBound $upperBound
 
 	done
 	"""
