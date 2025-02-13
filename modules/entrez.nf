@@ -5,17 +5,16 @@
 
 process entrez {
 	conda "${projectDir}/envs/entrez.yaml"
-        publishDir "${makeDir}/results/NCBI", mode: 'copy', overwrite: true
 
 	input:
 	val gE
 	val txid
-	path makeDir
 
 	output:
 
 	path '*fna', emit: fastaFiles
 	path '*gbff', emit: gffFiles
+	path 'entrez.log', emit: logEntrez
 
 	script:
 	"""
