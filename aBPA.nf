@@ -65,7 +65,7 @@ genotypeMethod = Channel.of(params.genotyper)
 
 
 params.help = false
-
+params.version = false
 
 // Enable DSL2
 nextflow.enable.dsl=2
@@ -131,11 +131,17 @@ def print_help() {
     exit 0
 }
 
+def version() {
+	println "aBPA version 0.2"
+}
 
 if (params.help) {
     print_help()
 }
 
+if (params.version) {
+	version()
+}
 
 /*
  * entrez() will download FASTA and GenBank files from NCBI as long as a taxonomical ID was provided (mandatory value)
