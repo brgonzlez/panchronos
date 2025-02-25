@@ -133,6 +133,7 @@ def print_help() {
 
 def version() {
 	println "aBPA version 0.2"
+	exit 0
 }
 
 if (params.help) {
