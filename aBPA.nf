@@ -1693,7 +1693,19 @@ process outgroupEntrez {
 			echo "Files were corrupted. Retrying"
 			sleep 3
 		done
-	
+		# Adding to the counter
+	        counter="\$((counter + 1))"     
+                fna_count=\$(ls -1 *.fna 2>/dev/null | wc -l)
+                gbff_count=\$(ls -1 *.gbff 2>/dev/null | wc -l)
+
+                # check that there is already one file
+                if [ "\$fna_count" -lt 1 ] || [ "\$gbff_count" -lt 1 ]; then
+                        echo "It seems a file was already downloaded. Moving on"
+                        break
+                else
+                        continue
+                fi
+
 	done
 	"""
 }
