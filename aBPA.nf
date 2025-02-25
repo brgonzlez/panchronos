@@ -40,7 +40,6 @@ params.outgroup = ""
 outTax = Channel.of(params.outgroup)
 
 params.trustedGenomes = false
-def trustedDataChannel = params.trustedGenomes ? Channel.fromPath(params.trustedGenomes) : Channel.empty()
 
 params.missing = 0.01
 missingProb = Channel.of(params.missing)
@@ -216,23 +215,6 @@ process entrez {
 
 	done
 	cat .command.out >> entrez.log
-	"""
-}
-
-
-process trustedData {
-
-	input:
-	path data
-
-	output:
-	path '*fna', emit: trustedFasta
-	path '*gbff', emit: trustedGenBank
-
-	script:
-	"""
-	cp $data/* ./
-
 	"""
 }
 
@@ -1891,17 +1873,17 @@ process getResults {
 }
 
 workflow {
-	if (!params.trustedGenomes) {
-		entrez(downloadGenomes, taxID, resultsDir)
-		fastaFiles = entrez.out.fastaFiles
-		gffFiles = entrez.out.gffFiles
+        if (!params.trustedGenomes) {
+                entrez(downloadGenomes, taxID, resultsDir)
+                fastaFiles = entrez.out.fastaFiles
+                gffFiles = entrez.out.gffFiles
 
-	} else {
-		trustedData(trustedDataChannel)
-		fastaFiles = trustedData.out.trustedFasta
-		gffFiles = trustedData.out.trustedGenBank
+        } else {
+                fastaFiles = Channel.of(files("${params.trustedGenomes}/*fna"))
+                gffFiles = Channel.of(files("${params.trustedGenomes}/*gbff"))
 
-	}
+        }
+
 
 
 	fastaDatabase(gffFiles, fastaFiles)
