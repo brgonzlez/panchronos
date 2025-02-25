@@ -1084,53 +1084,56 @@ process filterGeneAlignments {
 
 
 	# Dealing with fragmented Panaroo gene alignments multi-entries (nothing else to do here since is a panaroo problem, but I'll try to save as much as possible)
-	for file in specialCases/*.fasta; do
-		name=\$(basename "\${file%_AlnSeq.fasta}")
-	# Identifying repeated headers and save them to .dpd 
-		awk '/^>/ {count[\$0]++} END {for (header in count) if (count[header] > 1) print substr(header, 2)}' "\$file" > specialCases/"\${name}.dpd"
+        for file in specialCases/*.fasta; do
+                if [[ -e "\$file" ]] ; then
+                        name=\$(basename "\${file%_AlnSeq.fasta}")
+                # Identifying repeated headers and save them to .dpd 
+                        awk '/^>/ {count[\$0]++} END {for (header in count) if (count[header] > 1) print substr(header, 2)}' "\$file" > specialCases/"\${name}.dpd"
 
-	# Extracting sequences for each repeated entry into temporary files
-		while read -r entry; do
-			awk -v sampleName="\$entry" '
-			\$0 ~ "^>" sampleName {print_header=1; next}
-			/^>/ {print_header=0}
-			print_header {print}' "\$file" > specialCases/"\${name}Seqs_\${entry}"
-		done < specialCases/"\${name}.dpd"
+                # Extracting sequences for each repeated entry into temporary files
+                        while read -r entry; do
+                                awk -v sampleName="\$entry" '
+                                \$0 ~ "^>" sampleName {print_header=1; next}
+                                /^>/ {print_header=0}
+                                print_header {print}' "\$file" > specialCases/"\${name}Seqs_\${entry}"
+                        done < specialCases/"\${name}.dpd"
 
-	# Remove repeated entries and their sequences from the original FASTA file
-		awk -v dpdFile=specialCases/"\${name}.dpd" '
-		BEGIN {
-		while (getline < dpdFile) {
-			repeated[\$0] = 1
-			}
-		}
-		/^>/ { header = substr(\$0, 2)
-		if (repeated[header]) {
-			skip = 1
-		} else {
-			skip = 0}
-		}
-		!skip' "\$file" > specialCases/"\${name}_cleaned.fasta"
+                # Remove repeated entries and their sequences from the original FASTA file
+                        awk -v dpdFile=specialCases/"\${name}.dpd" '
+                        BEGIN {
+                        while (getline < dpdFile) {
+                                repeated[\$0] = 1
+                                }
+                        }
+                        /^>/ { header = substr(\$0, 2)
+                        if (repeated[header]) {
+                                skip = 1
+                        } else {
+                                skip = 0}
+                        }
+                        !skip' "\$file" > specialCases/"\${name}_cleaned.fasta"
 
-		for indexSeqs in specialCases/"\${name}Seqs_"*; do
-			geneName=\$(basename "\${indexSeqs%Seqs_*}")
-			sampleName=\$(basename "\${indexSeqs##*Seqs_}")
+                        for indexSeqs in specialCases/"\${name}Seqs_"*; do
+                                geneName=\$(basename "\${indexSeqs%Seqs_*}")
+                                sampleName=\$(basename "\${indexSeqs##*Seqs_}")
 
-			# Read the longest line based on letter count
-			sequence=\$(awk '
-			{gsub(/[^a-zA-Z]/, "", \$0); len=length(\$0)}
-			len > max_length {max_length=len; longest=\$0}
-			END {print longest}' "\$indexSeqs")
+                                # Read the longest line based on letter count
+                                sequence=\$(awk '
+                                {gsub(/[^a-zA-Z]/, "", \$0); len=length(\$0)}
+                                len > max_length {max_length=len; longest=\$0}
+                                END {print longest}' "\$indexSeqs")
 
-        # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
-			echo ">\${sampleName}" >> specialCases/"\${name}_cleaned.fasta"
-			echo "\$sequence" >> specialCases/"\${name}_cleaned.fasta"
-		done
+                        # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
+                                echo ">\${sampleName}" >> specialCases/"\${name}_cleaned.fasta"
+                                echo "\$sequence" >> specialCases/"\${name}_cleaned.fasta"
+                        done
 
-	# Cleaning temporary files
-	#	rm specialCases/"\${name}Seqs_"* specialCases/"\${name}.dpd"
-
-	done
+                else
+                        echo -e "No files found with fasta extension in specialCases folder"    
+        # Cleaning temporary files
+        #       rm specialCases/"\${name}Seqs_"* specialCases/"\${name}.dpd"
+                fi
+        done
 
 
         # If missing user sample == true, then append it and fill it with n's (can't treat them as gaps because there is uncertainty)
