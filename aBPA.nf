@@ -784,7 +784,7 @@ process gatkConsensus {
 	path panGenomeRefDictionary, stageAs: 'panGenomeRef.dict'
 	path panGenomeReferenceIndex, stageAs: 'panGenomeRef.fasta.fai'
 	output:
-	path '*GenotypedNormalizedConsensusSeq.fasta', emit: gatkConsensusSequences
+	path 'extractedSequences*.fasta', emit: gatkConsensusSequences
 	path '*GenotypedNormalized.vcf.gz', emit: gatkGenotypes
 
 	script:
@@ -802,7 +802,7 @@ process gatkConsensus {
 		bgzip -i "\${basename%.bam}"GenotypedNormalized.vcf
 		bcftools index "\${basename%.bam}"GenotypedNormalized.vcf.gz
 		bcftools consensus -a N -M N -f panGenomeRef.fasta "\${basename%.bam}"GenotypedNormalized.vcf.gz -o "\${basename%.bam}"GenotypedNormalizedConsensus.fasta
-		seqtk seq "\${basename%.bam}"GenotypedNormalizedConsensus.fasta > "\${basename%.bam}"GenotypedNormalizedConsensusSeq.fasta
+		seqtk seq "\${basename%.bam}"GenotypedNormalizedConsensus.fasta > extractedSequences"\${basename%.bam}".fasta
 	done
 	"""
 }
