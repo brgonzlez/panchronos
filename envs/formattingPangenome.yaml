@@ -1,10 +1,11 @@
 name: formattingPangenome
-channels:  
-- bioconda  
+channels:
+- conda-forge
 - anaconda
-- conda-forge  
+- bioconda
 - defaults
-dependencies:  
+dependencies:
 - seqtk
+- openjdk=17.0.3
 - picard=3.3.0
 - samtools
