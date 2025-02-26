@@ -5,5 +5,5 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- bcftools
+- bcftools=1.21
 - seqtk
