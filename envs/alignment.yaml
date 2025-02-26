@@ -1,11 +1,11 @@
 name: alignment
-channels:  
-- bioconda  
-- anaconda
-- conda-forge  
+channels:
+- conda-forge
+- bioconda
 - defaults
-dependencies:  
+dependencies:
+- libgcc-ng
 - bwa
-- samtools
+- samtools=1.19
 - bamutil
 - picard
