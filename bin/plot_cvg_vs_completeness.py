@@ -4,6 +4,9 @@
 Created on Mon Sep  9 16:14:48 2024
 
 @author: bruno
+
+
+TODO: I NEED TO FIX BOX POSITION AND MOVE IT TO THE RIGHT, line 63
 """
 
 import pandas as pd
@@ -54,7 +57,7 @@ ax.add_collection(lines)
 rec1 = Rectangle((0, 0), 50, max_value, linewidth=1, edgecolor='none', facecolor='grey', alpha=0.3)
 rec2 = Rectangle((50, 0), 50, 0.5, linewidth=1, edgecolor='none', facecolor='grey', alpha=0.3)
 
-# Add the rectangle to the plot
+# Add the rectangle to the plot 
 ax.add_patch(rec1)
 ax.add_patch(rec2)
 plt.legend(markerscale=1, fontsize=10, loc='center right', bbox_to_anchor=(1.25,0.969))
