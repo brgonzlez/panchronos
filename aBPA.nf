@@ -846,10 +846,10 @@ process filterGeneAlignments {
 	parsingAlnFas() {
 		alnFasfile=\$1
 		if [[ -e "\$alnFasfile" ]] ; then
-			name=\$(basename "\${alnFasfile%.*}")
+			name=\$(basename "\${alnFasfile%.*}" | sed -e 's/~/_/g') # Also replace  ~ characters with _
 			seqtk seq "\${alnFasfile}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
 		else
-			echo -e "No files with .aln.fas or .fasta extension were found in genes/. Check previous process\n"
+			echo -e "No files with .aln.fas or .fasta extension were found in genes/. Check previous process\\n"
 		fi
 	}
 	
@@ -859,30 +859,7 @@ process filterGeneAlignments {
 
 	echo -e "Done\\n"
 
-	echo -e  "Fixing FASTA headers and extension of sequences with seqtk in existing gene alignments, but for alignments ending with *fasta"
-	for file in genes/*.fasta; do
-		name=\$(basename "\${file%.fasta}")
-		seqtk seq "\${file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
-	done
-	echo -e "Done\\n"
-
-
-	echo -e "Replace ~ characters with _ in gene MSA filenames"
-	for i in AlnSeq/*_AlnSeq.fasta; do
-    		# Create a temporary name with '_TMP' to avoid overwriting
-    		tmpname="\${i}_TMP"
-    		mv "\$i" "\$tmpname"
-		    
-	    	# Fix the name by replacing ~ with _
-	    	fixedname=\$(basename "\${tmpname%_TMP}" | sed -e 's/~/_/g')
-	    	
-    		# Rename the file with the fixed name
-    		mv "\$tmpname" "AlnSeq/\$fixedname"
-	done
-	echo -e "Done\\n"
-	
-
-	echo -e "BlackList low quality user samples and then make a file with user sample names"
+	echo -e "Excluding low quality samples from analysis"
 	if [[ -s blackListed.txt ]]; then
 		while read -r removeMe; do
 			mv sampleGenes/extractedSequences"\${removeMe}.fasta" sampleGenes/"\${removeMe}blackListed.txt"
@@ -891,9 +868,7 @@ process filterGeneAlignments {
 	else
 		echo -e "Every sample passed quality checks."
 	fi
-	echo -e "Done\\n"
 
-	echo -e "Collect sample names after quality checks"
 	for sample in sampleGenes/*fasta; do
 		sampleName=\$(basename "\${sample%.fasta}")
 		echo "\${sampleName}" >> userSampleNames.txt
@@ -903,15 +878,24 @@ process filterGeneAlignments {
 
 
 	echo -e "Adding user sample genes sequences to each particular gene MSA and replace gene name with sample name"
-        for i in AlnSeq/*_AlnSeq.fasta; do
-                name=\$(basename "\${i%_AlnSeq.fasta}")
-                for sample in sampleGenes/*fasta; do
-			sed -i -e 's/~/_/g' "\$sample"
-			sampleName=\$(basename "\${sample%.fasta}")
-			echo -e "Adding "\${sampleName}" gene sequences into "\${name}" MSA file"
-                        grep -w -A 1 "\$name" "\$sample" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${i}"
-                done
-        done
+
+	addSampleSequences() {
+	AlnSeqMSA=\$1
+		if [[ -e "\$AlnSeqMSA" ]]; then
+                	name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
+			while read -r sampleName; do
+					sed -i -e 's/~/_/g' "sampleGenes/\${sampleName}.fasta"
+					echo -e "Adding "\${sampleName}" gene sequences into "\${name}" MSA file"
+                        		grep -w -A 1 "\$name" "sampleGenes/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${AlnSeqMSA}"
+                	done < userSampleNames.txt
+		else
+			echo -e "There are no files with _AlnSeq.fasta extension in AlnSeq/.\\n"
+		fi
+	}
+
+	export -f addSampleSequences
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addSampleSequences
+
 	echo -e "Done\\n"
 
 	echo -e "Adding outgroup gene sequences into each gene MSA file"
