@@ -895,17 +895,27 @@ process filterGeneAlignments {
 
 	export -f addSampleSequences
 	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addSampleSequences
-
 	echo -e "Done\\n"
+
 
 	echo -e "Adding outgroup gene sequences into each gene MSA file"
-	sed -i -e 's/~/_/g' outgroup
-	for i in AlnSeq/*_AlnSeq.fasta; do
-		name=\$(basename "\${i%_AlnSeq.fasta}")
-		echo -e "Adding outgroup sequences into "\${name}" MSA"
-		grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${i}"
-	done
+	if [[ -e outgroup ]]; then
+		sed -i -e 's/~/_/g' outgroup
+	else
+		echo -e "outgroup file was not found"
+		exit 1
+	fi
+	addOutgroupSequences() {
+	AlnSeqMSA=\$1
+
+			name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
+			echo -e "Adding outgroup sequences into "\${name}" MSA"
+			grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${AlnSeqMSA}"
+	}
+	export -f addOutgroupSequences
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addOutgroupSequences
 	echo -e "Done\\n"
+
 
 	echo -e "Taking the total lenght of the gene sequence and then fill incomplete user samples gene sequences with n"
 	for i in AlnSeq/*_AlnSeq.fasta; do
