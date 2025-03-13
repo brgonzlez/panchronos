@@ -842,9 +842,13 @@ process filterGeneAlignments {
 	mkdir -p AlnSeq/
 
 	echo -e "Fixing FASTA headers and extension of sequences with seqtk in existing gene alignments"
+	
 	for file in genes/*.aln.fas; do
-		name=\$(basename "\${file%.aln.fas}")
-		seqtk seq "\${file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
+		if [[ -e "\$file" ]] ; then
+			name=\$(basename "\${file%.aln.fas}")
+			seqtk seq "\${file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
+		else
+			echo -e "No file with .aln.fas extension were found in genes/\n"
 	done
 	echo -e "Done\\n"
 
