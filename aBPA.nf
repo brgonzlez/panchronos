@@ -820,7 +820,7 @@ process gatkConsensus {
 
 
 process filterGeneAlignments {
-	conda "${projectDir}/envs/seqtk.yaml"
+	conda "${projectDir}/envs/filterGeneAlignments.yaml"
 
 	input:
 	path genesAln, stageAs: 'genes/*'
