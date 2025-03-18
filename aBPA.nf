@@ -247,7 +247,7 @@ process fastaDatabase {
 	
 	for genome in cleanedFasta/*; do
 		name=\$(basename "\$genome")
-		awk '!/^>/ { gsub(/[^ACGTN]/, "N") }1' "\$genome" > tmp && mv tmp "\$genome"
+		awk '!/^>/ { gsub(/[^AaCcGgTtNn]/, "N") }1' "\$genome" > tmp && mv tmp "\$genome"
 	done
 
 	cat .command.out >> fastaDatabase.log
