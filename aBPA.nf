@@ -840,7 +840,7 @@ process filterGeneAlignments {
 	#!/bin/bash
 
 	mkdir -p AlnSeq/
-
+	##################################################################################
 	echo -e "Fixing FASTA headers and extension of sequences with seqtk in existing gene alignments"
 
 	parsingAlnFas() {
@@ -859,6 +859,7 @@ process filterGeneAlignments {
 
 	echo -e "Done\\n"
 
+	##################################################################################
 	echo -e "Excluding low quality samples from analysis"
 	if [[ -s blackListed.txt ]]; then
 		while read -r removeMe; do
@@ -877,6 +878,7 @@ process filterGeneAlignments {
 	echo -e "Done\\n"
 
 
+	##################################################################################
 	echo -e "Adding user sample genes sequences to each particular gene MSA and replace gene name with sample name"
 
 	addSampleSequences() {
@@ -897,7 +899,7 @@ process filterGeneAlignments {
 	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addSampleSequences
 	echo -e "Done\\n"
 
-
+	##################################################################################
 	echo -e "Adding outgroup gene sequences into each gene MSA file"
 	if [[ -e outgroup ]]; then
 		sed -i -e 's/~/_/g' outgroup
@@ -905,6 +907,8 @@ process filterGeneAlignments {
 		echo -e "outgroup file was not found"
 		exit 1
 	fi
+
+	##################################################################################
 	addOutgroupSequences() {
 	AlnSeqMSA=\$1
 
@@ -916,11 +920,12 @@ process filterGeneAlignments {
 	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addOutgroupSequences
 	echo -e "Done\\n"
 
-
+	##################################################################################
 	echo -e "Taking the total lenght of the gene sequence and then fill incomplete user samples gene sequences with n"
-	for i in AlnSeq/*_AlnSeq.fasta; do
-		geneName=\$(basename "\$i")
-		numberOfColumns=\$(awk 'NR==2 {print length}' "\$i")
+
+	completeStrings () {
+	MSA=\$1
+		numberOfColumns=\$(awk 'NR==2 {print length}' "\$MSA")
 		awk -v numCols="\$numberOfColumns" '{
 			if (\$0 ~ /^>/) {
 				print
@@ -930,22 +935,29 @@ process filterGeneAlignments {
 			}
 			print
 			}
-		}' "\$i" > tmp && mv tmp "\${i}"
-	done
+		}' "\${MSA}" > tmp && mv tmp "\${MSA}"
+	}
+	export -f completeStrings
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 completeStrings
 	echo -e "Done\\n"
 
-
-	# Make a file with downloaded modern genomes names
-	for i in FNA/*.fna; do
-		fnames=\$(basename "\${i%.fna}")
+	##################################################################################
+	# Make a file with downloaded modern genomes names, maybe there could be many modern genomes so we will parallel too
+	modernSamplesList() {
+	fileFasta=\$1
+		fnames=\$(basename "\${fileFasta%.fna}")
 		echo "\${fnames}" >> modernSampleNames.txt
-	done
-	echo outgroup >> modernSampleNames.txt
+	}
+	export -f modernSamplesList
+	find FNA/ -name "*.fna" | parallel -j 10
 	
+	# Adding the outgroup to this as it is modern too
+	echo outgroup >> modernSampleNames.txt
+	##################################################################################
 	# Make a file with every sample combined
 	cat modernSampleNames.txt userSampleNames.txt > sampleNames.txt
 
-
+	##################################################################################
 	echo -e "Checking if there are Panaroo headers artifacts"
 	for file in AlnSeq/*_AlnSeq.fasta ; do
 		geneName=\$(basename "\${file}")
@@ -974,7 +986,7 @@ process filterGeneAlignments {
 	done
 	echo -e "Done\\n"
 
-
+	##################################################################################
 	echo -e "If there are missing modern strain, append the sample and fill it with -"
 	#(gaps;absence of gene; because we trust modern genomes assemblies?)
 	for file in AlnSeq/*_AlnSeq.fasta ; do
@@ -995,8 +1007,8 @@ process filterGeneAlignments {
 		fi
 	done
 	echo -e "Done \\n"
-
-
+	
+	##################################################################################
 	echo -e "If missing user sample == true, then append it and fill it with n's" 
 	#(can't treat them as gaps because there is uncertainty)
         for file in AlnSeq/*_AlnSeq.fasta ; do
@@ -1017,18 +1029,19 @@ process filterGeneAlignments {
                 fi
         done
 
-
+	##################################################################################
 	# Replacing ~ with _ in list of genes files
 	for txtFile in *txt; do
 		sed -i -e 's/~/_/g' "\$txtFile"
 	done
 
-
+	##################################################################################
 	# Make directory to store special cases
 	mkdir -p specialCases
 	# Make directory where the final gene MSA will be stored
 	mkdir -p filteredGenes
-	
+	##################################################################################
+
 	echo -e "Check if there is a missing sample that should match perfectly in genes MSA, if not found, send MSA to special cases"
 	for i in AlnSeq/*_AlnSeq.fasta; do
 		geneName=\$(basename "\$i")
@@ -1057,6 +1070,7 @@ process filterGeneAlignments {
 	
 	done
 	echo -e "Done\\n"
+	##################################################################################
 
 	# After everything, check again if the number of samples in genes MSAs is different than the real number of samples, if true send those MSA to special cases
 	echo -e "Looking for more special cases"
@@ -1070,7 +1084,7 @@ process filterGeneAlignments {
 	done
 	echo -e "Done\\n"
 
-
+	##################################################################################
 	# Dealing with fragmented Panaroo gene alignments multi-entries (nothing else to do here since is a panaroo problem, but I'll try to save as much as possible)
         for file in specialCases/*.fasta; do
                 if [[ -e "\$file" ]] ; then
@@ -1123,6 +1137,7 @@ process filterGeneAlignments {
                 fi
         done
 
+	##################################################################################
 
         # If missing user sample == true, then append it and fill it with n's (can't treat them as gaps because there is uncertainty)
         for file in specialCases/*_cleaned.fasta ; do
@@ -1143,6 +1158,8 @@ process filterGeneAlignments {
                 fi
         done
 
+	##################################################################################
+
 	# Turns out these broken entries were also incomplete
         for i in specialCases/*_cleaned.fasta; do
 
@@ -1161,6 +1178,7 @@ process filterGeneAlignments {
                 }' "\$i" > specialCases/tmp && mv specialCases/tmp "\${i}"
         done
 
+	##################################################################################
 
 	cp specialCases/*_cleaned.fasta filteredGenes/
 
@@ -1169,7 +1187,7 @@ process filterGeneAlignments {
 		mv "\$file" filteredGenes/"\$name"
 	done
 
-
+	##################################################################################
 	# Make INDEX file so we can sort every file in the same order before building MSA based on first file.
 	echo -e "Creating INDEX file"
 	firstFile=\$(ls -1 filteredGenes/ | awk 'NR==1 {print \$0}') && awk '/^>/ {print \$0}' filteredGenes/"\$firstFile" > filteredGenes/INDEX
@@ -1191,6 +1209,7 @@ process filterGeneAlignments {
 
     		echo "Finished sorting \$fasta to \${name}_sorted"
 	done
+	##################################################################################
 
 	# Check that this worked
 	for i in filteredGenes/*_sorted; do
@@ -1211,11 +1230,12 @@ process filterGeneAlignments {
 	else
     		echo "It seems every file is sorted. Moving on"
 	fi
-	
+	##################################################################################
+
 	# Clean up temporary file
 	#rm filteredGenes/currentHeaders
 
-
+	##################################################################################
 	echo -e "Check that every MSA contains the same amount of nucleotides"
 	# (outgroup or user samples can generate insertions sometimes?)
 	for gene in filteredGenes/*_sorted; do
@@ -1224,6 +1244,7 @@ process filterGeneAlignments {
 		awk '!/^>/ {print length}' "\$gene" >> filteredGenes/"\${name%_sorted}"_testingIntegrity.txt
 		echo -e "Done"
 	done
+	##################################################################################
 
 	for file in filteredGenes/*testingIntegrity.txt; do
 		name=\$(basename "\$file")
@@ -1244,6 +1265,7 @@ process filterGeneAlignments {
         		fi
     		fi
 	done
+	##################################################################################
 
 	for problem in filteredGenes/*_problematicFile.txt; do
 		name=\$(basename "\${problem%_problematicFile.txt}")
@@ -1254,6 +1276,7 @@ process filterGeneAlignments {
 		name=\$(basename "\$file")
 		mv "\$file" filteredGenes/"\${name%_sorted}_Filtered.fasta"
 	done
+	##################################################################################
 	
 	cat .command.out >> filterGeneAlignments.log
 	"""
