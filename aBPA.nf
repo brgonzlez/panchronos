@@ -846,7 +846,7 @@ process filterGeneAlignments {
 	parsingAlnFas() {
 		alnFasfile=\$1
 		if [[ -e "\$alnFasfile" ]] ; then
-			name=\$(basename "\${alnFasfile%.*}" | sed -e 's/~/_/g') # Also replace  ~ characters with _
+			name=\$(basename "\${alnFasfile%%.*}" | sed -e 's/~/_/g') # Also replace  ~ characters with _, with double % to remove two dots
 			seqtk seq "\${alnFasfile}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
 		else
 			echo -e "No files with .aln.fas or .fasta extension were found in genes/. Check previous process\\n"
