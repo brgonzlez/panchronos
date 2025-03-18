@@ -102,13 +102,7 @@ filtered_matrix_05 = matrix_05[~mask_05]
 
 def create_clustered_heatmap(data, names, label):
     """
-    Creates a clustered heatmap with the specified formatting and customization.
-    
-    Parameters:
-    data (pandas.DataFrame): The input data for creating the heatmap.
-    
-    Returns:
-    None
+    need to do the label upper limits. If there are too many samples then don't plot tips labels
     """
     ancient_strains = names
 
