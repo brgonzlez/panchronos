@@ -59,7 +59,7 @@ minReadLength = Channel.of(params.minlength)
 params.maxlength = 300
 maxReadLength = Channel.of(params.maxlength)
 
-params.genotyper = "gatk"
+params.genotyper = "bcftools"
 genotypeMethod = Channel.of(params.genotyper)
 
 
