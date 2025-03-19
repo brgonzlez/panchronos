@@ -927,6 +927,7 @@ process filterGeneAlignments {
 
 	completeStrings () {
 	MSA=\$1
+		shortName=\$(basename "\${MSA}")
 		numberOfColumns=\$(awk 'NR==2 {print length}' "\$MSA")
 		awk -v numCols="\$numberOfColumns" '{
 			if (\$0 ~ /^>/) {
@@ -937,7 +938,7 @@ process filterGeneAlignments {
 			}
 			print
 			}
-		}' "\${MSA}" > tmp_"\${MSA}" && mv tmp_"\${MSA}" "\${MSA}"
+		}' "\${MSA}" > tmp_"\${shortName}" && mv tmp_"\${shortName}" "\${MSA}"
 	}
 	export -f completeStrings
 	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 completeStrings
@@ -951,7 +952,7 @@ process filterGeneAlignments {
 		echo "\${fnames}" > "\${fnames}"_indX.txt
 	}
 	export -f modernSamplesList
-	find FNA/ -name "*.fna" | parallel -j 10
+	find FNA/ -name "*.fna" | parallel -j 10 modernSamplesList
 
 	cat *_indX.txt >> modernSampleNames.txt
 	rm *_indX.txt
