@@ -887,7 +887,7 @@ process filterGeneAlignments {
                 	name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
 			while read -r sampleName; do
 					sed -i -e 's/~/_/g' "sampleGenes/\${sampleName}.fasta"
-					echo -e "Adding "\${sampleName}" gene sequences into "\${name}" MSA file"
+					echo -e "Adding "\${sampleName}" gene sequences into "\${AlnSeqMSA}" MSA file"
                         		grep -w -A 1 "\$name" "sampleGenes/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${AlnSeqMSA}"
                 	done < userSampleNames.txt
 		else
@@ -913,7 +913,7 @@ process filterGeneAlignments {
 	AlnSeqMSA=\$1
 
 			name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
-			echo -e "Adding outgroup sequences into "\${name}" MSA"
+			echo -e "Adding outgroup sequences into "\${AlnSeqMSA}"
 			grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${AlnSeqMSA}"
 	}
 	export -f addOutgroupSequences
@@ -935,7 +935,7 @@ process filterGeneAlignments {
 			}
 			print
 			}
-		}' "\${MSA}" > tmp && mv tmp "\${MSA}"
+		}' "\${MSA}" > tmp_"\${MSA}" && mv tmp_"\${MSA}" "\${MSA}"
 	}
 	export -f completeStrings
 	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 completeStrings
@@ -946,11 +946,14 @@ process filterGeneAlignments {
 	modernSamplesList() {
 	fileFasta=\$1
 		fnames=\$(basename "\${fileFasta%.fna}")
-		echo "\${fnames}" >> modernSampleNames.txt
+		echo "\${fnames}" > "\${fnames}"_indX.txt
 	}
 	export -f modernSamplesList
 	find FNA/ -name "*.fna" | parallel -j 10
-	
+
+	cat *_indX.txt >> modernSampleNames.txt
+	rm *_indX.txt
+
 	# Adding the outgroup to this as it is modern too
 	echo outgroup >> modernSampleNames.txt
 	##################################################################################
@@ -960,8 +963,10 @@ process filterGeneAlignments {
 	##################################################################################
 	echo -e "Checking if there are Panaroo headers artifacts"
 	for file in AlnSeq/*_AlnSeq.fasta ; do
-		geneName=\$(basename "\${file}")
-		echo -e "Reading \$geneName MSA"
+
+	fixingArtifacts() {
+	file=\$1
+		echo -e "Reading \$file MSA"
 		
 		while read -r sampleName; do
 			newVariableName=">\$sampleName"
@@ -983,7 +988,9 @@ process filterGeneAlignments {
 			fi
 
 		done < modernSampleNames.txt
-	done
+	}
+
+
 	echo -e "Done\\n"
 
 	##################################################################################
