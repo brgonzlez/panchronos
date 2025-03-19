@@ -986,8 +986,8 @@ process filterGeneAlignments {
 
 			fi
 
-	done < modernSampleNames.txt
-	
+		done < modernSampleNames.txt
+	done
 
 
 	echo -e "Done\\n"
