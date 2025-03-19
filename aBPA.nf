@@ -915,7 +915,7 @@ process filterGeneAlignments {
 	AlnSeqMSA=\$1
 
 			name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
-			echo -e "Adding outgroup sequences into "\${AlnSeqMSA}"
+			echo -e "Adding outgroup sequences into \${AlnSeqMSA}"
 			grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${AlnSeqMSA}"
 	}
 	export -f addOutgroupSequences
