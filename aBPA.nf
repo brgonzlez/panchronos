@@ -839,6 +839,8 @@ process filterGeneAlignments {
 	"""
 	#!/bin/bash
 
+	shopt -s nullglob  #Prevent literal interpretation of wildcards if there are no matchings
+
 	mkdir -p AlnSeq/
 	##################################################################################
 	echo -e "Fixing FASTA headers and extension of sequences with seqtk in existing gene alignments"
@@ -1272,16 +1274,31 @@ process filterGeneAlignments {
     		fi
 	done
 	##################################################################################
+	shopt -s nullglob
+	
+	problems=(filteredGenes/*_problematicFile.txt)
+	
+	if [[ \${#problems[@]} -gt 0 ]]; then
 
-	for problem in filteredGenes/*_problematicFile.txt; do
-		name=\$(basename "\${problem%_problematicFile.txt}")
-		mv filteredGenes/"\${name}"_sorted specialCases/
-	done
+		for problem in "\${problems[@]}"; do
+			name=\$(basename "\${problem%_problematicFile.txt}")
+			mv filteredGenes/"\${name}"_sorted specialCases/
+		done
+	else
+		echo -e "There were no files with _problematicFile.txt extension. Moving on."
+		
+	fi
 
-	for file in filteredGenes/*_sorted; do
-		name=\$(basename "\$file")
-		mv "\$file" filteredGenes/"\${name%_sorted}_Filtered.fasta"
-	done
+	fileArray=(filteredGenes/*_sorted)
+	if [[ \${#file[@]} -gt 0 ]]; then
+		for file in "\${fileArray[@]}"; do
+			name=\$(basename "\$file")
+			mv "\$file" filteredGenes/"\${name%_sorted}_Filtered.fasta"
+		done
+	else
+		echo -e "There were no files with _sorted extension. Moving on."
+	fi
+	
 	##################################################################################
 	
 	cat .command.out >> filterGeneAlignments.log
