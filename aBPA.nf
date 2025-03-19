@@ -965,12 +965,9 @@ process filterGeneAlignments {
 
 	##################################################################################
 	echo -e "Checking if there are Panaroo headers artifacts"
-	for file in AlnSeq/*_AlnSeq.fasta ; do
 
-	fixingArtifacts() {
-	file=\$1
+	for file in AlnSeq/*_AlnSeq.fasta ; do
 		echo -e "Reading \$file MSA"
-		
 		while read -r sampleName; do
 			newVariableName=">\$sampleName"
 			matches=\$(grep "\$sampleName" "\$file")
@@ -980,7 +977,6 @@ process filterGeneAlignments {
 				while IFS= read -r matchedLine; do
 	
 					if [[ "\$matchedLine" != "\$newVariableName" ]]; then
-
 						sed -i -e "s/\${matchedLine}/\${newVariableName}/g" "\$file"
 						echo -e "\$matchedLine name was found but it should have been "\$newVariableName" instead. Fixed"
 					fi
@@ -990,8 +986,8 @@ process filterGeneAlignments {
 
 			fi
 
-		done < modernSampleNames.txt
-	}
+	done < modernSampleNames.txt
+	
 
 
 	echo -e "Done\\n"
