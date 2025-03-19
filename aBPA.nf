@@ -1290,7 +1290,7 @@ process filterGeneAlignments {
 	fi
 
 	fileArray=(filteredGenes/*_sorted)
-	if [[ \${#file[@]} -gt 0 ]]; then
+	if [[ \${#fileArray[@]} -gt 0 ]]; then
 		for file in "\${fileArray[@]}"; do
 			name=\$(basename "\$file")
 			mv "\$file" filteredGenes/"\${name%_sorted}_Filtered.fasta"
