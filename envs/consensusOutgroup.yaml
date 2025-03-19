@@ -1,8 +1,7 @@
 name: consensusOutgroup
 channels:
-- bioconda
-- anaconda
 - conda-forge
+- bioconda
 - defaults
 dependencies:
 - bcftools=1.21
