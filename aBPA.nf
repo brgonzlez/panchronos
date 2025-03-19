@@ -1264,9 +1264,9 @@ process filterGeneAlignments {
         		# Delete the file if there is only one unique value
         		if [[ \$uniqueCount -eq 1 ]]; then
 	            		rm "\$file"
-            			echo "Deleted \$file (only 1 unique value)"
+            			echo "Deleted \$file , only 1 unique value"
         		else
-	            		echo "Kept \$file (more than 1 unique value, means problem)"
+	            		echo "Kept \$file , more than 1 unique value, means problem"
 				mv "\$file" filteredGenes/"\${name%_testingIntegrity.txt}_problematicFile.txt"
         		fi
     		fi
