@@ -995,7 +995,7 @@ process filterGeneAlignments {
 
 	##################################################################################
 	echo -e "If there are missing modern strain, append the sample and fill it with -"
-	#(gaps;absence of gene; because we trust modern genomes assemblies?)
+	#gaps;absence of gene; because we trust modern genomes assemblies?
 	for file in AlnSeq/*_AlnSeq.fasta ; do
 
 		sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
@@ -1016,12 +1016,11 @@ process filterGeneAlignments {
 	echo -e "Done \\n"
 	
 	##################################################################################
-	echo -e "If missing user sample == true, then append it and fill it with n's" 
-	#(can't treat them as gaps because there is uncertainty)
+
         for file in AlnSeq/*_AlnSeq.fasta ; do
 
-                sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-                numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
+		sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
+        	numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
                 totalSamples=\$(wc -l < sampleNames.txt)
                 
                 if (( sampleValue < totalSamples)); then
