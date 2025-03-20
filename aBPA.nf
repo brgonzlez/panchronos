@@ -1127,8 +1127,13 @@ process filterGeneAlignments {
 	echo -e "Done\\n"
 
 	##################################################################################
-	# Dealing with fragmented Panaroo gene alignments multi-entries (nothing else to do here since is a panaroo problem, but I'll try to save as much as possible)
-        for file in specialCases/*.fasta; do
+	# Dealing with fragmented Panaroo gene alignments multi-entries
+
+	echo -e "Cleaning duplicated headers"
+
+	deduplicateEntries() {
+	file=\$1
+
                 if [[ -e "\$file" ]] ; then
                         name=\$(basename "\${file%_AlnSeq.fasta}")
                 # Identifying repeated headers and save them to .dpd 
@@ -1175,9 +1180,12 @@ process filterGeneAlignments {
                 else
                         echo -e "No files found with fasta extension in specialCases folder"    
         # Cleaning temporary files
-        #       rm specialCases/"\${name}Seqs_"* specialCases/"\${name}.dpd"
                 fi
-        done
+        }
+
+	export -f deduplicateEntries
+	find specialCases/ -name "*.fasta" | parallel -j 10 deduplicateEntries
+	echo -e "Done"
 
 	##################################################################################
 
