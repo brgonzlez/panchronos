@@ -957,6 +957,8 @@ process filterGeneAlignments {
 	cat *_indX.txt >> modernSampleNames.txt
 	rm *_indX.txt
 
+	echo -e "Done\\n"
+
 	# Adding the outgroup to this as it is modern too
 	echo outgroup >> modernSampleNames.txt
 	##################################################################################
@@ -966,36 +968,43 @@ process filterGeneAlignments {
 	##################################################################################
 	echo -e "Checking if there are Panaroo headers artifacts"
 
-	for file in AlnSeq/*_AlnSeq.fasta ; do
-		echo -e "Reading \$file MSA"
+	panarooHeadersArtifacts() {
+	msa=\$1
+
+		echo -e "Reading \$msa MSA"
 		while read -r sampleName; do
 			newVariableName=">\$sampleName"
-			matches=\$(grep "\$sampleName" "\$file")
+			matches=\$(grep "\$sampleName" "\$msa")
 
 			if [[ -n "\$matches" ]]; then
 	
 				while IFS= read -r matchedLine; do
 	
 					if [[ "\$matchedLine" != "\$newVariableName" ]]; then
-						sed -i -e "s/\${matchedLine}/\${newVariableName}/g" "\$file"
+						sed -i -e "s/\${matchedLine}/\${newVariableName}/g" "\$msa"
 						echo -e "\$matchedLine name was found but it should have been "\$newVariableName" instead. Fixed"
 					fi
 				done <<< "\$matches"
 			else
-				echo -e "It seems everything was okay for \$newVariableName in \$file."
+				echo -e "It seems headers are okay for \$newVariableName in \$msa."
 
 			fi
 
 		done < modernSampleNames.txt
-	done
+	}
 
 
+	export -f panarooHeadersArtifacts
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 panarooHeadersArtifacts
 	echo -e "Done\\n"
+
 
 	##################################################################################
 	echo -e "If there are missing modern strain, append the sample and fill it with -"
-	#gaps;absence of gene; because we trust modern genomes assemblies?
-	for file in AlnSeq/*_AlnSeq.fasta ; do
+
+
+	modernGapsAppend() {
+	file=\$1
 
 		sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
                 numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
@@ -1011,28 +1020,39 @@ process filterGeneAlignments {
 				fi 
 			done < modernSampleNames.txt
 		fi
-	done
+	}
+
+	export -f modernGapsAppend
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 modernGapsAppend
 	echo -e "Done \\n"
-	
+
+
 	##################################################################################
+	echo -e "If there are ancient missing genes, append the sample and fill it with -"
 
-        for file in AlnSeq/*_AlnSeq.fasta ; do
-
-		sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-        	numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
+	ancientGapsAppend() {
+	msaFile=\$1
+		sampleValue=\$(awk '/^>/ {print \$0}' "\$msaFile" | wc -l)
+        	numberOfColumns=\$(awk 'NR==2 {print length}' "\$msaFile")
                 totalSamples=\$(wc -l < sampleNames.txt)
                 
                 if (( sampleValue < totalSamples)); then
 
                         while read -r strain; do
                                 if ! grep -wq "\$strain" "\$file"; then
-                                        echo ">\$strain" >> "\$file"
+                                        echo ">\$strain" >> "\$msaFile"
                                         fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' 'n')
-                                        echo "\$fakeSeq" >> "\$file"
+                                        echo "\$fakeSeq" >> "\$msaFile"
                                 fi
                         done < sampleNames.txt
                 fi
-        done
+        }
+
+	export -f ancientGapsAppend
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 ancientGapsAppend
+
+	echo -e "Done \\n"
+
 
 	##################################################################################
 	# Replacing ~ with _ in list of genes files
