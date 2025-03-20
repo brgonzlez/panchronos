@@ -1068,13 +1068,15 @@ process filterGeneAlignments {
 	##################################################################################
 
 	echo -e "Check if there is a missing sample that should match perfectly in genes MSA, if not found, send MSA to special cases"
-	for i in AlnSeq/*_AlnSeq.fasta; do
-		geneName=\$(basename "\$i")
+	incompleteMSA() {
+	fileMSA=\$1
+
+		geneName=\$(basename "\$fileMSA")
 		samplesPresent=true
 
 		# First I need to check if every sample is present or not.
 		while read -r sample; do
-			if ! grep -wq "\$sample" "\$i"; then
+			if ! grep -wq "\$sample" "\$fileMSA"; then
 				samplesPresent=false
 				break
 			fi
@@ -1083,30 +1085,45 @@ process filterGeneAlignments {
 		# If samplesPresent=True, then means that every sample was present so we can send the file to Filtered.
 		if [ "\$samplesPresent" = true ]; then
 			while read -r sample; do
-				grep -w -A 1 "\$sample" "\$i" >> filteredGenes/"\${geneName}"	
+				grep -w -A 1 "\$sample" "\$fileMSA" >> filteredGenes/"\${geneName}"	
 			done < sampleNames.txt
 		
 
 		else
 			# If missing sample, then move it to special cases
-			mv "\$i" specialCases/
-			echo -e ""\$i" file was found to have problems. Sent to specialCases"
+			mv "\$fileMSA" specialCases/
+			echo -e ""\$fileMSA" file was found to be incomplete. Sent to specialCases."
 		fi
 	
-	done
+	}
+
+	export -f incompleteMSA
+	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 incompleteMSA
 	echo -e "Done\\n"
+
 	##################################################################################
 
 	# After everything, check again if the number of samples in genes MSAs is different than the real number of samples, if true send those MSA to special cases
+	# This is because there could be Panaroo duplicate artifacts, which are handled later on
+
 	echo -e "Looking for more special cases"
-	for file in filteredGenes/*.fasta; do
+
+	checkingIntegrity() {
+	file=\$1
 		value=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
 		sampleN=\$(wc -l < sampleNames.txt)
+		echo -e "testing integrity of \$file . . ."
 		if [ \$value -ne \$sampleN ]; then
 			mv "\$file" specialCases/
-			echo -e ""\$file" file was found to have problems. Sent to specialCases"
+			echo -e "\$file file was found to have problems. Sent to specialCases"
+		else
+			echo -e "\$file MSA is fine."
 		fi
-	done
+	}
+
+	export -f checkingIntegrity
+	find filteredGenes/ -name "*.fasta" | parallel -j 10 checkingIntegrity
+
 	echo -e "Done\\n"
 
 	##################################################################################
