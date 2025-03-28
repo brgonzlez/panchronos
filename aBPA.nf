@@ -1190,13 +1190,19 @@ process filterGeneAlignments {
 	##################################################################################
 
         # If missing user sample == true, then append it and fill it with n's (can't treat them as gaps because there is uncertainty)
-        for file in specialCases/*_cleaned.fasta ; do
+	echo -e "Adding missing genes with n"
+
+	sampleUncertainty() {
+	file=\$1
 
                 sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-                numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
+                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$file")
                 totalSamples=\$(wc -l < sampleNames.txt)
 
+
                 if (( sampleValue < totalSamples)); then
+
+			echo -e "\$sampleValue samples were found in \$file where total number of samples is \$totalSamples."
 
                         while read -r strain; do
                                 if ! grep -wq "\$strain" "\$file"; then
@@ -1205,16 +1211,25 @@ process filterGeneAlignments {
                                         echo "\$fakeSeq" >> "\$file"
                                 fi
                         done < sampleNames.txt
+		else
+			echo -e "\$sampleValue samples were found in \$file where total number of samples is \$totalSamples. Moving on."
                 fi
-        done
+        }
+
+	export -f sampleUncertainty
+	find specialCases/ -name "*_cleaned.fasta" | parallel -j 10 deduplicateEntries
+	echo -e "Done"
 
 	##################################################################################
 
 	# Turns out these broken entries were also incomplete
+
+	#fixingAlignmentsLengths() {
+
         for i in specialCases/*_cleaned.fasta; do
 
-                numberOfColumns=\$(awk 'NR==2 {print length}' "\$i")
-                echo "\$numberOfColumns"
+                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$i")
+                echo "\$numberOfColumns in file \$i"
 
                 awk -v numCols="\$numberOfColumns" '{
                         if (\$0 ~ /^>/) {
