@@ -1223,13 +1223,13 @@ process filterGeneAlignments {
 	##################################################################################
 
 	# Turns out these broken entries were also incomplete
-
-	#fixingAlignmentsLengths() {
-
         for i in specialCases/*_cleaned.fasta; do
 
-                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$i")
-                echo "\$numberOfColumns in file \$i"
+	#fixingAlignmentsLengths() {
+	cleanedFasta=\$1
+
+                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$cleanedFasta")
+                echo "\$numberOfColumns in file \$cleanedFasta"
 
                 awk -v numCols="\$numberOfColumns" '{
                         if (\$0 ~ /^>/) {
@@ -1240,7 +1240,7 @@ process filterGeneAlignments {
                         }
                         print
                         }
-                }' "\$i" > specialCases/tmp && mv specialCases/tmp "\${i}"
+                }' "\$cleanedFasta" > specialCases/tmp_"\${cleanedFasta}" && mv specialCases/tmp_"\${cleanedFasta}" "\${cleanedFasta}"
         done
 
 	##################################################################################
