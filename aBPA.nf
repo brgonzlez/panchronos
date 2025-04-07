@@ -1271,7 +1271,6 @@ process filterGeneAlignments {
 	sortingMSA() {
 	fasta=\$1
 
-	for fasta in filteredGenes/*.fasta; do
     		echo "Sorting \$fasta file"
 		name=\$(basename "\${fasta%_AlnSeq.fasta}")
 
@@ -1279,7 +1278,7 @@ process filterGeneAlignments {
         		awk -v headerName="\$header" '
             		\$0 ~ headerName {
                 		print \$0     # Print the matched header
-                		getline      # Get the sequence line after the header and store it in \$0
+                		getline      # Get the sequence line after the header and store it in $0
                 		print \$0     # Print the sequene
             		}
         		' "\$fasta" >> filteredGenes/"\${name}_sorted"
@@ -1293,19 +1292,25 @@ process filterGeneAlignments {
 	echo -e "Done"
 	##################################################################################
 
-	# Check that this worked
-	for i in filteredGenes/*_sorted; do
-    		awk '/^>/ {print \$0}' "\$i" > filteredGenes/currentHeaders
+	echo -e "Sorting sanity check"
+
+	checkingSort() {
+	i=\$1
+
+		awk '/^>/ {print \$0}' "\$i" > filteredGenes/currentHeaders_"\${i}"
 
     		# Compare with INDEX file. It should be the same but if not, point that out
 
-    		if ! diff -q filteredGenes/INDEX filteredGenes/currentHeaders >/dev/null; then
+    		if ! diff -q filteredGenes/INDEX filteredGenes/currentHeaders_"\${i}" >/dev/null; then
         		echo "Headers in \$i differ from INDEX." >> filteredGenes/notSorted
         		mv "\$i" specialCases/
     		else
         		echo "Headers in \$i match INDEX." >> filteredGenes/sortedSuccesfully
     		fi
-	done
+	}
+
+	export -f checkingSort
+	find filteredGenes/ -name "*_sorted" | parallel -j 10 checkingSort
 
 	if [ -f filteredGenes/notSorted ]; then
     		echo "There is one or more files with sorting problems. Check notSorted file and specialCases directory for more details"
@@ -1318,14 +1323,31 @@ process filterGeneAlignments {
 	#rm filteredGenes/currentHeaders
 
 	##################################################################################
-	echo -e "Check that every MSA contains the same amount of nucleotides"
-	# (outgroup or user samples can generate insertions sometimes?)
-	for gene in filteredGenes/*_sorted; do
-		name=\$(basename "\$gene")
-		echo "Reading \$gene file"
-		awk '!/^>/ {print length}' "\$gene" >> filteredGenes/"\${name%_sorted}"_testingIntegrity.txt
-		echo -e "Done"
-	done
+	echo -e "Checking MSA integrity"
+	# (outgroup or user samples can generate insertions sometimes?) 
+
+	sortIntegrityCheck() {
+	gene=\$1
+		name=\$(basename "\${gene%_sorted}")
+		awk '!/^>/ {print length}' "\$gene" >> filteredGenes/"\${name}"_testingIntegrity.txt
+		uniqueValues=\$(cut -d ' ' -f 1 filteredGenes/"\${name}"_testingIntegrity.txt | sort | uniq) # Get unique values in the first column
+        	uniqueCount=\$(echo "\$uniqueValues" | wc -l) # Count the number of unique values
+
+		# Delete the file if there is only one unique value
+		if [[ \$uniqueCount -eq 1 ]]; then
+	        	rm filteredGenes/"\${name}"_testingIntegrity.txt
+            		echo "Deleted filteredGenes/\${name}_testingIntegrity.txt , only 1 unique value"
+        	else
+	        	echo "Kept filteredGenes/\${name}_testingIntegrity.txt , more than 1 unique value, means problem"
+			mv filteredGenes/\${name}_testingIntegrity.txt filteredGenes/"\${name%_testingIntegrity.txt}_problematicFile.txt"
+        	fi
+	}
+
+	export -f sortIntegrityCheck
+	find filteredGenes/ -name "*_sorted" | parallel -j 10 sortIntegrityCheck
+
+	echo "Done"
+
 	##################################################################################
 
 	for file in filteredGenes/*testingIntegrity.txt; do
@@ -1348,7 +1370,6 @@ process filterGeneAlignments {
     		fi
 	done
 	##################################################################################
-	shopt -s nullglob
 	
 	problems=(filteredGenes/*_problematicFile.txt)
 	
