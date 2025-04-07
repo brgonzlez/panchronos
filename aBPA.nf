@@ -1249,6 +1249,8 @@ process filterGeneAlignments {
 
 	##################################################################################
 
+	echo -e "Moving the special cases files back to filteredGenes/"
+
 	cp specialCases/*_cleaned.fasta filteredGenes/
 
 	for file in filteredGenes/*_cleaned.fasta; do
@@ -1256,11 +1258,18 @@ process filterGeneAlignments {
 		mv "\$file" filteredGenes/"\$name"
 	done
 
+	echo -e "Done"
+
 	##################################################################################
 	# Make INDEX file so we can sort every file in the same order before building MSA based on first file.
 	echo -e "Creating INDEX file"
 	firstFile=\$(ls -1 filteredGenes/ | awk 'NR==1 {print \$0}') && awk '/^>/ {print \$0}' filteredGenes/"\$firstFile" > filteredGenes/INDEX
 	echo -e "Done\\n"
+
+	echo -e "Sorting MSA"
+
+	sortingMSA() {
+	fasta=\$1
 
 	for fasta in filteredGenes/*.fasta; do
     		echo "Sorting \$fasta file"
@@ -1277,7 +1286,11 @@ process filterGeneAlignments {
     		done < filteredGenes/INDEX
 
     		echo "Finished sorting \$fasta to \${name}_sorted"
-	done
+	}
+
+	export -f sortingMSA
+	find filteredGenes/ -name "*.fasta" | parallel -j 10 sortingMSA
+	echo -e "Done"
 	##################################################################################
 
 	# Check that this worked
