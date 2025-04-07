@@ -1345,30 +1345,9 @@ process filterGeneAlignments {
 
 	export -f sortIntegrityCheck
 	find filteredGenes/ -name "*_sorted" | parallel -j 10 sortIntegrityCheck
-
 	echo "Done"
 
-	##################################################################################
 
-	for file in filteredGenes/*testingIntegrity.txt; do
-		name=\$(basename "\$file")
-	    	if [[ -f "\$file" ]]; then
-	        	# Get unique values in the first column
-        		uniqueValues=\$(cut -d ' ' -f 1 "\$file" | sort | uniq)
-
-        		# Count the number of unique values
-        		uniqueCount=\$(echo "\$uniqueValues" | wc -l)
-
-        		# Delete the file if there is only one unique value
-        		if [[ \$uniqueCount -eq 1 ]]; then
-	            		rm "\$file"
-            			echo "Deleted \$file , only 1 unique value"
-        		else
-	            		echo "Kept \$file , more than 1 unique value, means problem"
-				mv "\$file" filteredGenes/"\${name%_testingIntegrity.txt}_problematicFile.txt"
-        		fi
-    		fi
-	done
 	##################################################################################
 	
 	problems=(filteredGenes/*_problematicFile.txt)
