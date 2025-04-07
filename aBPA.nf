@@ -1207,7 +1207,7 @@ process filterGeneAlignments {
                         while read -r strain; do
                                 if ! grep -wq "\$strain" "\$file"; then
                                         echo ">\$strain" >> "\$file"
-                                        fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' 'n')
+                                        fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' 'N')
                                         echo "\$fakeSeq" >> "\$file"
                                 fi
                         done < sampleNames.txt
@@ -1223,9 +1223,9 @@ process filterGeneAlignments {
 	##################################################################################
 
 	# Turns out these broken entries were also incomplete
-        for i in specialCases/*_cleaned.fasta; do
+	echo -e "Checking for more incomplete entries"
 
-	#fixingAlignmentsLengths() {
+	fixingAlignmentsLengths() {
 	cleanedFasta=\$1
 
                 numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$cleanedFasta")
@@ -1236,12 +1236,16 @@ process filterGeneAlignments {
                                 print
                         } else {
                         while ( length(\$0) < numCols) {
-                                \$0 = \$0 "n"
+                                \$0 = \$0 "N"
                         }
                         print
                         }
                 }' "\$cleanedFasta" > specialCases/tmp_"\${cleanedFasta}" && mv specialCases/tmp_"\${cleanedFasta}" "\${cleanedFasta}"
-        done
+        }
+
+	export -f fixingAlignmentsLengths
+	find specialCases/ -name "*_cleaned.fasta" | parallel -j 10 fixingAlignmentsLengths
+	echo -e "Done"
 
 	##################################################################################
 
