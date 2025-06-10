@@ -815,7 +815,7 @@ process gatkConsensus {
 
 /*
  * First seqtk seq every gene.aln file, and then fix FASTA header. Add samples gene sequences to the right alignments. check sequence lenght and fill with Ns if lenght smaller than modern strains.
- * Finally check number of FASTA headers and if not == to $genomes then add the missing and fill sequence with Ns.
+ * Finally check number of FASTA headers and if not == to \$genomes then add the missing and fill sequence with Ns.
  */
 
 
