@@ -1278,7 +1278,7 @@ process filterGeneAlignments {
         		awk -v headerName="\$header" '
             		\$0 ~ headerName {
                 		print \$0     # Print the matched header
-                		getline      # Get the sequence line after the header and store it in $0
+                		getline      # Get the sequence line after the header and store it in line
                 		print \$0     # Print the sequene
             		}
         		' "\$fasta" >> filteredGenes/"\${name}_sorted"
