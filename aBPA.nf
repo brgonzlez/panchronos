@@ -1296,13 +1296,13 @@ process filterGeneAlignments {
 
 	checkingSort() {
 	i=\$1
-
-		awk '/^>/ {print \$0}' "\$i" > filteredGenes/currentHeaders_"\${i}"
+	name=\$(basename "\$i")
+		awk '/^>/ {print \$0}' "\$i" > filteredGenes/currentHeaders_"\${name}"
 
     		# Compare with INDEX file. It should be the same but if not, point that out
 
-    		if ! diff -q filteredGenes/INDEX filteredGenes/currentHeaders_"\${i}" >/dev/null; then
-        		echo "Headers in \$i differ from INDEX." >> filteredGenes/notSorted
+    		if ! diff -q filteredGenes/INDEX filteredGenes/currentHeaders_"\${name}" >/dev/null; then
+        		echo "Headers in "\$name" differ from INDEX." >> filteredGenes/notSorted
         		mv "\$i" specialCases/
     		else
         		echo "Headers in \$i match INDEX." >> filteredGenes/sortedSuccesfully
