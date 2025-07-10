@@ -840,545 +840,419 @@ process filterGeneAlignments {
 	#!/bin/bash
 
 	shopt -s nullglob  #Prevent literal interpretation of wildcards if there are no matchings
+	#sanity check before starting the process
 
-	mkdir -p AlnSeq/
-	##################################################################################
-	echo -e "Fixing FASTA headers and extension of sequences with seqtk in existing gene alignments"
-
-	parsingAlnFas() {
-		alnFasfile=\$1
-		if [[ -e "\$alnFasfile" ]] ; then
-			name=\$(basename "\${alnFasfile%%.*}" | sed -e 's/~/_/g') # Also replace  ~ characters with _, with double % to remove two dots
-			seqtk seq "\${alnFasfile}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > AlnSeq/"\${name}_AlnSeq.fasta"
-		else
-			echo -e "No files with .aln.fas or .fasta extension were found in genes/. Check previous process\\n"
-		fi
-	}
-	
-	export -f parsingAlnFas
-	find genes/ -name "*.aln.fas" | parallel -j 10 parsingAlnFas
-	find genes/ -name "*.fasta" | parallel -j 10 parsingAlnFas
-
-	echo -e "Done\\n"
-
-	##################################################################################
-	echo -e "Excluding low quality samples from analysis"
-	if [[ -s blackListed.txt ]]; then
-		while read -r removeMe; do
-			mv sampleGenes/extractedSequences"\${removeMe}.fasta" sampleGenes/"\${removeMe}blackListed.txt"
-			echo ""\${removeMe}" has been removed from analysis due to low quality."
-		done < blackListed.txt
+	if ! find panaroo_genes/ -name "*.aln.fas" | grep -q .; then
+    		echo -e "No files with .aln.fas extension were found in panaroo_genes/. Check previous process. Stopping the pipeline."
+    		exit 1
 	else
-		echo -e "Every sample passed quality checks."
+		echo -e "Fasta files with expected extension .aln.fas were found. Proceeding with the process."
 	fi
 
-	for sample in sampleGenes/*fasta; do
-		sampleName=\$(basename "\${sample%.fasta}")
-		echo "\${sampleName}" >> userSampleNames.txt
-		echo -e ""\${sampleName}" has been added to userSampleNames.txt"
-	done
-	echo -e "Done\\n"
-
-
-	##################################################################################
-	echo -e "Adding user sample genes sequences to each particular gene MSA and replace gene name with sample name"
-
-	addSampleSequences() {
-	AlnSeqMSA=\$1
-		if [[ -e "\$AlnSeqMSA" ]]; then
-                	name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
-			while read -r sampleName; do
-					sed -i -e 's/~/_/g' "sampleGenes/\${sampleName}.fasta"
-					echo -e "Adding "\${sampleName}" gene sequences into "\${AlnSeqMSA}" MSA file"
-                        		grep -w -A 1 "\$name" "sampleGenes/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${AlnSeqMSA}"
-                	done < userSampleNames.txt
-		else
-			echo -e "There are no files with _AlnSeq.fasta extension in AlnSeq/.\\n"
-		fi
-	}
-
-	export -f addSampleSequences
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addSampleSequences
-	echo -e "Done\\n"
-
-	##################################################################################
-	echo -e "Adding outgroup gene sequences into each gene MSA file"
 	if [[ -e outgroup ]]; then
-		sed -i -e 's/~/_/g' outgroup
+	        sed -i -e 's/~/_/g' outgroup
 	else
-		echo -e "outgroup file was not found"
-		exit 1
+        	echo -e "outgroup file was not found. Stopping the pipeline."
+        	exit 1
 	fi
 
-	##################################################################################
-	addOutgroupSequences() {
-	AlnSeqMSA=\$1
+	if ! find modern_data/ -name "*fna" | grep -q .; then
+    		echo -e "No modern sequences with .fna extension were found in modern_data/. Check previous process. Stopping the pipeline."
+    		exit 1
+	else
+        	echo -e "Fasta files with expected extension .fna were found. Proceeding with the process."
+	fi
 
-			name=\$(basename "\${AlnSeqMSA%_AlnSeq.fasta}")
-			echo -e "Adding outgroup sequences into \${AlnSeqMSA}"
-			grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${AlnSeqMSA}"
+
+	# modern_samples_list() will create a text file with modern genomes names
+	modern_samples_list() {
+	fasta=\$1
+        	name=\$(basename "\${fasta%.fna}")
+        	echo "\${name}" > "\${name}"_modern_TMP
 	}
-	export -f addOutgroupSequences
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 addOutgroupSequences
-	echo -e "Done\\n"
+	export -f modern_samples_list
+	find modern_data/ -name "*.fna" | parallel -j 30 modern_samples_list
 
-	##################################################################################
-	echo -e "Taking the total lenght of the gene sequence and then fill incomplete user samples gene sequences with n"
+	cat *_modern_TMP >> modernSampleNames.txt
+	rm *_modern_TMP
 
-	completeStrings () {
-	MSA=\$1
-		shortName=\$(basename "\${MSA}")
-		numberOfColumns=\$(awk 'NR==2 {print length}' "\$MSA")
-		awk -v numCols="\$numberOfColumns" '{
-			if (\$0 ~ /^>/) {
-				print
-			} else {
-			while ( length(\$0) < numCols) {
-				\$0 = \$0 "n"
-			}
-			print
-			}
-		}' "\${MSA}" > tmp_"\${shortName}" && mv tmp_"\${shortName}" "\${MSA}"
-	}
-	export -f completeStrings
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 completeStrings
-	echo -e "Done\\n"
-
-	##################################################################################
-	# Make a file with downloaded modern genomes names, maybe there could be many modern genomes so we will parallel too
-	modernSamplesList() {
-	fileFasta=\$1
-		fnames=\$(basename "\${fileFasta%.fna}")
-		echo "\${fnames}" > "\${fnames}"_indX.txt
-	}
-	export -f modernSamplesList
-	find FNA/ -name "*.fna" | parallel -j 10 modernSamplesList
-
-	cat *_indX.txt >> modernSampleNames.txt
-	rm *_indX.txt
-
-	echo -e "Done\\n"
 
 	# Adding the outgroup to this as it is modern too
 	echo outgroup >> modernSampleNames.txt
-	##################################################################################
+	echo -e "Standardise fasta suffixes"
+
+	panaroo_fasta_suffix() {
+	fasta_file=\$1
+	filename=\$(basename "\${fasta_file%.aln.fas}")
+
+		mv "\${fasta_file}" panaroo_genes/"\${filename}.fasta"
+	}
+	export -f panaroo_fasta_suffix
+	find panaroo_genes/ -name "*.aln.fas" | parallel -j 10 panaroo_fasta_suffix
+
+	echo -e "Done\n"
+
+	echo -e "Fixing FASTA headers and sequences formatting with seqtk in existing gene alignments"
+
+	mkdir -p panaroo_parsed
+	parsing_panaroo_msa() {
+	fasta_file=\$1
+                name=\$(basename "\${fasta_file%.fasta}" | sed -e 's/~/_/g') # Also replace  ~ characters with _, with double % to remove two dots
+                seqtk seq "\${fasta_file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > panaroo_parsed/"\${name}_parsing_panaroo.fasta"
+	}
+	export -f parsing_panaroo_msa
+	find panaroo_genes/ -name "*.fasta" | parallel -j 30 parsing_panaroo_msa
+
+	echo -e "Done\n"
+
+
+
+	mkdir -p blacklisted
+	echo -e "Checking if there are low quality samples"
+	if [[ -s blackListed.txt ]]; then
+	        while read -r removeMe; do
+        	        mv user_genes/*"\${removeMe}.fasta" blacklisted/"\${removeMe}"
+                	echo "\${removeMe} has been removed from analysis due to low quality."
+        	done < blackListed.txt
+	else
+	        echo -e "Every sample passed quality checks."
+	fi
+
+	#index_and_formatting() send user samplenames to userSampleNames.txt and replaces ~ from gene names with _
+	index_and_formatting() {
+	sample=\$1
+        	sampleName=\$(basename "\${sample%.fasta}")
+        	echo "\${sampleName}" >> userSampleNames.txt
+		sed -i -e 's/~/_/g' "\${sample}"
+	}
+	export -f index_and_formatting
+	find user_genes/ -name "*.fasta" | parallel -j 30 index_and_formatting
+
+	echo -e "Done\n"
+
+
 	# Make a file with every sample combined
 	cat modernSampleNames.txt userSampleNames.txt > sampleNames.txt
 
-	##################################################################################
+
+	echo -e "Adding user sample genes sequences to each particular gene MSA and replace gene name with sample name"
+
+	#add_user_sample_sequences() adds user sample gene sequences into each panaroo msa and replaces gene name with user sample name
+	add_user_sample_sequences() {
+	fasta_file=\$1
+	        if [[ -e "\$fasta_file" ]]; then
+                	name=\$(basename "\${fasta_file%_parsing_panaroo.fasta}")
+
+                	while read -r sampleName; do
+                                grep -w -A 1 "\$name" "user_genes/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${fasta_file}"
+                	done < userSampleNames.txt
+        	else
+                	echo -e "There are no files with .fasta extension in panaroo_parsed/ folder. Stopping the process.\n"
+			exit 1
+        	fi
+	}
+
+	export -f add_user_sample_sequences
+	find panaroo_parsed/ -name "*.fasta" | parallel -j 30 add_user_sample_sequences
+	echo -e "Done\n"
+
+
+	echo -e "Adding outgroup gene sequences into each gene MSA file"
+	#similarly as add_user_sample_sequences(), add_outgroup_sequences() will add outgroup aligned gene sequences into each gene panaroo msa file
+	add_outgroup_sequences() {
+	fasta_file=\$1
+
+                name=\$(basename "\${fasta_file%_parsing_panaroo.fasta}")
+                grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${fasta_file}"
+	}
+	export -f add_outgroup_sequences
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 add_outgroup_sequences
+
+	echo -e "Done\n"
+
+
+	echo -e "Padding incomplete sequences to the right"
+
+	panaroo_parsed_padding() {
+	MSA=\$1
+        	name=\$(basename "\${MSA}")
+        	seqLength=\$(awk 'NR==2 {print length}' "\$MSA")
+
+        	awk -v seq_length="\$seqLength" '{
+	                if (\$0 ~ /^>/) {
+                        	print
+                	} else {
+                	while ( length(\$0) < seq_length) {
+	                        \$0 = \$0 "n"
+                	}
+                	print
+                	}
+        	}' "\${MSA}" > tmp_"\${name}" && mv tmp_"\${name}" "\${MSA}"
+	}
+	export -f panaroo_parsed_padding
+	find panaroo_parsed/ -name "*parsing_panaroo.fasta" | parallel -j 30 panaroo_parsed_padding
+
+	echo -e "Done\n"
+
+
+
 	echo -e "Checking if there are Panaroo headers artifacts"
 
-	panarooHeadersArtifacts() {
-	msa=\$1
+	check_panaroo_headers_artifacts() {
+	file_msa=\$1
 
-		echo -e "Reading \$msa MSA"
-		while read -r sampleName; do
-			newVariableName=">\$sampleName"
-			matches=\$(grep "\$sampleName" "\$msa")
+	        while read -r sampleName; do
+        	        header_name=">\$sampleName"
+			matched_header=\$(grep "\$sampleName" "\$file_msa")
 
-			if [[ -n "\$matches" ]]; then
-	
-				while IFS= read -r matchedLine; do
-	
-					if [[ "\$matchedLine" != "\$newVariableName" ]]; then
-						sed -i -e "s/\${matchedLine}/\${newVariableName}/g" "\$msa"
-						echo -e "\$matchedLine name was found but it should have been "\$newVariableName" instead. Fixed"
-					fi
-				done <<< "\$matches"
-			else
-				echo -e "It seems headers are okay for \$newVariableName in \$msa."
+                	if [[ -n "\$matched_header" ]]; then
 
-			fi
+                        	while IFS= read -r matched; do
 
-		done < modernSampleNames.txt
+                                	if [[ "\$matched" != "\$header_name" ]]; then
+                                        	sed -i -e "s/\${matched}/\${header_name}/g" "\$file_msa"
+                                        	echo -e "\$matched name was found in \$file_msa but it should have been \$header_name instead. Fixed"
+                                	fi
+                        	done <<< "\$matched_header"
+                	fi
+
+        	done < modernSampleNames.txt
+	}
+	export -f check_panaroo_headers_artifacts
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 check_panaroo_headers_artifacts
+	echo -e "Done\n"
+
+
+
+	#modern_append_gaps() will check if there are modern strains missing in panaroo_parsed alignments. If yes, append the sample and padding with -
+	echo -e "Padding missing samples. Gaps for modern strains and n for ancient samples"
+
+	modern_append_gaps() {
+	fasta_file=\$1
+
+		seq_length=\$(awk 'NR==2 {print length}' "\$fasta_file")
+
+                while read -r strain; do
+                        if ! grep -wq "\$strain" "\$fasta_file"; then
+                                echo ">\$strain" >> "\$fasta_file"
+                                gaps_length=\$(printf '%*s' "\$((seq_length))" | tr ' ' '-')
+                                echo "\$gaps_length" >> "\$fasta_file"
+                        fi
+                done < modernSampleNames.txt
+	}
+	export -f modern_append_gaps
+	find panaroo_parsed/ -name "_parsing_panaroo.fasta" | parallel -j 30 modern_append_gaps
+
+
+
+	#ancient_append_missingness() will check if there are ancient strains missing in panaroo_parsed alignments. If yes, append the sample and fill it with n as we don't know the ancient status for that gene.
+	ancient_append_missingness() {
+	fasta_file=\$1
+
+	        seq_length=\$(awk 'NR==2 {print length}' "\$fasta_file")
+
+		while read -r strain; do
+                	if ! grep -wq "\$strain" "\$fasta_file"; then
+                        	echo ">\$strain" >> "\$fasta_file"
+                                fakeSeq=\$(printf '%*s' "\$((seq_length))" | tr ' ' 'n')
+                                echo "\$fakeSeq" >> "\$fasta_file"
+                        fi
+                done < sampleNames.txt
 	}
 
+	export -f ancient_append_missingness
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 ancient_append_missingness
 
-	export -f panarooHeadersArtifacts
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 panarooHeadersArtifacts
-	echo -e "Done\\n"
-
-
-	##################################################################################
-	echo -e "If there are missing modern strain, append the sample and fill it with -"
+	echo -e "Done \n"
 
 
-	modernGapsAppend() {
-	file=\$1
+	# At this point there will be many msa that are finished: number of headers == number of samples AND headers names == all samples names. I need to find them based on this logic and send them
+	# to the final folder. There will be some msa with header duplication problems and they need to be send to special_cases.
 
-		sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-                numberOfColumns=\$(awk 'NR==2 {print length}' "\$file")
-		totalSamples=\$(wc -l < sampleNames.txt)
-		
-		if (( sampleValue < totalSamples)); then
-			
-			while read -r strain; do
-				if ! grep -wq "\$strain" "\$file"; then
-					echo ">\$strain" >> "\$file"
-					fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' '-')
-					echo "\$fakeSeq" >> "\$file"
-				fi 
-			done < modernSampleNames.txt
+	mkdir -p sanitised_msa
+
+	sanitised_msa() {
+	msa_file=\$1
+
+		name=\$(basename "\${msa_file%_parsing_panaroo.fasta}.fasta")
+	        sample_count=\$(grep -c '^>' "\$msa_file")
+	        total_sample_count=\$(wc -l < sampleNames.txt)
+
+		if [[ "\$sample_count" -ne "\$total_sample_count" ]]; then  #if they are equal then keep going. if not skip current file.
+			return
 		fi
-	}
 
-	export -f modernGapsAppend
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 modernGapsAppend
-	echo -e "Done \\n"
-
-
-	##################################################################################
-	echo -e "If there are ancient missing genes, append the sample and fill it with -"
-
-	ancientGapsAppend() {
-	msaFile=\$1
-		sampleValue=\$(awk '/^>/ {print \$0}' "\$msaFile" | wc -l)
-        	numberOfColumns=\$(awk 'NR==2 {print length}' "\$msaFile")
-                totalSamples=\$(wc -l < sampleNames.txt)
-                
-                if (( sampleValue < totalSamples)); then
-
-                        while read -r strain; do
-                                if ! grep -wq "\$strain" "\$file"; then
-                                        echo ">\$strain" >> "\$msaFile"
-                                        fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' 'n')
-                                        echo "\$fakeSeq" >> "\$msaFile"
-                                fi
-                        done < sampleNames.txt
-                fi
-        }
-
-	export -f ancientGapsAppend
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 ancientGapsAppend
-
-	echo -e "Done \\n"
-
-
-	##################################################################################
-	# Replacing ~ with _ in list of genes files
-	for txtFile in *txt; do
-		sed -i -e 's/~/_/g' "\$txtFile"
-	done
-
-	##################################################################################
-	# Make directory to store special cases
-	mkdir -p specialCases
-	# Make directory where the final gene MSA will be stored
-	mkdir -p filteredGenes
-	##################################################################################
-
-	echo -e "Check if there is a missing sample that should match perfectly in genes MSA, if not found, send MSA to special cases"
-	incompleteMSA() {
-	fileMSA=\$1
-
-		geneName=\$(basename "\$fileMSA")
-		samplesPresent=true
-
-		# First I need to check if every sample is present or not.
-		while read -r sample; do
-			if ! grep -wq "\$sample" "\$fileMSA"; then
-				samplesPresent=false
+		missing_samples=0
+		while read -r strain; do
+			if ! grep -wq "\$strain" "\$msa_file"; then
+				missing_samples=1
 				break
 			fi
 		done < sampleNames.txt
 
-		# If samplesPresent=True, then means that every sample was present so we can send the file to Filtered.
-		if [ "\$samplesPresent" = true ]; then
-			while read -r sample; do
-				grep -w -A 1 "\$sample" "\$fileMSA" >> filteredGenes/"\${geneName}"	
-			done < sampleNames.txt
-		
-
-		else
-			# If missing sample, then move it to special cases
-			mv "\$fileMSA" specialCases/
-			echo -e ""\$fileMSA" file was found to be incomplete. Sent to specialCases."
+		if [[ "\$missing_samples" -eq 0 ]]; then
+			mv "\$msa_file" "sanitised_msa/\${name}"
 		fi
-	
+
 	}
+	export -f sanitised_msa
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 sanitised_msa
 
-	export -f incompleteMSA
-	find AlnSeq/ -name "*_AlnSeq.fasta" | parallel -j 10 incompleteMSA
-	echo -e "Done\\n"
-
-	##################################################################################
-
-	# After everything, check again if the number of samples in genes MSAs is different than the real number of samples, if true send those MSA to special cases
-	# This is because there could be Panaroo duplicate artifacts, which are handled later on
-
-	echo -e "Looking for more special cases"
-
-	checkingIntegrity() {
-	file=\$1
-		value=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-		sampleN=\$(wc -l < sampleNames.txt)
-		echo -e "testing integrity of \$file . . ."
-		if [ \$value -ne \$sampleN ]; then
-			mv "\$file" specialCases/
-			echo -e "\$file file was found to have problems. Sent to specialCases"
-		else
-			echo -e "\$file MSA is fine."
-		fi
-	}
-
-	export -f checkingIntegrity
-	find filteredGenes/ -name "*.fasta" | parallel -j 10 checkingIntegrity
-
-	echo -e "Done\\n"
-
-	##################################################################################
 	# Dealing with fragmented Panaroo gene alignments multi-entries
+	mkdir -p special_cases
+	
+	echo -e "Checking if there are leftovers after sanitising"
 
-	echo -e "Cleaning duplicated headers"
+	unsanitised=\$(ls panaroo_parsed/*fasta | wc -l )
+	if (( unsanitised != 0 )); then
+		echo -e "There are \$unsanitised samples that have problems in panaroo_parsed/ directory. Inspecting them. ."
+	else
+		echo -e "It seems every gene msa was succesfully cleaned. Moving on."
+	fi
 
-	deduplicateEntries() {
-	file=\$1
+	fix_duplicated_entries() {
+	fasta_file=\$1
 
-                if [[ -e "\$file" ]] ; then
-                        name=\$(basename "\${file%_AlnSeq.fasta}")
-                # Identifying repeated headers and save them to .dpd 
-                        awk '/^>/ {count[\$0]++} END {for (header in count) if (count[header] > 1) print substr(header, 2)}' "\$file" > specialCases/"\${name}.dpd"
+               	if [[ -e "\$fasta_file" ]] ; then
+                       	name=\$(basename "\${fasta_file%_parsing_panaroo.fasta}")
+               		# Identifying repeated headers and save them to .dup
+                       	awk '/^>/ {count[\$0]++} END {for (header in count) if (count[header] > 1) print substr(header, 2)}' "\$fasta_file" > special_cases/"\${name}.dup"
+	
+               		# Extracting sequences for each repeated entry into temporary files
+                	while read -r entry; do
+                        	awk -v sampleName="\$entry" '
+                        	\$0 ~ "^>" sampleName {print_header=1; next}
+                        	/^>/ {print_header=0}
+                        	print_header {print}' "\$fasta_file" > special_cases/"\${name}_duplicated_\${entry}"
+                       done < special_cases/"\${name}.dup"
+               # Remove repeated entries and their sequences from the original FASTA file
+                       awk -v dpdFile=special_cases/"\${name}.dup" '
+                       BEGIN {
+                       while (getline < dpdFile) {
+                               repeated[\$0] = 1
+                               }
+                       }
+                       /^>/ { header = substr(\$0, 2)
+                       if (repeated[header]) {
+                               skip = 1
+                       } else {
+                               skip = 0}
+                       }
+                       !skip' "\$fasta_file" > special_cases/"\${name}.fasta"
 
-                # Extracting sequences for each repeated entry into temporary files
-                        while read -r entry; do
-                                awk -v sampleName="\$entry" '
-                                \$0 ~ "^>" sampleName {print_header=1; next}
-                                /^>/ {print_header=0}
-                                print_header {print}' "\$file" > specialCases/"\${name}Seqs_\${entry}"
-                        done < specialCases/"\${name}.dpd"
+                       for indexSeqs in special_cases/"\${name}_duplicated_"*; do
+                               geneName=\$(basename "\${indexSeqs%_duplicated_*}")
+                               sampleName=\$(basename "\${indexSeqs##*_duplicated_}")
 
-                # Remove repeated entries and their sequences from the original FASTA file
-                        awk -v dpdFile=specialCases/"\${name}.dpd" '
-                        BEGIN {
-                        while (getline < dpdFile) {
-                                repeated[\$0] = 1
-                                }
-                        }
-                        /^>/ { header = substr(\$0, 2)
-                        if (repeated[header]) {
-                                skip = 1
-                        } else {
-                                skip = 0}
-                        }
-                        !skip' "\$file" > specialCases/"\${name}_cleaned.fasta"
+                               # Read the longest line based on letter count
+                               sequence=\$(awk '
+                               {gsub(/[^a-zA-Z]/, "", \$0); len=length(\$0)}
+                               len > max_length {max_length=len; longest=\$0}
+                               END {print longest}' "\$indexSeqs")
 
-                        for indexSeqs in specialCases/"\${name}Seqs_"*; do
-                                geneName=\$(basename "\${indexSeqs%Seqs_*}")
-                                sampleName=\$(basename "\${indexSeqs##*Seqs_}")
+                       # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
+                               echo ">\${sampleName}" >> special_cases/"\${name}.fasta"
+                               echo "\$sequence" >> special_cases/"\${name}.fasta"
+                       done
 
-                                # Read the longest line based on letter count
-                                sequence=\$(awk '
-                                {gsub(/[^a-zA-Z]/, "", \$0); len=length(\$0)}
-                                len > max_length {max_length=len; longest=\$0}
-                                END {print longest}' "\$indexSeqs")
+               else
+                       echo -e "No files found with fasta extension in special_cases folder"    
+       		# Cleaning temporary files
+               fi
+       }
 
-                        # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
-                                echo ">\${sampleName}" >> specialCases/"\${name}_cleaned.fasta"
-                                echo "\$sequence" >> specialCases/"\${name}_cleaned.fasta"
-                        done
+	export -f fix_duplicated_entries
 
-                else
-                        echo -e "No files found with fasta extension in specialCases folder"    
-        # Cleaning temporary files
-                fi
-        }
+	if (( unsanitised != 0 )); then
+		find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 fix_duplicated_entries
+	fi
 
-	export -f deduplicateEntries
-	find specialCases/ -name "*.fasta" | parallel -j 10 deduplicateEntries
+	#finally checking that every seq has the same length
+
+	checking_alignment_lengths() {
+	msa_file=\$1
+	name=\$(basename "\${msa_file}")
+
+               seq_length=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$cleanedFasta")
+
+               awk -v numCols="\$seq_length" '{
+                       if (\$0 ~ /^>/) {
+                               print
+                       } else {
+                       while ( length(\$0) < numCols) {
+                               \$0 = \$0 "N"
+                       }
+                       print
+                       }
+               }' "\$msa_file" > special_cases/tmp_"\${name}" && mv special_cases/tmp_"\${name}" "\${msa_file}"
+       }
+
+	export -f checking_alignment_lengths
+	find special_cases/ -name "*.fasta" | parallel -j 30 checking_alignment_lengths
 	echo -e "Done"
 
-	##################################################################################
 
-        # If missing user sample == true, then append it and fill it with n's (can't treat them as gaps because there is uncertainty)
-	echo -e "Adding missing genes with n"
+	#now check if these cleaned fasta passed the sanitised_msa() test.
+	sanitised_msa_special_cases() {
+	msa_file=\$1
 
-	sampleUncertainty() {
-	file=\$1
+        	name=\$(basename "\${msa_file}")
+        	sample_count=\$(grep -c '^>' "\$msa_file")
+        	total_sample_count=\$(wc -l < sampleNames.txt)
 
-                sampleValue=\$(awk '/^>/ {print \$0}' "\$file" | wc -l)
-                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$file")
-                totalSamples=\$(wc -l < sampleNames.txt)
+        	if [[ "\$sample_count" -ne "\$total_sample_count" ]]; then  #if they are equal then keep going. if not skip current file.
+	                return
+	        fi
 
+	        missing_samples=0
+	        while read -r strain; do
+                	if ! grep -wq "\$strain" "\$msa_file"; then
+                        	missing_samples=1
+                        	break
+                	fi
+        	done < sampleNames.txt
 
-                if (( sampleValue < totalSamples)); then
+        	if [[ "\$missing_samples" -eq 0 ]]; then
+	                mv "\$msa_file" "sanitised_msa/\${name}"
+	        fi
 
-			echo -e "\$sampleValue samples were found in \$file where total number of samples is \$totalSamples."
+	}
+	export -f sanitised_msa_special_cases
+	find special_cases/ -name "*.fasta" | parallel -j 30 sanitised_msa_special_cases
 
-                        while read -r strain; do
-                                if ! grep -wq "\$strain" "\$file"; then
-                                        echo ">\$strain" >> "\$file"
-                                        fakeSeq=\$(printf '%*s' "\$((numberOfColumns))" | tr ' ' 'N')
-                                        echo "\$fakeSeq" >> "\$file"
-                                fi
-                        done < sampleNames.txt
-		else
-			echo -e "\$sampleValue samples were found in \$file where total number of samples is \$totalSamples. Moving on."
-                fi
-        }
+	# final steps: sort everything.
 
-	export -f sampleUncertainty
-	find specialCases/ -name "*_cleaned.fasta" | parallel -j 10 deduplicateEntries
-	echo -e "Done"
-
-	##################################################################################
-
-	# Turns out these broken entries were also incomplete
-	echo -e "Checking for more incomplete entries"
-
-	fixingAlignmentsLengths() {
-	cleanedFasta=\$1
-
-                numberOfColumns=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$cleanedFasta")
-                echo "\$numberOfColumns in file \$cleanedFasta"
-
-                awk -v numCols="\$numberOfColumns" '{
-                        if (\$0 ~ /^>/) {
-                                print
-                        } else {
-                        while ( length(\$0) < numCols) {
-                                \$0 = \$0 "N"
-                        }
-                        print
-                        }
-                }' "\$cleanedFasta" > specialCases/tmp_"\${cleanedFasta}" && mv specialCases/tmp_"\${cleanedFasta}" "\${cleanedFasta}"
-        }
-
-	export -f fixingAlignmentsLengths
-	find specialCases/ -name "*_cleaned.fasta" | parallel -j 10 fixingAlignmentsLengths
-	echo -e "Done"
-
-	##################################################################################
-
-	echo -e "Moving the special cases files back to filteredGenes/"
-
-	cp specialCases/*_cleaned.fasta filteredGenes/
-
-	for file in filteredGenes/*_cleaned.fasta; do
-		name=\$(basename "\${file%_cleaned.fasta}_AlnSeq.fasta")
-		mv "\$file" filteredGenes/"\$name"
-	done
-
-	echo -e "Done"
-
-	##################################################################################
 	# Make INDEX file so we can sort every file in the same order before building MSA based on first file.
-	echo -e "Creating INDEX file"
-	firstFile=\$(ls -1 filteredGenes/ | awk 'NR==1 {print \$0}') && awk '/^>/ {print \$0}' filteredGenes/"\$firstFile" > filteredGenes/INDEX
-	echo -e "Done\\n"
+	firstFile=\$(ls -1 sanitised_msa/ | awk 'NR==1 {print \$0}') && awk '/^>/ {print \$0}' sanitised_msa/"\$firstFile" > sorting_index
 
-	echo -e "Sorting MSA"
+	mkdir -p sorted
+
+	echo -e "Sorting MSAs"
 
 	sortingMSA() {
 	fasta=\$1
 
-    		echo "Sorting \$fasta file"
-		name=\$(basename "\${fasta%_AlnSeq.fasta}")
+	        name=\$(basename "\${fasta%.fasta}")
 
-		while read -r header; do
-        		awk -v headerName="\$header" '
-            		\$0 ~ headerName {
-                		print \$0     # Print the matched header
-                		getline      # Get the sequence line after the header and store it in line
-                		print \$0     # Print the sequene
-            		}
-        		' "\$fasta" >> filteredGenes/"\${name}_sorted"
-    		done < filteredGenes/INDEX
-
-    		echo "Finished sorting \$fasta to \${name}_sorted"
+	        while read -r header; do
+                	awk -v headerName="\$header" '
+	                        \$0 ~ headerName {
+                        	print \$0     # Print the matched header
+                        	getline      # Get the sequence line after the header and store it in line
+                        	print \$0     # Print the sequene
+                        	}
+                	' "\$fasta" >> sorted/"\${name}.fasta"
+        	done < sorting_index
 	}
 
 	export -f sortingMSA
-	find filteredGenes/ -name "*.fasta" | parallel -j 10 sortingMSA
+	find sanitised_msa/ -name "*.fasta" | parallel -j 30 sortingMSA
+
 	echo -e "Done"
-	##################################################################################
 
-	echo -e "Sorting sanity check"
-
-	checkingSort() {
-	i=\$1
-	name=\$(basename "\$i")
-		awk '/^>/ {print \$0}' "\$i" > filteredGenes/currentHeaders_"\${name}"
-
-    		# Compare with INDEX file. It should be the same but if not, point that out
-
-    		if ! diff -q filteredGenes/INDEX filteredGenes/currentHeaders_"\${name}" >/dev/null; then
-        		echo "Headers in "\$name" differ from INDEX." >> filteredGenes/notSorted
-        		mv "\$i" specialCases/
-    		else
-        		echo "Headers in \$i match INDEX." >> filteredGenes/sortedSuccesfully
-    		fi
-	}
-
-	export -f checkingSort
-	find filteredGenes/ -name "*_sorted" | parallel -j 10 checkingSort
-
-	if [ -f filteredGenes/notSorted ]; then
-    		echo "There is one or more files with sorting problems. Check notSorted file and specialCases directory for more details"
-	else
-    		echo "It seems every file is sorted. Moving on"
-	fi
-	##################################################################################
-
-	# Clean up temporary file
-	#rm filteredGenes/currentHeaders
-
-	##################################################################################
-	echo -e "Checking MSA integrity"
-	# (outgroup or user samples can generate insertions sometimes?) 
-
-	sortIntegrityCheck() {
-	gene=\$1
-		name=\$(basename "\${gene%_sorted}")
-		awk '!/^>/ {print length}' "\$gene" >> filteredGenes/"\${name}"_testingIntegrity.txt
-		uniqueValues=\$(cut -d ' ' -f 1 filteredGenes/"\${name}"_testingIntegrity.txt | sort | uniq) # Get unique values in the first column
-        	uniqueCount=\$(echo "\$uniqueValues" | wc -l) # Count the number of unique values
-
-		# Delete the file if there is only one unique value
-		if [[ \$uniqueCount -eq 1 ]]; then
-	        	rm filteredGenes/"\${name}"_testingIntegrity.txt
-            		echo "Deleted filteredGenes/\${name}_testingIntegrity.txt , only 1 unique value"
-        	else
-	        	echo "Kept filteredGenes/\${name}_testingIntegrity.txt , more than 1 unique value, means problem"
-			mv filteredGenes/\${name}_testingIntegrity.txt filteredGenes/"\${name%_testingIntegrity.txt}_problematicFile.txt"
-        	fi
-	}
-
-	export -f sortIntegrityCheck
-	find filteredGenes/ -name "*_sorted" | parallel -j 10 sortIntegrityCheck
-	echo "Done"
-
-
-	##################################################################################
-	
-	problems=(filteredGenes/*_problematicFile.txt)
-	
-	if [[ \${#problems[@]} -gt 0 ]]; then
-
-		for problem in "\${problems[@]}"; do
-			name=\$(basename "\${problem%_problematicFile.txt}")
-			mv filteredGenes/"\${name}"_sorted specialCases/
-		done
-	else
-		echo -e "There were no files with _problematicFile.txt extension. Moving on."
-		
-	fi
-
-	fileArray=(filteredGenes/*_sorted)
-	if [[ \${#fileArray[@]} -gt 0 ]]; then
-		for file in "\${fileArray[@]}"; do
-			name=\$(basename "\$file")
-			mv "\$file" filteredGenes/"\${name%_sorted}_Filtered.fasta"
-		done
-	else
-		echo -e "There were no files with _sorted extension. Moving on."
-	fi
-	
-	##################################################################################
-	
 	cat .command.out >> filterGeneAlignments.log
 	"""
 }
-
 
 /*   Add individual gene sequences to these particular gene.aln files
  *   To do this we need: If there is one or more samples missing in any particular gene.aln file, then we get the gene lenght and we add Ns.
