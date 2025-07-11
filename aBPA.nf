@@ -1771,7 +1771,7 @@ workflow {
 
         } else {
                 fastaFiles = Channel.of(files("${params.trusted_data}/*fna"))
-                gffFiles = Channel.of(files("${params.trusted_data}/*gbff"))
+                gffFiles = Channel.of(files("${params.trusted_data}/*gb"))
 
         }
 
