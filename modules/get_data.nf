@@ -9,7 +9,8 @@ process GET_DATA {
 	input:
 	val genomes
 	val tax_id
-	
+	val parallel
+
 	output:
 	path '*fna', emit: fasta_files
 	path '*gb', emit: gbk_files
