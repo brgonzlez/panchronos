@@ -1,73 +1,26 @@
 #!/usr/bin/env nextflow
 
-params.data = ""
-reads = Channel.of(params.data)
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is the main document. To modify CPU usage please go to nextflow.config
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
-params.output = ""
-resultsDir = Channel.of(params.output)
-
-params.completeness = 50
-geneCompleteness = Channel.of(params.completeness)
-
-params.coverageDown = 0.5
-normalizedCoverageDown = Channel.of(params.coverageDown)
-
-params.coverageUp = 3
-normalizedCoverageUp = Channel.of(params.coverageUp)
-
-params.threads = 10
-threadsGlobal = Channel.of(params.threads)
-
-params.tax_id = 0
-taxID = Channel.of(params.tax_id)
-
-params.genomes = 100
-downloadGenomes = Channel.of(params.genomes)
-
-params.clustering = 0.95
-cdHitCluster = Channel.of(params.clustering)
-
-params.core = 0.95
-pangenomeThreshold = Channel.of(params.core)
-
-params.clean = "strict"
-pangenomeMode = Channel.of(params.clean)
-
-params.config = ""
-configFile = Channel.of(params.config)
-
-params.outgroup = ""
-outTax = Channel.of(params.outgroup)
-
-params.trustedGenomes = false
-
-params.missing = 0.01
-missingProb = Channel.of(params.missing)
-
-params.gaps = 2
-gapFraction = Channel.of(params.gaps)
-
-params.seed = 16500
-seedAlignment = Channel.of(params.seed)
-
-params.mapq = 30
-mappingQuality = Channel.of(params.mapq)
-
-params.minlength = 34
-minReadLength = Channel.of(params.minlength)
-
-params.maxlength = 300
-maxReadLength = Channel.of(params.maxlength)
-
-params.genotyper = "bcftools"
-genotypeMethod = Channel.of(params.genotyper)
-
-
-params.help = false
-params.version = false
 
 // Enable DSL2
 nextflow.enable.dsl=2
+
+
+// Calling modules
+
+include { GET_DATA } from './modules/get_data.nf'
+
+
+
+
+
+
+
 
 def print_help() {
 	println "\n\033[1;31mSYNOPSIS\033[0m"
@@ -143,80 +96,7 @@ if (params.version) {
 	version()
 }
 
-/*
- * entrez() will download FASTA and GenBank files from NCBI as long as a taxonomical ID was provided (mandatory value)
- */
 
-process entrez {
-	conda "${projectDir}/envs/entrez.yaml"
-        publishDir "${makeDir}/results/NCBI", mode: 'copy', overwrite: true
-
-	input:
-	val gE
-	val txid
-	path makeDir
-
-	output:
-
-	path '*fna', emit: fastaFiles
-	path '*gbff', emit: gffFiles
-
-	script:
-	"""
-	#!/bin/bash
-	counter=0
-	esearch -db assembly -query "txid${txid}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary | xtract -pattern DocumentSummary -element FtpPath_RefSeq | while read url; do
-        
-	if [ "\$counter" -ge "${gE}" ]; then
-		break
-	fi
-
-	if [ -z "\$url" ]; then
-		continue
-	fi
-	        
-	fname="\$(basename "\$url")"
-	downloadMeAndCheck() {
-		wget "\$url/\${fname}_genomic.gbff.gz"
-	        wget "\$url/\${fname}_genomic.fna.gz"
-
-		gunzip -f "\${fname}_genomic.gbff.gz"
-		gunzip -f "\${fname}_genomic.fna.gz"
-
-
-		if [ -f "\${fname}_genomic.gbff.gz" ] || [ -f "\${fname}_genomic.fna.gz" ]; then	
-			rm -f "\${fname}_genomic.gbff.gz" "\${fname}_genomic.fna.gz"
-			return 1
-		fi
-
-		return 0
-	}
-
-	while ! downloadMeAndCheck; do
-		echo "Files were corrupted. Retrying"
-		sleep 3
-	done
-	
-	# IF AFTER DOING gunzip -f WE STILL FIND THE EXTENSION *gz, then remove both files with the same {fname} (even if is just "\${fname}_genomic.gbff.gz" or "\${fname}_genomic.fna.gz" or both)
-	# If we remove any file, then:
-	#	1. We don't add +1 to the counter (it doesn't make sense to add +1 if the files were corrupted)
-	#	2. We download both *gbff.gz and *fna.gz again and we proceed to test the integrity again by checking if there is any *gz extension after gunzip.
-
-	counter="\$((counter + 1))"	
-	fna_count=\$(ls -1 *.fna 2>/dev/null | wc -l)
-	gbff_count=\$(ls -1 *.gbff 2>/dev/null | wc -l)
-
-	# Continue downloading until the count matches gE
-	if [ "\$fna_count" -lt "\$gE" ] || [ "\$gbff_count" -lt "\$gE" ]; then
-		echo "Still need more files. Current count: \$fna_count .fna files, \$gbff_count .gbff files."
-		continue
-	fi
-
-
-	done
-	cat .command.out >> entrez.log
-	"""
-}
 
 process fastaDatabase {
 	conda "${projectDir}/envs/biopython.yaml"
@@ -1884,14 +1764,14 @@ process getResults {
 }
 
 workflow {
-        if (!params.trustedGenomes) {
-                entrez(downloadGenomes, taxID, resultsDir)
-                fastaFiles = entrez.out.fastaFiles
-                gffFiles = entrez.out.gffFiles
+        if (!params.trusted_data) {
+                GET_DATA(params.genomes, tax_id, get_data_parallel)
+                fastaFiles = GET_DATA.out.fasta_files
+                gffFiles = GET_DATA.out.gbk_files
 
         } else {
-                fastaFiles = Channel.of(files("${params.trustedGenomes}/*fna"))
-                gffFiles = Channel.of(files("${params.trustedGenomes}/*gbff"))
+                fastaFiles = Channel.of(files("${params.trusted_data}/*fna"))
+                gffFiles = Channel.of(files("${params.trusted_data}/*gbff"))
 
         }
 
