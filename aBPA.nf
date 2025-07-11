@@ -19,7 +19,11 @@ include { GET_DATA } from './modules/get_data.nf'
 
 
 
-
+/*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Print pipeline metadata: Version and Help
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+*/
 
 
 def print_help() {
@@ -96,7 +100,80 @@ if (params.version) {
 	version()
 }
 
+// Main workflow
 
+workflow {
+        if (!params.trusted_data) {
+                GET_DATA(params.genomes, tax_id, get_data_parallel)
+                fastaFiles = GET_DATA.out.fasta_files
+                gffFiles = GET_DATA.out.gbk_files
+
+        } else {
+                fastaFiles = Channel.of(files("${params.trusted_data}/*fna"))
+                gffFiles = Channel.of(files("${params.trusted_data}/*gb"))
+
+        }
+
+
+
+	fastaDatabase(gffFiles, fastaFiles)
+	clustering(fastaDatabase.out.theFastaDatabase, cdHitCluster, threadsGlobal)
+	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
+	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
+	formattingPangenome(makePangenome.out.panSequence)
+	blastMe(formattingPangenome.out.panGenomeReference)
+        outgroupEntrez(outTax)
+        makeReads(outgroupEntrez.out.outgroupFasta)
+        outgroupAlignmentFAndiltering(makeReads.out.outgroupReads, formattingPangenome.out.panGenomeReference, threadsGlobal)
+        makeOutgroupConsensus(outgroupAlignmentFAndiltering.out.outgroupFastaPostAlignment, formattingPangenome.out.panGenomeReference)
+	alignment(reads, formattingPangenome.out.panGenomeReference, threadsGlobal, configFile, missingProb, seedAlignment, gapFraction, minReadLength, maxReadLength)
+	alignmentSummary(configFile, alignment.out.postAlignedBams)
+	normalizationFunction(alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage)
+	updateNormalization(normalizationFunction.out.geneNormalizedSummary, alignmentSummary.out.completenessSummary)
+
+
+	if (params.genotyper == "gatk") {
+		gatkConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles, formattingPangenome.out.panGenomeReferenceDictionary, formattingPangenome.out.panGenomeReferenceIndex)
+		extractedSequencesFasta = gatkConsensus.out.gatkConsensusSequences
+		vcfFile = gatkConsensus.out.gatkGenotypes
+
+	} else if (params.genotyper == "bcftools") {
+		bcftoolsConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles)
+		extractedSequencesFasta = bcftoolsConsensus.out.consensusSequences
+
+	} else {
+		error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
+	}
+
+	plotCoveragevsCompleteness(updateNormalization.out.geneNormalizedUpdated, geneCompleteness, normalizedCoverageDown)
+        applyCoverageBounds(updateNormalization.out.geneNormalizedUpdated, normalizedCoverageDown, normalizedCoverageUp, geneCompleteness)
+	makeMatrix(makePangenome.out.initialMatrix , normalizationFunction.out.globalMeanCoverage, applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness, normalizedCoverageDown, normalizedCoverageUp)
+	buildHeatmap(makeMatrix.out.finalCsv, makeMatrix.out.INDEX ,makeMatrix.out.matrix, makeMatrix.out.sampleNames)
+	plotCoveragevsCompletenessOnFiltered(applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness,normalizedCoverageDown)
+	filterGeneAlignments(makePangenome.out.alignedGenesSeqs, extractedSequencesFasta, fastaDatabase.out.validFasta, downloadGenomes, makeOutgroupConsensus.out.extractedSequencesOutgroupFasta, buildHeatmap.out.blackListed)
+	pMauve(fastaDatabase.out.validFasta)
+	makeMSA(filterGeneAlignments.out.genesAlnSeq, buildHeatmap.out.maskedMatrixGenesNoUbiquitous, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.genesAbovePercentSeries, filterGeneAlignments.out.sampleNames)
+	treeThreshold(makeMSA.out.genesAbovePercentMSA)
+	treeUbiquitous(makeMSA.out.maskedMatrixGenesUbiquitousMSA)
+	treeNoUbiquitous(makeMSA.out.maskedMatrixGenesNoUbiquitousMSA)
+	treeAncient(makeMSA.out.maskedMatrixGenesOnlyAncientMSA)
+	xmfaToFasta(pMauve.out.pMauveCoreGenome)
+	filterMauveFasta(xmfaToFasta.out.pMauveFastaMSA)
+	startingTree(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA)
+	findRecombinationSpots(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, startingTree.out.startingTreeMauveFasta, startingTree.out.kappa)
+	mapRecombinantsToGenes(findRecombinationSpots.out.recombinationMap, filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, blastMe.out.panGenomeReferenceDB, prokkaMakeAnnotations.out.prokkaGFF)
+	getResults(
+	resultsDir, fastaDatabase.out.validFasta , fastaDatabase.out.validGff , fastaDatabase.out.fastaDatabaseLogFile , fastaDatabase.out.theFastaDatabase, 
+	clustering.out.clusteredDatabase, clustering.out.clusteringLog, prokkaMakeAnnotations.out.prokkaGFF, prokkaMakeAnnotations.out.prokkaLogfile,  makePangenome.out.panarooLog,
+	filterGeneAlignments.out.genesAlnSeq, formattingPangenome.out.panGenomeReference, updateNormalization.out.geneNormalizedUpdated, normalizationFunction.out.globalMeanCoverage,
+	alignmentSummary.out.postAlignmentFiles, alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage, alignmentSummary.out.completenessSummary, buildHeatmap.out.finalMatrix,
+	buildHeatmap.out.presenceAbsence, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.maskedMatrixGenesNoUbiquitous,
+	buildHeatmap.out.genesAbovePercentSeries, treeThreshold.out.genesAbovePercentMSAIqtree ,treeThreshold.out.genesAbovePercentMSALog , treeThreshold.out.genesAbovePercentMSATreefile,
+	treeUbiquitous.out.maskedMatrixGenesUbiquitousMSAIqtree, treeUbiquitous.out.maskedMatrixGenesUbiquitousMSALog, treeUbiquitous.out.maskedMatrixGenesUbiquitousMSATreefile, 
+	treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSAIqtree , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSALog , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSATreefile,
+	treeAncient.out.maskedMatrixGenesOnlyAncientMSAIqtree , treeAncient.out.maskedMatrixGenesOnlyAncientMSALog , treeAncient.out.maskedMatrixGenesOnlyAncientMSATreefile
+	)
+}
 
 process fastaDatabase {
 	conda "${projectDir}/envs/biopython.yaml"
@@ -1763,75 +1840,4 @@ process getResults {
 	"""
 }
 
-workflow {
-        if (!params.trusted_data) {
-                GET_DATA(params.genomes, tax_id, get_data_parallel)
-                fastaFiles = GET_DATA.out.fasta_files
-                gffFiles = GET_DATA.out.gbk_files
 
-        } else {
-                fastaFiles = Channel.of(files("${params.trusted_data}/*fna"))
-                gffFiles = Channel.of(files("${params.trusted_data}/*gb"))
-
-        }
-
-
-
-	fastaDatabase(gffFiles, fastaFiles)
-	clustering(fastaDatabase.out.theFastaDatabase, cdHitCluster, threadsGlobal)
-	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
-	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
-	formattingPangenome(makePangenome.out.panSequence)
-	blastMe(formattingPangenome.out.panGenomeReference)
-        outgroupEntrez(outTax)
-        makeReads(outgroupEntrez.out.outgroupFasta)
-        outgroupAlignmentFAndiltering(makeReads.out.outgroupReads, formattingPangenome.out.panGenomeReference, threadsGlobal)
-        makeOutgroupConsensus(outgroupAlignmentFAndiltering.out.outgroupFastaPostAlignment, formattingPangenome.out.panGenomeReference)
-	alignment(reads, formattingPangenome.out.panGenomeReference, threadsGlobal, configFile, missingProb, seedAlignment, gapFraction, minReadLength, maxReadLength)
-	alignmentSummary(configFile, alignment.out.postAlignedBams)
-	normalizationFunction(alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage)
-	updateNormalization(normalizationFunction.out.geneNormalizedSummary, alignmentSummary.out.completenessSummary)
-
-
-	if (params.genotyper == "gatk") {
-		gatkConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles, formattingPangenome.out.panGenomeReferenceDictionary, formattingPangenome.out.panGenomeReferenceIndex)
-		extractedSequencesFasta = gatkConsensus.out.gatkConsensusSequences
-		vcfFile = gatkConsensus.out.gatkGenotypes
-
-	} else if (params.genotyper == "bcftools") {
-		bcftoolsConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles)
-		extractedSequencesFasta = bcftoolsConsensus.out.consensusSequences
-
-	} else {
-		error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
-	}
-
-	plotCoveragevsCompleteness(updateNormalization.out.geneNormalizedUpdated, geneCompleteness, normalizedCoverageDown)
-        applyCoverageBounds(updateNormalization.out.geneNormalizedUpdated, normalizedCoverageDown, normalizedCoverageUp, geneCompleteness)
-	makeMatrix(makePangenome.out.initialMatrix , normalizationFunction.out.globalMeanCoverage, applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness, normalizedCoverageDown, normalizedCoverageUp)
-	buildHeatmap(makeMatrix.out.finalCsv, makeMatrix.out.INDEX ,makeMatrix.out.matrix, makeMatrix.out.sampleNames)
-	plotCoveragevsCompletenessOnFiltered(applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness,normalizedCoverageDown)
-	filterGeneAlignments(makePangenome.out.alignedGenesSeqs, extractedSequencesFasta, fastaDatabase.out.validFasta, downloadGenomes, makeOutgroupConsensus.out.extractedSequencesOutgroupFasta, buildHeatmap.out.blackListed)
-	pMauve(fastaDatabase.out.validFasta)
-	makeMSA(filterGeneAlignments.out.genesAlnSeq, buildHeatmap.out.maskedMatrixGenesNoUbiquitous, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.genesAbovePercentSeries, filterGeneAlignments.out.sampleNames)
-	treeThreshold(makeMSA.out.genesAbovePercentMSA)
-	treeUbiquitous(makeMSA.out.maskedMatrixGenesUbiquitousMSA)
-	treeNoUbiquitous(makeMSA.out.maskedMatrixGenesNoUbiquitousMSA)
-	treeAncient(makeMSA.out.maskedMatrixGenesOnlyAncientMSA)
-	xmfaToFasta(pMauve.out.pMauveCoreGenome)
-	filterMauveFasta(xmfaToFasta.out.pMauveFastaMSA)
-	startingTree(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA)
-	findRecombinationSpots(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, startingTree.out.startingTreeMauveFasta, startingTree.out.kappa)
-	mapRecombinantsToGenes(findRecombinationSpots.out.recombinationMap, filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, blastMe.out.panGenomeReferenceDB, prokkaMakeAnnotations.out.prokkaGFF)
-	getResults(
-	resultsDir, fastaDatabase.out.validFasta , fastaDatabase.out.validGff , fastaDatabase.out.fastaDatabaseLogFile , fastaDatabase.out.theFastaDatabase, 
-	clustering.out.clusteredDatabase, clustering.out.clusteringLog, prokkaMakeAnnotations.out.prokkaGFF, prokkaMakeAnnotations.out.prokkaLogfile,  makePangenome.out.panarooLog,
-	filterGeneAlignments.out.genesAlnSeq, formattingPangenome.out.panGenomeReference, updateNormalization.out.geneNormalizedUpdated, normalizationFunction.out.globalMeanCoverage,
-	alignmentSummary.out.postAlignmentFiles, alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage, alignmentSummary.out.completenessSummary, buildHeatmap.out.finalMatrix,
-	buildHeatmap.out.presenceAbsence, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.maskedMatrixGenesNoUbiquitous,
-	buildHeatmap.out.genesAbovePercentSeries, treeThreshold.out.genesAbovePercentMSAIqtree ,treeThreshold.out.genesAbovePercentMSALog , treeThreshold.out.genesAbovePercentMSATreefile,
-	treeUbiquitous.out.maskedMatrixGenesUbiquitousMSAIqtree, treeUbiquitous.out.maskedMatrixGenesUbiquitousMSALog, treeUbiquitous.out.maskedMatrixGenesUbiquitousMSATreefile, 
-	treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSAIqtree , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSALog , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSATreefile,
-	treeAncient.out.maskedMatrixGenesOnlyAncientMSAIqtree , treeAncient.out.maskedMatrixGenesOnlyAncientMSALog , treeAncient.out.maskedMatrixGenesOnlyAncientMSATreefile
-	)
-}
