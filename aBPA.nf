@@ -823,9 +823,9 @@ process filterGeneAlignments {
 	conda "${projectDir}/envs/filterGeneAlignments.yaml"
 
 	input:
-	path genesAln, stageAs: 'genes/*'
-        path extractedSequencesFasta, stageAs: 'sampleGenes/*'
-	path fFiles, stageAs: 'FNA/*'
+	path genesAln, stageAs: 'panaroo_genes/*'
+        path extractedSequencesFasta, stageAs: 'user_genes/*'
+	path fFiles, stageAs: 'modern_data/*'
 	val genomes
 	path outgroupSeq, stageAs: 'outgroup'
 	path blackListed, stageAs: 'blackListed.txt'
