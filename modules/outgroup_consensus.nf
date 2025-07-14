@@ -16,6 +16,8 @@ process OUTGROUP_CONSENSUS {
 
 	script:
 	"""
+	#!/bin/bash
+
 	bcftools mpileup -f $panGenomeRef $outgroupFastaPostAlignment | bcftools call -c | vcfutils.pl vcf2fq > extractedSequencesOutgroup.fq
 	seqtk seq -a extractedSequencesOutgroup.fq > extractedSequencesOutgroup.fasta
 
