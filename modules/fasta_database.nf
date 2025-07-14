@@ -18,12 +18,17 @@ process FASTA_DATABASE {
 	script:
 	"""
 	parseTest.py > parseTest.txt
-	grep "is not a valid GenBank file" parseTest.txt | awk '{print \$1}' | sed -e 's/gff\\///g' > blackListed.txt
-	
-	while read -r removeMe; do
-		rm "\${removeMe%gb}fasta" *"\$removeMe"	
-  		echo -e "\${removeMe%.gb} sample has been removed due to format problems."
-	done < blackListed.txt
+	grep "is not a valid GenBank file" parseTest.txt | awk '{print \$1}' > blackListed.txt
+
+	if [[ -s blackListed.txt ]] ;then
+
+		while read -r removeMe; do
+			rm "\${removeMe%gb}fasta" *"\$removeMe"	
+  			echo -e "\${removeMe%.gb} sample has been removed due to format problems."
+		done < blackListed.txt
+	else
+		echo -e "Every file passed the test. Moving on."
+	fi
 
 	parsing_and_contatenating.py
 
