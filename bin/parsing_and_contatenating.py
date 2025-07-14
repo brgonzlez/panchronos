@@ -9,7 +9,7 @@ from Bio import SeqIO
 import os
 import sys
 
-genbank_dir = sys.argv[1]
+genbank_dir = os.getcwd()
 output_fasta_file = "clustered_sequences.fasta"
 
 all_genes = {}
@@ -37,7 +37,7 @@ def process_genbank(gb_file):
 
 # Iterate over all GenBank files in the directory
 for gb_file in os.listdir(genbank_dir):
-    if gb_file.endswith(".gbff"):
+    if gb_file.endswith(".gb"):
         process_genbank(os.path.join(genbank_dir, gb_file))
 
 #write gene information to a single FASTA file
