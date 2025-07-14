@@ -14,7 +14,7 @@ nextflow.enable.dsl=2
 // Calling modules
 
 include { GET_DATA } from './modules/get_data.nf'
-
+include { REMOVE_REDUNDANCY } from './modules/remove_redundancy.nf'
 
 
 
@@ -114,9 +114,10 @@ workflow {
 
         }
 
+	FASTA_DATABASE(gffFiles, fastaFiles)
 
+	REMOVE_REDUNDANCY(FASTA_DATABASE.out.validFiles.map { fasta, gb -> fasta , gb}, params.remove_redundancy_parallel)
 
-	fastaDatabase(gffFiles, fastaFiles)
 	clustering(fastaDatabase.out.theFastaDatabase, cdHitCluster, threadsGlobal)
 	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
 	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
@@ -175,41 +176,7 @@ workflow {
 	)
 }
 
-process fastaDatabase {
-	conda "${projectDir}/envs/biopython.yaml"
-	
-	input:
-	path gffFiles, stageAs: 'gff/*'
-	path fastaFiles, stageAs: 'fasta/*'
-		
-	output:
-	path 'clustered_sequences.fasta' , emit: theFastaDatabase
-	path 'cleanedFasta/*fna', emit: validFasta
-	path 'cleanedGff/*gbff', emit: validGff
-	path 'fastaDatabase.log', emit: fastaDatabaseLogFile
 
-	script:
-	"""
-	parseTest.py gff > parseTest.txt
-	grep "is not a valid GenBank file" parseTest.txt | awk '{print \$1}' | sed -e 's/gff\\///g' > blackListed.txt
-	
-	while read -r removeMe; do
-	rm fasta/"\${removeMe%gbff}fna" gff/*"\$removeMe"	
-	done < blackListed.txt
-
-	parsing_and_contatenating.py gff
-	
-	mv fasta cleanedFasta
-	mv gff cleanedGff
-	
-	for genome in cleanedFasta/*; do
-		name=\$(basename "\$genome")
-		awk '!/^>/ { gsub(/[^AaCcGgTtNn]/, "N") }1' "\$genome" > tmp && mv tmp "\$genome"
-	done
-
-	cat .command.out >> fastaDatabase.log
-	"""
-}
 
 
 process clustering {
