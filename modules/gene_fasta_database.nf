@@ -1,8 +1,8 @@
 /*
- * GEN_FASTA_DATABASE{} process will build a gene fasta database from non-redundant samples.
+ * GENE_FASTA_DATABASE{} process will build a gene fasta database from non-redundant samples.
  */
 
-process GEN_FASTA_DATABASE {
+process GENE_FASTA_DATABASE {
 
 	conda "${projectDir}/envs/biopython.yaml"
 
