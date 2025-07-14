@@ -18,6 +18,8 @@ process MAKE_PANGENOME {
 
 	script:
 	"""
+	#!/bin/bash
+
 	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a core --core_threshold $pangenomeThreshold -t $threads
 
 	cat .command.out >> makePangenome.log
