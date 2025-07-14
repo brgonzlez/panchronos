@@ -18,8 +18,8 @@ include { PARSE_GENBANK } from './modules/parse_genbank.nf'
 include { REMOVE_REDUNDANCY } from './modules/remove_redundancy.nf'
 include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
 include { GENE_CLUSTERING } from './modules/gene_clustering.nf'
-
-
+include { ANNOTATE } from './modules/annotate.nf'
+include { MAKE_PANGENOME } from './modules/make_pangenome.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,10 +127,13 @@ workflow {
 	ANNOTATE(GENE_CLUSTERING.out.clusteredDatabase, params.prokka_annotate_threads, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta, gb},
 		params.prokka_annotate_parallel)
 
+	MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads)
 
-	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
-	formattingPangenome(makePangenome.out.panSequence)
-	blastMe(formattingPangenome.out.panGenomeReference)
+	FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
+
+	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+
+
         outgroupEntrez(outTax)
         makeReads(outgroupEntrez.out.outgroupFasta)
         outgroupAlignmentFAndiltering(makeReads.out.outgroupReads, formattingPangenome.out.panGenomeReference, threadsGlobal)
@@ -188,48 +191,6 @@ workflow {
 
 
 
-process makePangenome {
-	conda "${projectDir}/envs/panaroo.yaml"
-	
-	input:
-	path prokkaGFF, stageAs: 'filteredGFF/*'
-	val pangenomeMode
-	val pangenomeThreshold
-	val threadsGlobal
-
-	output:
-	path 'pan_genome_reference.fa' , emit: panSequence
-	path 'gene_presence_absence.Rtab' , emit: initialMatrix
-	path 'aligned_gene_sequences/*' , emit: alignedGenesSeqs
-	path 'makePangenome.log', emit: panarooLog
-
-	script:
-	"""
-	panaroo -i filteredGFF/*.gff -o ./ --clean-mode $pangenomeMode -a core --core_threshold $pangenomeThreshold -t $threadsGlobal
-
-	cat .command.out >> makePangenome.log
-	"""
-}
-
-
-process  formattingPangenome {
-	conda "${projectDir}/envs/formattingPangenome.yaml"
-
-	input:
-	path panGenomeReference, stageAs: 'pan_genome_reference.fa'
-
-	output:
-	path 'panGenomeReference.fasta', emit: panGenomeReference
-	path 'panGenomeReference.dict', emit: panGenomeReferenceDictionary
-	path 'panGenomeReference.fasta.fai', emit: panGenomeReferenceIndex
-
-	script:
-	"""
-	seqtk seq $panGenomeReference > panGenomeReference.fasta
-	picard CreateSequenceDictionary -R panGenomeReference.fasta
-	samtools faidx panGenomeReference.fasta
-	"""
-}
 
 
 process alignment {
@@ -1649,20 +1610,6 @@ process makeOutgroupConsensus {
 }
 
 
-process blastMe {
-	conda "${projectDir}/envs/blast.yaml"
-
-	input:
-	path panSeq, stageAs: 'panGenomeReference.fasta'
-
-	output:
-	path 'panGenomeReferenceDB*', emit: panGenomeReferenceDB
-
-	script:
-	"""
-	makeblastdb -in panGenomeReference.fasta -dbtype nucl -out panGenomeReferenceDB
-	"""
-}
 
 
 process getResults {
