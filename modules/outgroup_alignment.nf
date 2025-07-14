@@ -15,7 +15,6 @@ process OUTGROUP_ALIGNMENT {
 
 	script:
 	"""
-	bwa index panGenomeReferenceSeq.fasta
 	bwa mem -B 1 -E 1 $panGenomeRef $outgroupReads -t $threads > outgroupFasta.sam
 	samtools view -bS outgroupFasta.sam > outgroupFasta.bam
 	samtools quickcheck outgroupFasta.bam
