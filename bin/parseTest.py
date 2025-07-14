@@ -24,9 +24,9 @@ def verify_genbank_file(gb_file):
         print(f"{gb_file} is not a valid GenBank file. Error: {e}")
         return False
 
-genbank_dir = sys.argv[1]
+workingDir = os.getcwd()
 
 # Just verify them
-for gb_file in os.listdir(genbank_dir):
-    if gb_file.endswith(".gbff"):
-        verify_genbank_file(os.path.join(genbank_dir, gb_file))
+for gb_file in os.listdir(workingDir):
+    if gb_file.endswith(".gb"):
+        verify_genbank_file(os.path.join(workingDir, gb_file)) 
