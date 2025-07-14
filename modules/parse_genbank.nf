@@ -15,6 +15,8 @@ process PARSE_GENBANK {
 
 	script:
 	"""
+	#!/bin/bash
+
 	parseTest.py > parseTest.txt
 	grep "is not a valid GenBank file" parseTest.txt | awk '{print \$1}' > blackListed.txt
 
