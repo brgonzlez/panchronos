@@ -13,6 +13,8 @@ process BLAST_DATABASE {
 
 	script:
 	"""
+	#!/bin/bash
+
 	makeblastdb -in $panSeq -dbtype nucl -out pangenome_blast_database
 	"""
 }
