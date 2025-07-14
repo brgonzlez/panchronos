@@ -124,8 +124,10 @@ workflow {
 
 	GENE_CLUSTERING(GENE_FASTA_DATABASE.out.fastaDatabase, params.gene_identity_clustering, params.cd_hit_threads)
 
+	ANNOTATE(GENE_CLUSTERING.out.clusteredDatabase, params.prokka_annotate_threads, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta, gb},
+		params.prokka_annotate_parallel)
 
-	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
+
 	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
 	formattingPangenome(makePangenome.out.panSequence)
 	blastMe(formattingPangenome.out.panGenomeReference)
@@ -185,43 +187,6 @@ workflow {
 
 
 
-
-process prokkaMakeAnnotations {
-	conda "${projectDir}/envs/prokka.yaml"
-
-	input:
-	path clusteredSeqsDB
-	val threadsGlobal
-	path gffFiles , stageAs: 'gff/*'
-	path fastaFiles, stageAs: 'fasta/*'
-
-	output:
-	path '*_fromProkka' , emit: prokkaOut
-	path 'filteredGFF/*gff', emit: prokkaGFF
-	path 'prokkaMakeAnnotations.log', emit: prokkaLogfile
-
-	script:
-	"""
-	ls -l gff | awk 'NR==2{print \$NF}' > first.txt
-	name=\$(cat first.txt | awk -F'/' '{print \$NF}')
-	echo -e "\$name"
-	species=\$(head -n 20 gff/"\$name" | grep "ORGANISM" | awk '{print \$2, \$3}' | sed -e 's/ /_/g')
-	echo -e "\$species"
-	for i in fasta/*; do
-		name=\$(basename "\$i")
-		prokka --outdir "\${name%.fna}_fromProkka" --species "\$species" --proteins clusteredSeqsDB --rawproduct --cpus $threadsGlobal "\$i"
-	done
-	
-	mkdir -p filteredGFF
-
-	for sample in *_fromProkka; do
-		name=\$(basename "\${sample%_fromProkka}")
-		mv "\$sample"/*gff filteredGFF/"\${name}.gff"
-	done
-
-	cat .command.out >> prokkaMakeAnnotations.log
-	"""
-}
 
 process makePangenome {
 	conda "${projectDir}/envs/panaroo.yaml"
