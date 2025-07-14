@@ -13,6 +13,8 @@ process  FORMATTING_PANGENOME {
 
 	script:
 	"""
+	#!/bin/bash
+
 	seqtk seq $panGenomeReference > panGenomeReference.fasta
 	picard CreateSequenceDictionary -R panGenomeReference.fasta
 	samtools faidx panGenomeReference.fasta
