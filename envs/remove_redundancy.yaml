@@ -1,0 +1,10 @@
+name: REMOVE_REDUNDANCY
+channels:  
+- conda-forge  
+- bioconda  
+- anaconda
+- defaults
+dependencies:  
+- gsl=2.7=he838d99_0
+- fastani=1.34
+- seqtk=r82
