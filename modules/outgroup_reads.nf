@@ -14,6 +14,8 @@ process OUTGROUP_READS {
 
 	script:
 	"""
+	#!/bin/bash
+
 	art_illumina -i $outgroupFasta -l 150 -f 100 -o outgroupReads
 	"""
 }
