@@ -5,7 +5,6 @@
 process REMOVE_REDUNDANCY {
 
 	conda "${projectDir}/envs/remove_redundancy.yaml"
-	label 'demand_4'
 
 	input:
 	tuple path(fasta_files), path(gb_files)
