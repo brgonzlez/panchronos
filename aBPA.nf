@@ -14,7 +14,9 @@ nextflow.enable.dsl=2
 // Calling modules
 
 include { GET_DATA } from './modules/get_data.nf'
+include { PARSE_GENBANK } from './modules/parse_genbank.nf'
 include { REMOVE_REDUNDANCY } from './modules/remove_redundancy.nf'
+include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
 
 
 
@@ -114,9 +116,11 @@ workflow {
 
         }
 
-	FASTA_DATABASE(gffFiles, fastaFiles)
+	PARSE_GENBANK(gffFiles, fastaFiles)
 
 	REMOVE_REDUNDANCY(FASTA_DATABASE.out.validFiles.map { fasta, gb -> fasta , gb}, params.remove_redundancy_parallel)
+
+	FASTA_DATABASE(REMOVE_REDUNDANCY.out..map { fasta, gb -> fasta , gb})
 
 	clustering(fastaDatabase.out.theFastaDatabase, cdHitCluster, threadsGlobal)
 	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
