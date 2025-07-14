@@ -1,9 +1,9 @@
 /*
- * FASTA_DATABASE() will perform genbank format quality check and build a gene FASTA database for prokka proteins guide.
+ * PARSE_GENBANK() will perform genbank format quality check.
  */
 
  
-process FASTA_DATABASE {
+process PARSE_GENBANK {
 	conda "${projectDir}/envs/biopython.yaml"
 	
 	input:
@@ -11,7 +11,6 @@ process FASTA_DATABASE {
 	path fastaFiles
 		
 	output:
-	path 'clustered_sequences.fasta' , emit: fastaDatabase
 	tuple path('*fasta'), path('*gb'), emit: validFiles
 
 	script:
@@ -28,8 +27,6 @@ process FASTA_DATABASE {
 	else
 		echo -e "Every file passed the test. Moving on."
 	fi
-
-	parsing_and_contatenating.py
 
 	cat .command.out .command.err >> fastaDatabase.log
 	"""
