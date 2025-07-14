@@ -1,5 +1,5 @@
 /*
- * OUTGROUP_ALIGNMENT{} will index a graph and map reads against it.
+ * OUTGROUP_ALIGNMENT{} will align artificial outgroup reads against pangenome reference sequences.
  */
 
 process OUTGROUP_ALIGNMENT {
