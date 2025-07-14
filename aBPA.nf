@@ -20,6 +20,34 @@ include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
 include { GENE_CLUSTERING } from './modules/gene_clustering.nf'
 include { ANNOTATE } from './modules/annotate.nf'
 include { MAKE_PANGENOME } from './modules/make_pangenome.nf'
+include { BLAST_DATABASE } from './modules/blast_database.nf'
+include { GET_OUTGROUP } from './modules/get_outgroup.nf'
+include { OUTGROUP_READS } from './modules/outgroup_reads.nf'
+include { OUTGROUP_ALIGNMENT } from './modules/outgroup_alignment.nf'
+include { OUTGROUP_CONSENSUS } from './modules/outgroup_consensus.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+include {  } from './modules/.nf'
+
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -133,11 +161,17 @@ workflow {
 
 	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
+        GET_OUTGROUP(params.outgroup_tax_id)
 
-        outgroupEntrez(outTax)
-        makeReads(outgroupEntrez.out.outgroupFasta)
-        outgroupAlignmentFAndiltering(makeReads.out.outgroupReads, formattingPangenome.out.panGenomeReference, threadsGlobal)
-        makeOutgroupConsensus(outgroupAlignmentFAndiltering.out.outgroupFastaPostAlignment, formattingPangenome.out.panGenomeReference)
+        OUTGROUP_READS(GET_OUTGROUP.out.outgroupFasta)
+
+        OUTGROUP_ALIGNMENT(OUTGROUP_READS.out.outgroupReads, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
+				params.outgroup_alignment_threads)
+
+        OUTGROUP_CONSENSUS(OUTGROUP_ALIGNMENT.out.outgroupFastaPostAlignment, 
+				FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+
+
 	alignment(reads, formattingPangenome.out.panGenomeReference, threadsGlobal, configFile, missingProb, seedAlignment, gapFraction, minReadLength, maxReadLength)
 	alignmentSummary(configFile, alignment.out.postAlignedBams)
 	normalizationFunction(alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage)
@@ -1483,130 +1517,6 @@ process treeAncient {
         """
         iqtree -s maskedMatrixGenesOnlyAncientMSA.fasta --prefix maskedMatrixGenesOnlyAncientMSA -T 10 -B 1000 -m MFP
         """
-}
-
-process outgroupEntrez {
-	conda "${projectDir}/envs/entrez.yaml"
-
-	input:
-	val outID
-	
-	output:
-	path '*fna', emit: outgroupFasta
-
-	script:
-	"""
-	#!/bin/bash
-	counter=0
-	esearch -db assembly -query "txid${outID}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary | xtract -pattern DocumentSummary -element FtpPath_RefSeq | while read url; do
-        
-		if [ "\$counter" -ge 1 ]; then
-			break
-		fi
-	
-		if [ -z "\$url" ]; then
-			continue
-		fi
-        
-		fname="\$(basename "\$url")"
-		downloadMeAndCheck() {
-			wget "\$url/\${fname}_genomic.gbff.gz"
-	        	wget "\$url/\${fname}_genomic.fna.gz"
-
-			gunzip -f "\${fname}_genomic.gbff.gz"
-			gunzip -f "\${fname}_genomic.fna.gz"
-
-
-			if [ -f "\${fname}_genomic.gbff.gz" ] || [ -f "\${fname}_genomic.fna.gz" ]; then	
-				rm -f "\${fname}_genomic.gbff.gz" "\${fname}_genomic.fna.gz"
-				return 1
-			fi
-
-			return 0
-		}
-
-		while ! downloadMeAndCheck; do
-			echo "Files were corrupted. Retrying"
-			sleep 3
-		done
-		# Adding to the counter
-	        counter="\$((counter + 1))"     
-                fna_count=\$(ls -1 *.fna 2>/dev/null | wc -l)
-                gbff_count=\$(ls -1 *.gbff 2>/dev/null | wc -l)
-
-                # check that there is already one file
-                if [ "\$fna_count" -lt 1 ] || [ "\$gbff_count" -lt 1 ]; then
-                        echo "It seems a file was already downloaded. Moving on"
-                        break
-                else
-                        continue
-                fi
-
-	done
-	"""
-}
-
-
-process makeReads {
-	conda "${projectDir}/envs/art.yaml"
-
-	input:
-	path outgroupFasta, stageAs: 'outgroupFasta.fasta'
-	
-	output:
-	path 'outgroupReads.fq', emit: outgroupReads
-
-
-	script:
-	"""
-	art_illumina -i outgroupFasta.fasta -l 150 -f 100 -o outgroupReads
-	"""
-}
-
-
-process outgroupAlignmentFAndiltering {
-	conda "${projectDir}/envs/alignment.yaml"
-	
-	input:
-	path outgroupReads, stageAs: 'outgroupReads.fq'
-	path panGenomeRef, stageAs: 'panGenomeReferenceSeq.fasta'
-	val threadsGlobal
-
-	output:
-	path 'outgroupFastaPostAlignment.bam', emit: outgroupFastaPostAlignment
-
-	script:
-	"""
-	bwa index panGenomeReferenceSeq.fasta
-	bwa mem -B 1 -E 1 panGenomeReferenceSeq.fasta outgroupReads.fq -t $threadsGlobal > outgroupFasta.sam
-	samtools view -bS outgroupFasta.sam > outgroupFasta.bam
-	samtools quickcheck outgroupFasta.bam
-	samtools sort -o outgroupFastaSorted.bam -O bam -@ $threadsGlobal outgroupFasta.bam
-	samtools index outgroupFastaSorted.bam
-	samtools view -b -@ 10 -F 4 outgroupFastaSorted.bam > outgroupFastaSortedMappedreads.bam
-	samtools index outgroupFastaSortedMappedreads.bam
-	samtools sort -o outgroupFastaPostAlignment.bam -O bam -@ $threadsGlobal outgroupFastaSortedMappedreads.bam
-	"""
-}
-
-
-process makeOutgroupConsensus {
-	conda "${projectDir}/envs/consensusOutgroup.yaml"
-
-	input:
-	path outgroupFastaPostAlignment, stageAs: 'outgroupFastaPostAlignment.bam'
-	path panGenomeRef, stageAs: 'panGenomeRef.fasta'
-
-	output:
-	path 'extractedSequencesOutgroup.fasta', emit: extractedSequencesOutgroupFasta
-	path 'extractedSequencesOutgroup.fq', emit: extractedSequencesOutgroupFastq
-
-	script:
-	"""
-	bcftools mpileup -f panGenomeRef.fasta outgroupFastaPostAlignment.bam | bcftools call -c | vcfutils.pl vcf2fq > extractedSequencesOutgroup.fq
-	seqtk seq -a extractedSequencesOutgroup.fq > extractedSequencesOutgroup.fasta
-
-	"""
 }
 
 
