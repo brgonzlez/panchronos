@@ -4,7 +4,7 @@
 
 process GEN_FASTA_DATABASE {
 
-	conda "${projectDir}/envs/gene_fasta_database.yaml"
+	conda "${projectDir}/envs/biopython.yaml"
 
 	input:
 	path gb_files
