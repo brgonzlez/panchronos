@@ -17,7 +17,7 @@ include { GET_DATA } from './modules/get_data.nf'
 include { PARSE_GENBANK } from './modules/parse_genbank.nf'
 include { REMOVE_REDUNDANCY } from './modules/remove_redundancy.nf'
 include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
-
+include { GENE_CLUSTERING } from './modules/gene_clustering.nf'
 
 
 
@@ -111,7 +111,7 @@ workflow {
                 gffFiles = GET_DATA.out.gbk_files
 
         } else {
-                fastaFiles = Channel.of(files("${params.trusted_data}/*fna"))
+                fastaFiles = Channel.of(files("${params.trusted_data}/*fasta"))
                 gffFiles = Channel.of(files("${params.trusted_data}/*gb"))
 
         }
@@ -120,9 +120,11 @@ workflow {
 
 	REMOVE_REDUNDANCY(FASTA_DATABASE.out.validFiles.map { fasta, gb -> fasta , gb}, params.remove_redundancy_parallel)
 
-	FASTA_DATABASE(REMOVE_REDUNDANCY.out..map { fasta, gb -> fasta , gb})
+	GENE_FASTA_DATABASE(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> gb})
 
-	clustering(fastaDatabase.out.theFastaDatabase, cdHitCluster, threadsGlobal)
+	GENE_CLUSTERING(GENE_FASTA_DATABASE.out.fastaDatabase, params.gene_identity_clustering, params.cd_hit_threads)
+
+
 	prokkaMakeAnnotations(clustering.out.clusteredDatabase, threadsGlobal, fastaDatabase.out.validGff, fastaDatabase.out.validFasta)
 	makePangenome(prokkaMakeAnnotations.out.prokkaGFF, pangenomeMode, pangenomeThreshold, threadsGlobal)
 	formattingPangenome(makePangenome.out.panSequence)
@@ -183,25 +185,6 @@ workflow {
 
 
 
-process clustering {
-
-	conda "${projectDir}/envs/cdhit.yaml"
-
-	input:
-	path fastaDB
-	val clustering
-	val threadsGlobal
-
-	output:
-	path "clustered_non_redundant_genes.fasta", emit: clusteredDatabase
-	path "clustering.log", emit: clusteringLog
-	script:
-	"""
-	#!/bin/bash
-	cd-hit-est -i $fastaDB -o clustered_non_redundant_genes.fasta -c $clustering -T $threadsGlobal -d 0 -g 1 -M 0
-	cat .command.out >> clustering.log
-	"""
-}
 
 process prokkaMakeAnnotations {
 	conda "${projectDir}/envs/prokka.yaml"
