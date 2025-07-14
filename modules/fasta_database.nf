@@ -9,7 +9,6 @@ process FASTA_DATABASE {
 	input:
 	path gffFiles
 	path fastaFiles
- 	val parallel
 		
 	output:
 	path 'clustered_sequences.fasta' , emit: fastaDatabase
