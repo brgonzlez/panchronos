@@ -13,6 +13,7 @@ process FILTER_GENE_ALIGNMENTS {
 	val genomes
 	path outgroupSeq, stageAs: 'outgroup'
 	path blackListed, stageAs: 'blackListed.txt'
+	val parallel
 
 	output:
 	path 'filteredGenes/*_Filtered.fasta', emit: genesAlnSeq
@@ -55,7 +56,7 @@ process FILTER_GENE_ALIGNMENTS {
         	echo "\${name}" > "\${name}"_modern_TMP
 	}
 	export -f modern_samples_list
-	find modern_data/ -name "*.fna" | parallel -j 30 modern_samples_list
+	find modern_data/ -name "*.fna" | parallel -j $parallel modern_samples_list
 
 	cat *_modern_TMP >> modernSampleNames.txt
 	rm *_modern_TMP
@@ -85,7 +86,7 @@ process FILTER_GENE_ALIGNMENTS {
                 seqtk seq "\${fasta_file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > panaroo_parsed/"\${name}_parsing_panaroo.fasta"
 	}
 	export -f parsing_panaroo_msa
-	find panaroo_genes/ -name "*.fasta" | parallel -j 30 parsing_panaroo_msa
+	find panaroo_genes/ -name "*.fasta" | parallel -j $parallel parsing_panaroo_msa
 
 	echo -e "Done\n"
 
@@ -110,7 +111,7 @@ process FILTER_GENE_ALIGNMENTS {
 		sed -i -e 's/~/_/g' "\${sample}"
 	}
 	export -f index_and_formatting
-	find user_genes/ -name "*.fasta" | parallel -j 30 index_and_formatting
+	find user_genes/ -name "*.fasta" | parallel -j $parallel index_and_formatting
 
 	echo -e "Done\n"
 
@@ -137,7 +138,7 @@ process FILTER_GENE_ALIGNMENTS {
 	}
 
 	export -f add_user_sample_sequences
-	find panaroo_parsed/ -name "*.fasta" | parallel -j 30 add_user_sample_sequences
+	find panaroo_parsed/ -name "*.fasta" | parallel -j $parallel add_user_sample_sequences
 	echo -e "Done\n"
 
 
@@ -150,7 +151,7 @@ process FILTER_GENE_ALIGNMENTS {
                 grep -w -A 1 "\$name" outgroup | awk -v outgroup="outgroup" '/^>/ {sub(/^>.*/, ">" outgroup, \$0)} {print}' >> "\${fasta_file}"
 	}
 	export -f add_outgroup_sequences
-	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 add_outgroup_sequences
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel add_outgroup_sequences
 
 	echo -e "Done\n"
 
@@ -174,7 +175,7 @@ process FILTER_GENE_ALIGNMENTS {
         	}' "\${MSA}" > tmp_"\${name}" && mv tmp_"\${name}" "\${MSA}"
 	}
 	export -f panaroo_parsed_padding
-	find panaroo_parsed/ -name "*parsing_panaroo.fasta" | parallel -j 30 panaroo_parsed_padding
+	find panaroo_parsed/ -name "*parsing_panaroo.fasta" | parallel -j $parallel panaroo_parsed_padding
 
 	echo -e "Done\n"
 
@@ -203,7 +204,7 @@ process FILTER_GENE_ALIGNMENTS {
         	done < modernSampleNames.txt
 	}
 	export -f check_panaroo_headers_artifacts
-	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 check_panaroo_headers_artifacts
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel check_panaroo_headers_artifacts
 	echo -e "Done\n"
 
 
@@ -225,7 +226,7 @@ process FILTER_GENE_ALIGNMENTS {
                 done < modernSampleNames.txt
 	}
 	export -f modern_append_gaps
-	find panaroo_parsed/ -name "_parsing_panaroo.fasta" | parallel -j 30 modern_append_gaps
+	find panaroo_parsed/ -name "_parsing_panaroo.fasta" | parallel -j $parallel modern_append_gaps
 
 
 
@@ -245,7 +246,7 @@ process FILTER_GENE_ALIGNMENTS {
 	}
 
 	export -f ancient_append_missingness
-	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 ancient_append_missingness
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel ancient_append_missingness
 
 	echo -e "Done \n"
 
@@ -280,7 +281,7 @@ process FILTER_GENE_ALIGNMENTS {
 
 	}
 	export -f sanitised_msa
-	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 sanitised_msa
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel sanitised_msa
 
 	# Dealing with fragmented Panaroo gene alignments multi-entries
 	mkdir -p special_cases
@@ -348,7 +349,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f fix_duplicated_entries
 
 	if (( unsanitised != 0 )); then
-		find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j 30 fix_duplicated_entries
+		find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel fix_duplicated_entries
 	fi
 
 	#finally checking that every seq has the same length
@@ -372,7 +373,7 @@ process FILTER_GENE_ALIGNMENTS {
        }
 
 	export -f checking_alignment_lengths
-	find special_cases/ -name "*.fasta" | parallel -j 30 checking_alignment_lengths
+	find special_cases/ -name "*.fasta" | parallel -j $parallel checking_alignment_lengths
 	echo -e "Done"
 
 
@@ -402,7 +403,7 @@ process FILTER_GENE_ALIGNMENTS {
 
 	}
 	export -f sanitised_msa_special_cases
-	find special_cases/ -name "*.fasta" | parallel -j 30 sanitised_msa_special_cases
+	find special_cases/ -name "*.fasta" | parallel -j $parallel sanitised_msa_special_cases
 
 	# final steps: sort everything.
 
@@ -430,7 +431,7 @@ process FILTER_GENE_ALIGNMENTS {
 	}
 
 	export -f sortingMSA
-	find sanitised_msa/ -name "*.fasta" | parallel -j 30 sortingMSA
+	find sanitised_msa/ -name "*.fasta" | parallel -j $parallel sortingMSA
 
 	echo -e "Done"
 
