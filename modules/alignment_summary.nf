@@ -14,7 +14,7 @@ process ALIGNMENT_SUMMARY {
 	output:
         path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
 	path 'completenessSummary.tab', emit: completenessSummary
-	path '*_refLength.txt', emit: refLenght
+	path '*_refLength.txt', emit: refLength
 	path '*_rawCoverage.txt' , emit: rawCoverage
 
 
