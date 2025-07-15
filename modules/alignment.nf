@@ -26,33 +26,33 @@ process ALIGNMENT {
 	align() {
 	sample=\$1
     	
-		name=\$(basename "\$sample")
+		name=\$(basename "\${sample%.fastq*}")
     		
     		softClip=\$(grep "\$name" $configFile | awk '{print \$2}')
        		# Making read groups
-    		rg_id="\${name%.fastq*}"  # sample name as id
-    		rg_sm="\${name%.fastq*}" # sample name again
+    		rg_id="\${name}"  # sample name as id
+    		rg_sm="\${name}" # sample name again
     		rg_pl="illumina"        # I dont think this is very important for this pipeline so its going to be just illumina because why not
     		rg_lb="lib1"            # group id
     		rg_pu="unit1"           # not sure what Ill put here
 
-    		bwa aln -l $seedAlignment -n $missingProb -o $gapFraction -t $threadsGlobal $panRef "\$sample" > "\${name%.fastq*}.sai"
+    		bwa aln -l $seedAlignment -n $missingProb -o $gapFraction -t $threadsGlobal $panRef "\$sample" > "\${name}.sai"
     		bwa samse -r "@RG\\tID:\$rg_id\\tSM:\$rg_sm\\tPL:\$rg_pl\\tLB:\$rg_lb\\tPU:\$rg_pu" \
-		$panRef "\${name%.fastq*}.sai" "\$sample" > "\${name%.fastq*}.sam"
+		$panRef "\${name}.sai" "\$sample" > "\${name}.sam"
     
-    		samtools view -bS "\${name%.fastq*}.sam" > "\${name%.fastq*}.bam"
-    		samtools quickcheck "\${name%.fastq*}.bam"
-    		samtools sort -o "\${name%.fastq*}_sorted.bam" -O bam -@ $threadsGlobal "\${name%.fastq*}.bam"
-    		samtools index "\${name%.fastq*}_sorted.bam"
-    		rm "\${name%.fastq*}.bam"
-    		samtools view -b -@ $threadsGlobal -F 4 "\${name%.fastq*}_sorted.bam" > "\${name%.fastq*}_sorted_mappedreads.bam"
-    		samtools index "\${name%.fastq*}_sorted_mappedreads.bam"
-    		bam trimBam "\${name%.fastq*}_sorted_mappedreads.bam" "\${name%.fastq*}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
-    		samtools view -q 30 -o "\${name%.fastq*}_qc.bam" "\${name%.fastq*}_softclipped.bam"
-    		samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name%.fastq*}_lg.bam" "\${name%.fastq*}_qc.bam"
-    		samtools sort -o "\${name%.fastq*}_DMC_P.bam" -O bam -@ $threadsGlobal "\${name%.fastq*}_lg.bam"
-    		samtools coverage "\${name%.fastq*}_DMC_P.bam" > "\${name}_genomicsMetrics.txt"
-    		samtools fastq -@ $threadsGlobal "\${name%.fastq*}_DMC_P.bam" > "\${name%.fastq*}_final.fastq"
+    		samtools view -bS "\${name}.sam" > "\${name}.bam"
+    		samtools quickcheck "\${name}.bam"
+    		samtools sort -o "\${name}_sorted.bam" -O bam -@ $threadsGlobal "\${name}.bam"
+    		samtools index "\${name}_sorted.bam"
+    		rm "\${name}.bam"
+    		samtools view -b -@ $threadsGlobal -F 4 "\${name}_sorted.bam" > "\${name}_sorted_mappedreads.bam"
+    		samtools index "\${name}_sorted_mappedreads.bam"
+    		bam trimBam "\${name}_sorted_mappedreads.bam" "\${name}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
+    		samtools view -q 30 -o "\${name}_qc.bam" "\${name}_softclipped.bam"
+    		samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
+    		samtools sort -o "\${name}_DMC_P.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
+    		samtools coverage "\${name}_DMC_P.bam" > "\${name}_genomicsMetrics.txt"
+    		samtools fastq -@ $threadsGlobal "\${name}_DMC_P.bam" > "\${name}_final.fastq"
 	}
 	export -f align
 	find $data/* -name "*.fastq" | parallel -j $parallel align
