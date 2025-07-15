@@ -4,7 +4,7 @@
  */
 
 process GET_DATA {
-	conda "${projectDir}/envs/GET_DATA.yaml"
+	conda "${projectDir}/envs/get_data.yaml"
 
 	input:
 	val genomes
