@@ -36,7 +36,7 @@ include { COVERAGE_BOUNDS } from './modules/coverage_bounds.nf'
 include { UPDATE_MATRIX } from './modules/update_matrix.nf'
 include { HEATMAP } from './modules/heatmap.nf'
 include { UPDATE_PLOT_COVERAGE_COMPLETENESS } from './modules/update_plot_coverage_completeness.nf.nf'
-include {  } from './modules/.nf'
+include { FILTER_GENE_ALIGNMENTS } from './modules/filter_gene_alignments.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
@@ -208,7 +208,7 @@ workflow {
 	UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound)
 
 	FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
-			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed)
+			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel)
 
 	pMauve(fastaDatabase.out.validFasta)
 	makeMSA(filterGeneAlignments.out.genesAlnSeq, buildHeatmap.out.maskedMatrixGenesNoUbiquitous, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.genesAbovePercentSeries, filterGeneAlignments.out.sampleNames)
