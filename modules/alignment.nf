@@ -55,7 +55,7 @@ process ALIGNMENT {
     		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
 	}
 	export -f align
-	find $data/* -name "*.fastq" | parallel -j $parallel align
+	find $data/* -name "*.fastq*" | parallel -j $parallel align
 
 
 	rm *sam *sai *_lg.bam *_qc.bam *_sorted_mappedreads.bam*
