@@ -2,11 +2,11 @@
  * MAPPING{} will index a graph and map reads against it.
  */
 
-process buildHeatmap {
+process HEATMAP {
 	conda "${projectDir}/envs/heatmap.yaml"
 
 	input:
-	path fCSV, stageAs: 'fCSV/*
+	path fCSV, stageAs: 'fCSV/*'
 	path INDEX, stageAs: 'INDEX/*'
 	path matrix, stageAs: 'matrix/*'
 	path names, stageAs: 'names/*'
