@@ -16,9 +16,9 @@ process FILTER_GENE_ALIGNMENTS {
 	val parallel
 
 	output:
-	path 'filteredGenes/*_Filtered.fasta', emit: genesAlnSeq
+	path 'sorted/*.fasta', emit: genesAlnSeq
 	path 'sampleNames.txt', emit: sampleNames
-	path 'specialCases/*fasta', emit: specialCases
+	path 'special_cases/*fasta', emit: specialCases
 
 	script:
 	"""
