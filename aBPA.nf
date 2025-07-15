@@ -416,26 +416,6 @@ process buildHeatmap {
 }
 
 
-process bcftoolsConsensus {
-	conda "${projectDir}/envs/consensus.yaml"
-
-	input:
-	path panGenomeRef, stageAs: 'panGenomeRef.fasta'
-	path bamFiles, stageAs: 'BAM/*'
-
-	output:
-	path 'extractedSequences*.fasta', emit: consensusSequences
-
-	script:
-	"""
-	for b in BAM/*; do
-		basename=\$(basename "\$b")
-		bcftools mpileup -f $panGenomeRef "\$b" | bcftools call -c | vcfutils.pl vcf2fq > extractedSequences"\${basename%.bam}".fq
-		seqtk seq -a extractedSequences"\${basename%.bam}".fq > extractedSequences"\${basename%.bam}".fasta
-	done
-	"""
-}
-
 
 process gatkConsensus {
 	conda "${projectDir}/envs/gatk.yaml"
