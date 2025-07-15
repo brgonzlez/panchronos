@@ -37,16 +37,12 @@ include { UPDATE_MATRIX } from './modules/update_matrix.nf'
 include { HEATMAP } from './modules/heatmap.nf'
 include { UPDATE_PLOT_COVERAGE_COMPLETENESS } from './modules/update_plot_coverage_completeness.nf.nf'
 include { FILTER_GENE_ALIGNMENTS } from './modules/filter_gene_alignments.nf'
+include { BUILD_MSA } from './modules/build_msa.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-
 
 
 /*
@@ -210,17 +206,14 @@ workflow {
 	FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
 			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel)
 
-	pMauve(fastaDatabase.out.validFasta)
-	makeMSA(filterGeneAlignments.out.genesAlnSeq, buildHeatmap.out.maskedMatrixGenesNoUbiquitous, buildHeatmap.out.maskedMatrixGenesOnlyAncient, buildHeatmap.out.maskedMatrixGenesUbiquitous, buildHeatmap.out.genesAbovePercentSeries, filterGeneAlignments.out.sampleNames)
+	BUILD_MSA(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
+		HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames)
+
 	treeThreshold(makeMSA.out.genesAbovePercentMSA)
 	treeUbiquitous(makeMSA.out.maskedMatrixGenesUbiquitousMSA)
 	treeNoUbiquitous(makeMSA.out.maskedMatrixGenesNoUbiquitousMSA)
 	treeAncient(makeMSA.out.maskedMatrixGenesOnlyAncientMSA)
-	xmfaToFasta(pMauve.out.pMauveCoreGenome)
-	filterMauveFasta(xmfaToFasta.out.pMauveFastaMSA)
-	startingTree(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA)
-	findRecombinationSpots(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, startingTree.out.startingTreeMauveFasta, startingTree.out.kappa)
-	mapRecombinantsToGenes(findRecombinationSpots.out.recombinationMap, filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, blastMe.out.panGenomeReferenceDB, prokkaMakeAnnotations.out.prokkaGFF)
+
 	getResults(
 	resultsDir, fastaDatabase.out.validFasta , fastaDatabase.out.validGff , fastaDatabase.out.fastaDatabaseLogFile , fastaDatabase.out.theFastaDatabase, 
 	clustering.out.clusteredDatabase, clustering.out.clusteringLog, prokkaMakeAnnotations.out.prokkaGFF, prokkaMakeAnnotations.out.prokkaLogfile,  makePangenome.out.panarooLog,
@@ -232,92 +225,15 @@ workflow {
 	treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSAIqtree , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSALog , treeNoUbiquitous.out.maskedMatrixGenesNoUbiquitousMSATreefile,
 	treeAncient.out.maskedMatrixGenesOnlyAncientMSAIqtree , treeAncient.out.maskedMatrixGenesOnlyAncientMSALog , treeAncient.out.maskedMatrixGenesOnlyAncientMSATreefile
 	)
+
+	// pMauve(fastaDatabase.out.validFasta)
+	// xmfaToFasta(pMauve.out.pMauveCoreGenome)
+	// filterMauveFasta(xmfaToFasta.out.pMauveFastaMSA)
+	// startingTree(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA)
+	// findRecombinationSpots(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, startingTree.out.startingTreeMauveFasta, startingTree.out.kappa)
+	// mapRecombinantsToGenes(findRecombinationSpots.out.recombinationMap, filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, blastMe.out.panGenomeReferenceDB, prokkaMakeAnnotations.out.prokkaGFF)
 }
 
-process makeMSA {
-
-	input:
-	path genesAlnSeq, stageAs: 'genes/*'
-	path maskedMatrixGenesNoUbiquitous, stageAs: 'maskedMatrixGenesNoUbiquitous.txt'
-	path maskedMatrixGenesOnlyAncient, stageAs: 'maskedMatrixGenesOnlyAncient.txt'
-	path maskedMatrixGenesUbiquitous, stageAs: 'maskedMatrixGenesUbiquitous.txt'
-	path genesAbovePercentSeries, stageAs: 'genesAbovePercentSeries.txt'
-	path sampleNames, stageAs: 'sampleNames.txt'
-
-	output:
-	path 'genesAbovePercentMSA.fasta', emit: genesAbovePercentMSA
-	path 'maskedMatrixGenesNoUbiquitousMSA.fasta', emit: maskedMatrixGenesNoUbiquitousMSA
-	path 'maskedMatrixGenesOnlyAncientMSA.fasta', emit: maskedMatrixGenesOnlyAncientMSA
-	path 'maskedMatrixGenesUbiquitousMSA.fasta', emit: maskedMatrixGenesUbiquitousMSA
-	
-
-	script:
-	"""
-	#!/bin/bash
-
-	touch genesAbovePercentMSA.fasta
-	touch maskedMatrixGenesUbiquitousMSA.fasta
-	touch maskedMatrixGenesOnlyAncientMSA.fasta
-	touch maskedMatrixGenesNoUbiquitousMSA.fasta
-
-	sed -i -e 's/~/_/g' genesAbovePercentSeries.txt
-	sed -i -e 's/~/_/g' maskedMatrixGenesNoUbiquitous.txt
-	sed -i -e 's/~/_/g' maskedMatrixGenesOnlyAncient.txt
-	sed -i -e 's/~/_/g' maskedMatrixGenesUbiquitous.txt
-
-
-
-	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
-		if [[ -f "\$file" ]] ; then
-			paste genesAbovePercentMSA.fasta "\$file" > TMP; mv TMP genesAbovePercentMSA.fasta
-		else
-			echo "Warning: File \$file not found, skipping..."
-		fi
-	done < genesAbovePercentSeries.txt
-	sed -i -e 's/\t//g' genesAbovePercentMSA.fasta
-	awk -F'>' '/^>/ {print ">" \$2} !/^>/' genesAbovePercentMSA.fasta > TMPg; mv TMPg genesAbovePercentMSA.fasta
-
-
-
-	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
-		if [[ -f "\$file" ]] ; then
-			paste maskedMatrixGenesNoUbiquitousMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesNoUbiquitousMSA.fasta
-		else
-			echo "Warning: File \$file not found, skipping..."
-		fi
-	done < maskedMatrixGenesNoUbiquitous.txt
-        sed -i -e 's/\t//g' maskedMatrixGenesNoUbiquitousMSA.fasta
-        awk -F'>' '/^>/ {print ">" \$2} !/^>/' maskedMatrixGenesNoUbiquitousMSA.fasta > TMPnU; mv TMPnU maskedMatrixGenesNoUbiquitousMSA.fasta
-
-
-
-	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
-		if [[ -f "\$file" ]] ; then
-			paste maskedMatrixGenesOnlyAncientMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesOnlyAncientMSA.fasta
-		else
-			echo "Warning: File \$file not found, skipping..."
-		fi
-	done < maskedMatrixGenesOnlyAncient.txt
-        sed -i -e 's/\t//g' maskedMatrixGenesOnlyAncientMSA.fasta
-        awk -F'>' '/^>/ {print ">" \$2} !/^>/' maskedMatrixGenesOnlyAncientMSA.fasta > TMPo2; mv TMPo2 maskedMatrixGenesOnlyAncientMSA.fasta
-
-	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
-		if [[ -f "\$file" ]] ; then
-			paste maskedMatrixGenesUbiquitousMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesUbiquitousMSA.fasta
-		else
-			echo "Warning: File \$file not found, skipping..."
-		fi
-	done < maskedMatrixGenesUbiquitous.txt
-
-        sed -i -e 's/\t//g' maskedMatrixGenesUbiquitousMSA.fasta
-        awk -F'>' '/^>/ {print ">" \$2} !/^>/' maskedMatrixGenesUbiquitousMSA.fasta > TMPU2; mv TMPU2 maskedMatrixGenesUbiquitousMSA.fasta
-
-	"""
-}
 
 
 process pMauve {
