@@ -6,8 +6,8 @@
 process NORMALIZE {
 
 	input:
-	path refLength, stageAs: 'refLength/*'
-	path rawCoverage, stageAs: 'rawCoverage/*'
+	path refLength
+	path rawCoverage
 
 
 	output:
@@ -21,13 +21,15 @@ process NORMALIZE {
 	echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled" > geneNormalizedSummary.txt
 	echo -e "sampleID \t sampleCoverage \t refCount \t globalMean"  > globalMeanCoverage.txt
 
-	for i in rawCoverage/*_rawCoverage.txt; do
-		name=\$(basename "\${i%_rawCoverage.txt}")
+	normalization() {
+	file=\$1
+
+		name=\$(basename "\${file%_rawCoverage.txt}")
 
 		#Compute global mean coverage
-		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$i")
-		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$i")
-		refCount=\$(cat refLength/"\${name}_refLength.txt")
+		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
+		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$file")
+		refCount=\$(cat "\${name}_refLength.txt")
 		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" >> globalMeanCoverage.txt
 
 		#Normalize coverage per gene
@@ -49,7 +51,11 @@ process NORMALIZE {
 				print name"\t"gene"\t"normalizedGeneSimple"\t"normalizedGeneScaled"\t"normalizedGenomeSimple"\t"normalizedGenomeScaled
 			}
 		}
-		' "\$i" >> geneNormalizedSummary.txt
-	done
+		' "\$file" >> "\${name}"_geneNormalizedSummary.txt
+	}
+	export -f normalization
+	find ./ -name "*_rawCoverage.txt" | parallel -j $parallel normalization
+
+	cat *_geneNormalizedSummary.txt > geneNormalizedSummary.txt
 	"""
 }
