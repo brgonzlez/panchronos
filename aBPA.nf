@@ -174,10 +174,11 @@ workflow {
 	ALIGNMENT(params.data, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
 		tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length, params.alignment_parallel))
 
-	alignmentSummary(configFile, alignment.out.postAlignedBams)
+	ALIGNMENT_SUMMARY(configFile, alignment.out.postAlignedBams, params.alignment_parallel)
 
-	normalizationFunction(alignmentSummary.out.refLenght, alignmentSummary.out.rawCoverage)
-	updateNormalization(normalizationFunction.out.geneNormalizedSummary, alignmentSummary.out.completenessSummary)
+	NORMALIZATION(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage)
+
+	UPDATE_NORMALIZATION(NORMALIZATION.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
 
 
 	if (params.genotyper == "gatk") {
@@ -227,160 +228,6 @@ workflow {
 
 
 
-
-
-process alignmentSummary {
-	conda "${projectDir}/envs/alignment.yaml"
-	
-	input:
-	path configFile
-	path bamfiles, stageAs: 'bam/*'
-	
-
-	output:
-        path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
-	path 'completenessSummary.tab', emit: completenessSummary
-	path '*_refLength.txt', emit: refLenght
-	path '*_rawCoverage.txt' , emit: rawCoverage
-
-
-	script:
-	"""
-	#!/bin/bash
-	awk '{print \$NF}' $configFile | uniq > groups.txt
-
-	while read -r groupID; do
-		groupName=\$(echo "\$groupID")
-		grep -w "\$groupID" $configFile | awk '{print \$1}' > "\$groupName"ID
-	done < groups.txt
-
-        for groupFile in *ID; do
-                IDs=\$(basename "\${groupFile%ID}")
-
-		echo "Group ID: \$IDs"
-
-                bamFiles=()
-
-                while read -r sampleName; do
-                        bamFiles+=(./bam/"\${sampleName%.fastq*}_DMC_P.bam")
-                        echo "Adding BAM file: ./bam/\${sampleName%.fastq*}_DMC_P.bam"
-		done < "\$groupFile"
-
-                if [ \${#bamFiles[@]} -eq 1 ]; then
-                        cp "\${bamFiles[0]}" postPangenomeAlignment_"\${IDs}".bam
-                elif [ \${#bamFiles[@]} -gt 1 ]; then
-                        samtools merge postPangenomeAlignment_mergedGroup"\${IDs}".bam "\${bamFiles[@]}"
-                fi
-        done
-
-	#Getting some stats AND Re group the data so genotyping is simpler
-        for i in postPangenomeAlignment*bam; do
-                samplename=\$(basename ./bam/"\${i%.bam}")
-                samtools index "\$i"
-                samtools depth -a "\$i" > "\${samplename}_rawCoverage.txt"
-                samtools idxstats "\$i" | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
-                samtools coverage "\$i" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> completenessSummary.tab
-		mv "\$i" ./"\${i%.bam}_TMP.bam"
-		mv "\$i".bai ./"\${i%.bam.bai}_TMP.bam.bai"
-		picard AddOrReplaceReadGroups I="\${i%.bam}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
-		samtools index "\${samplename}.bam"
-	done
-
-	rm *TMP.bam*
-
-	cat .command.out >> alignmentSummary.log
-	"""
-}
-
-process normalizationFunction {
-
-	input:
-	path refLength, stageAs: 'refLength/*'
-	path rawCoverage, stageAs: 'rawCoverage/*'
-
-
-	output:
-	path 'geneNormalizedSummary.txt', emit: geneNormalizedSummary
-	path 'globalMeanCoverage.txt' , emit: globalMeanCoverage
-
-	script:
-	"""
-	#!/bin/bash
-
-	echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled" > geneNormalizedSummary.txt
-	echo -e "sampleID \t sampleCoverage \t refCount \t globalMean"  > globalMeanCoverage.txt
-
-	for i in rawCoverage/*_rawCoverage.txt; do
-		name=\$(basename "\${i%_rawCoverage.txt}")
-
-		#Compute global mean coverage
-		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$i")
-		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$i")
-		refCount=\$(cat refLength/"\${name}_refLength.txt")
-		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" >> globalMeanCoverage.txt
-
-		#Normalize coverage per gene
-		awk -v globalMean="\$globalMean" -v name="\$name" -v sampleCoverage="\$finalCount" -v refCount="\$refCount" '
-			{
-			if (\$2 > geneLength[\$1]) {
-				geneLength[\$1] = \$2
-			}
-			sumgene[\$1] += \$3
-			countgene[\$1]++
-			}
-		END {
-			for (gene in geneLength) {
-				geneMean = sumgene[gene] / countgene[gene]
-				normalizedGeneScaled = (geneMean / globalMean) * geneLength[gene]
-				normalizedGeneSimple = (geneMean / globalMean)
-				normalizedGenomeSimple = (geneMean / globalMean) * (geneLength[gene] / sampleCoverage)
-				normalizedGenomeScaled = (geneMean / globalMean) * (geneLength[gene] / refCount)
-				print name"\t"gene"\t"normalizedGeneSimple"\t"normalizedGeneScaled"\t"normalizedGenomeSimple"\t"normalizedGenomeScaled
-			}
-		}
-		' "\$i" >> geneNormalizedSummary.txt
-	done
-	"""
-}
-
-process updateNormalization {
-
-	input:
-	path normalized, stageAs: 'normalized/*'
-	path completeness, stageAs: 'completeness/*'
-
-
-	output:
-	path 'geneNormalizedUpdated.tab', emit: geneNormalizedUpdated
-
-
-	script:
-	"""
-	#!/bin/bash
-	echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tgeneCompleteness" > geneNormalizedUpdated.tab
-
-	sed -i -e 's/~/_/g' normalized/geneNormalizedSummary.txt
-
-	awk 'NR>1{print \$1"XYZ"\$2, \$3, \$4, \$5, \$6}' normalized/geneNormalizedSummary.txt > TMP1
-
-	awk '{print \$1"XYZ"\$2, \$3}' completeness/completenessSummary.tab > TMP2
-
-	while read -r ID completeness;do
-
-		if grep -wq "\${ID}" TMP1; then
-			oldLine=\$(grep -w "\${ID}" TMP1)
-			specificCompleteness=\$(grep -w "\${ID}" TMP2 | awk '{print \$NF}')
-			echo -e "\${oldLine}\t\${specificCompleteness}" >> geneNormalizedUpdated.tab
-		fi
-
-	done < TMP2
-
-	sed -i -e 's/XYZ/\t/g' geneNormalizedUpdated.tab
-	sed -i -e 's/ /\t/g' geneNormalizedUpdated.tab
-
-	rm TMP1 TMP2 
-	"""
-}
 
 process applyCoverageBounds {
 	
