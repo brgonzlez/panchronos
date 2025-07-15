@@ -141,82 +141,82 @@ workflow {
 
         }
 
-	// PARSE_GENBANK(gffFiles, fastaFiles)
+	PARSE_GENBANK(gffFiles, fastaFiles)
 
-	// REMOVE_REDUNDANCY(PARSE_GENBANK.out.validFiles.map { fasta, gb -> fasta , gb}, params.remove_redundancy_parallel)
+	REMOVE_REDUNDANCY(PARSE_GENBANK.out.validFiles.map { fasta, gb -> tuple(fasta , gb)}, params.remove_redundancy_parallel)
 
-	// GENE_FASTA_DATABASE(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> gb})
+	GENE_FASTA_DATABASE(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> gb})
 
-	// GENE_CLUSTERING(GENE_FASTA_DATABASE.out.fastaDatabase, params.gene_identity_clustering, params.cd_hit_threads)
+	GENE_CLUSTERING(GENE_FASTA_DATABASE.out.fastaDatabase, params.gene_identity_clustering, params.cd_hit_threads)
 
-	// ANNOTATE(GENE_CLUSTERING.out.clusteredDatabase, params.prokka_annotate_threads, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta, gb},
-	//	params.prokka_annotate_parallel)
+	ANNOTATE(GENE_CLUSTERING.out.clusteredDatabase, params.prokka_annotate_threads, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> tuple(fasta, gb)},
+		params.prokka_annotate_parallel)
 
-	// MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads)
+	MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads)
 
-	// FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
+	FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
 
-	// BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
-	// GET_OUTGROUP(params.outgroup_tax_id)
+	GET_OUTGROUP(params.outgroup_tax_id)
 
-	// OUTGROUP_READS(GET_OUTGROUP.out.outgroupFasta)
+	OUTGROUP_READS(GET_OUTGROUP.out.outgroupFasta)
 
-	// OUTGROUP_ALIGNMENT(OUTGROUP_READS.out.outgroupReads, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
-	//			params.outgroup_alignment_threads)
+	OUTGROUP_ALIGNMENT(OUTGROUP_READS.out.outgroupReads, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
+				params.outgroup_alignment_threads)
 
-	// OUTGROUP_CONSENSUS(OUTGROUP_ALIGNMENT.out.outgroupFastaPostAlignment, 
-	//			FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+	OUTGROUP_CONSENSUS(OUTGROUP_ALIGNMENT.out.outgroupFastaPostAlignment, 
+				FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
-	// ALIGNMENT(params.data, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
-	//	tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length, params.alignment_parallel))
+	ALIGNMENT(params.data, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
+		tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length, params.alignment_parallel))
 
-	// ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
+	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
 
-	// NORMALIZE(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
+	NORMALIZE(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
-	// UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
+	UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
 
 
-	// if (params.genotyper == "gatk") {
-	//	GATK_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index ->  pangenome_reference, pangenome_dict, pangenome_index}, 
-	//			ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
-	//	extractedSequencesFasta = GATK_CONSENSUS.out.gatkConsensusSequences
-	//	vcfFile = GATK_CONSENSUS.out.gatkGenotypes
+	if (params.genotyper == "gatk") {
+		GATK_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index ->  tuple(pangenome_reference, pangenome_dict, pangenome_index)}, 
+				ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
+		extractedSequencesFasta = GATK_CONSENSUS.out.gatkConsensusSequences
+		vcfFile = GATK_CONSENSUS.out.gatkGenotypes
 
-	// } else if (params.genotyper == "bcftools") {
-	//	BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
-	//				ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
-	//	extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
+	} else if (params.genotyper == "bcftools") {
+		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
+					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
+		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
 
-	// } else {
-	//	error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
-	// }
+	} else {
+		error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
+	}
 
-	// PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound)
+	PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound)
 
-	// COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+	COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
 
-	// UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZATION.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, 
-	//	params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound)
+	UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZATION.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, 
+		params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound)
 
-	// HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames)
+	HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames)
 
-	// UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound)
+	UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound)
 
-	// FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
-	//		params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel)
+	FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
+			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel)
 
-	// BUILD_MSA(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
-	//	HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames)
+	BUILD_MSA(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
+		HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames)
 
-	// TREE_THRESHOLD(BUILD_MSA.out.genesAbovePercentMSA, params.tree_threads)
+	TREE_THRESHOLD(BUILD_MSA.out.genesAbovePercentMSA, params.tree_threads)
 
-	// TREE_CORE(BUILD_MSA.out.maskedMatrixGenesUbiquitousMSA, params.tree_threads)
+	TREE_CORE(BUILD_MSA.out.maskedMatrixGenesUbiquitousMSA, params.tree_threads)
 
-	// TREE_ACCESSORY(BUILD_MSA.out.maskedMatrixGenesNoUbiquitousMSA, params.tree_threads)
+	TREE_ACCESSORY(BUILD_MSA.out.maskedMatrixGenesNoUbiquitousMSA, params.tree_threads)
 
-	// TREE_ANCIENT(BUILD_MSA.out.maskedMatrixGenesOnlyAncientMSA, params.tree_threads)
+	TREE_ANCIENT(BUILD_MSA.out.maskedMatrixGenesOnlyAncientMSA, params.tree_threads)
 
 	// GET_RESULTS(
 	// resultsDir, fastaDatabase.out.validFasta , fastaDatabase.out.validGff , fastaDatabase.out.fastaDatabaseLogFile , fastaDatabase.out.theFastaDatabase, 
