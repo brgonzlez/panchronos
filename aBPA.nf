@@ -144,7 +144,7 @@ workflow {
 
 	PARSE_GENBANK(gffFiles, fastaFiles)
 
-	REMOVE_REDUNDANCY(PARSE_GENBANK.out.validFiles.map { fasta, gb -> tuple(fasta , gb)}, params.remove_redundancy_parallel)
+	REMOVE_REDUNDANCY(PARSE_GENBANK.out.validFiles.map { fasta, gb -> tuple(fasta , gb)}, params.remove_redundancy_parallel, params.fastANI_threads)
 
 	GENE_FASTA_DATABASE(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> gb})
 
