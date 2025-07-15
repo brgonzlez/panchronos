@@ -20,6 +20,7 @@ include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
 include { GENE_CLUSTERING } from './modules/gene_clustering.nf'
 include { ANNOTATE } from './modules/annotate.nf'
 include { MAKE_PANGENOME } from './modules/make_pangenome.nf'
+include { FORMATTING_PANGENOME } from './modules/formatting_pangenome.nf'
 include { BLAST_DATABASE } from './modules/blast_database.nf'
 include { GET_OUTGROUP } from './modules/get_outgroup.nf'
 include { OUTGROUP_READS } from './modules/outgroup_reads.nf'
@@ -197,7 +198,7 @@ workflow {
 
 	COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
 
-	UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZATION.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, 
+	UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZE.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, 
 		params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound)
 
 	HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames)
