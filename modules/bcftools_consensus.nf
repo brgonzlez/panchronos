@@ -1,5 +1,5 @@
 /*
- * MAPPING{} will index a graph and map reads against it.
+ * BCFTOOLS_CONSENSUS{} will generate consensus sequences for each gene from aligned data using bcftools.
  */
  
 process BCFTOOLS_CONSENSUS {
@@ -8,6 +8,7 @@ process BCFTOOLS_CONSENSUS {
 	input:
 	path panGenomeRef
 	path bamFiles
+	val parallel
 
 	output:
 	path 'extractedSequences*.fasta', emit: consensusSequences
