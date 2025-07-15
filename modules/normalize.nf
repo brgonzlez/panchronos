@@ -8,7 +8,7 @@ process NORMALIZE {
 	input:
 	path refLength
 	path rawCoverage
-
+	val parallel
 
 	output:
 	path 'geneNormalizedSummary.txt', emit: geneNormalizedSummary
