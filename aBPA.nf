@@ -26,11 +26,11 @@ include { OUTGROUP_READS } from './modules/outgroup_reads.nf'
 include { OUTGROUP_ALIGNMENT } from './modules/outgroup_alignment.nf'
 include { OUTGROUP_CONSENSUS } from './modules/outgroup_consensus.nf'
 include { ALIGNMENT } from './modules/alignment.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
+include { ALIGNMENT_SUMMARY } from './modules/alignment_summary.nf'
+include { NORMALIZATION } from './modules/normalization.nf'
+include { UPDATE_NORMALIZATION } from './modules/update_normalization.nf'
+include { BCFTOOLS_CONSENSUS } from './modules/bcftools_consensus.nf'
+include { GATK_CONSENSUS } from './modules/gatk_consensus.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
@@ -182,13 +182,15 @@ workflow {
 
 
 	if (params.genotyper == "gatk") {
-		gatkConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles, formattingPangenome.out.panGenomeReferenceDictionary, formattingPangenome.out.panGenomeReferenceIndex)
-		extractedSequencesFasta = gatkConsensus.out.gatkConsensusSequences
-		vcfFile = gatkConsensus.out.gatkGenotypes
+		GATK_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index ->  pangenome_reference, pangenome_dict, pangenome_index}, 
+				ALIGNMENT_SUMMARY.out.postAlignmentFiles)
+		extractedSequencesFasta = GATK_CONSENSUS.out.gatkConsensusSequences
+		vcfFile = GATK_CONSENSUS.out.gatkGenotypes
 
 	} else if (params.genotyper == "bcftools") {
-		bcftoolsConsensus(formattingPangenome.out.panGenomeReference, alignmentSummary.out.postAlignmentFiles)
-		extractedSequencesFasta = bcftoolsConsensus.out.consensusSequences
+		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
+					ALIGNMENT_SUMMARY.out.postAlignmentFiles)
+		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
 
 	} else {
 		error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
@@ -414,45 +416,6 @@ process buildHeatmap {
 	
 	"""
 }
-
-
-
-process gatkConsensus {
-	conda "${projectDir}/envs/gatk.yaml"
-
-	input:
-	path panGenomeRef, stageAs: 'panGenomeRef.fasta'
-	path bamFiles, stageAs: 'BAM/*'
-	path panGenomeRefDictionary, stageAs: 'panGenomeRef.dict'
-	path panGenomeReferenceIndex, stageAs: 'panGenomeRef.fasta.fai'
-	output:
-	path 'extractedSequences*.fasta', emit: gatkConsensusSequences
-	path '*GenotypedNormalized.vcf.gz', emit: gatkGenotypes
-
-	script:
-	"""
-
-	for b in BAM/*; do
-		basename=\$(basename "\$b")
-		gatk3 -T UnifiedGenotyper --min_base_quality_score 30 \
-			--genotype_likelihoods_model BOTH --annotateNDA \
-			--genotyping_mode DISCOVERY --output_mode EMIT_ALL_SITES \
-			-I "\$b" -R panGenomeRef.fasta \
-			-o "\${basename%.bam}"Genotyped.vcf 
-
-		bcftools norm -f panGenomeRef.fasta "\${basename%.bam}"Genotyped.vcf > "\${basename%.bam}"GenotypedNormalized.vcf
-		bgzip -i "\${basename%.bam}"GenotypedNormalized.vcf
-		bcftools index "\${basename%.bam}"GenotypedNormalized.vcf.gz
-		bcftools consensus -a N -M N -f panGenomeRef.fasta "\${basename%.bam}"GenotypedNormalized.vcf.gz -o "\${basename%.bam}"GenotypedNormalizedConsensus.fasta
-		seqtk seq "\${basename%.bam}"GenotypedNormalizedConsensus.fasta > extractedSequences"\${basename%.bam}".fasta
-	done
-	"""
-}
-
-
-
-
-
 
 
 /*
