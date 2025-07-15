@@ -130,7 +130,7 @@ if (params.version) {
 
 workflow {
         if (!params.trusted_data) {
-                GET_DATA(params.genomes, tax_id, get_data_parallel)
+                GET_DATA(params.genomes, params.tax_id, params.get_data_parallel)
                 fastaFiles = GET_DATA.out.fasta_files
                 gffFiles = GET_DATA.out.gbk_files
 
