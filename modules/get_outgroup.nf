@@ -15,7 +15,7 @@ process GET_OUTGROUP {
 	"""
 	#!/bin/bash
 	counter=0
-	esearch -db assembly -query "txid${outID}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary | xtract -pattern DocumentSummary -element FtpPath_RefSeq | while read url; do
+	esearch -db assembly -query "txid${outgroup_ID}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary | xtract -pattern DocumentSummary -element FtpPath_RefSeq | while read url; do
         
 		if [ "\$counter" -ge 1 ]; then
 			break
