@@ -31,8 +31,8 @@ include { NORMALIZATION } from './modules/normalization.nf'
 include { UPDATE_NORMALIZATION } from './modules/update_normalization.nf'
 include { BCFTOOLS_CONSENSUS } from './modules/bcftools_consensus.nf'
 include { GATK_CONSENSUS } from './modules/gatk_consensus.nf'
-include {  } from './modules/.nf'
-include {  } from './modules/.nf'
+include { PLOT_COVERAGE_COMPLETENESS } from './modules/plot_coverage_completeness.nf.nf'
+include { COVERAGE_BOUNDS } from './modules/coverage_bounds.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
 include {  } from './modules/.nf'
@@ -176,28 +176,30 @@ workflow {
 
 	ALIGNMENT_SUMMARY(configFile, alignment.out.postAlignedBams, params.alignment_parallel)
 
-	NORMALIZATION(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage)
+	NORMALIZATION(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
 	UPDATE_NORMALIZATION(NORMALIZATION.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
 
 
 	if (params.genotyper == "gatk") {
 		GATK_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index ->  pangenome_reference, pangenome_dict, pangenome_index}, 
-				ALIGNMENT_SUMMARY.out.postAlignmentFiles)
+				ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
 		extractedSequencesFasta = GATK_CONSENSUS.out.gatkConsensusSequences
 		vcfFile = GATK_CONSENSUS.out.gatkGenotypes
 
 	} else if (params.genotyper == "bcftools") {
 		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
-					ALIGNMENT_SUMMARY.out.postAlignmentFiles)
+					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
 		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
 
 	} else {
 		error "Invalid option for --genotyper. Please choose 'gatk' or 'bcftools'."
 	}
 
-	plotCoveragevsCompleteness(updateNormalization.out.geneNormalizedUpdated, geneCompleteness, normalizedCoverageDown)
-        applyCoverageBounds(updateNormalization.out.geneNormalizedUpdated, normalizedCoverageDown, normalizedCoverageUp, geneCompleteness)
+	PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound)
+
+        COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+
 	makeMatrix(makePangenome.out.initialMatrix , normalizationFunction.out.globalMeanCoverage, applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness, normalizedCoverageDown, normalizedCoverageUp)
 	buildHeatmap(makeMatrix.out.finalCsv, makeMatrix.out.INDEX ,makeMatrix.out.matrix, makeMatrix.out.sampleNames)
 	plotCoveragevsCompletenessOnFiltered(applyCoverageBounds.out.geneNormalizedUpdatedFiltered, geneCompleteness,normalizedCoverageDown)
@@ -231,43 +233,6 @@ workflow {
 
 
 
-process applyCoverageBounds {
-	
-	input:
-	path geneNormalizedUpdated, stageAs: 'geneNormalizedUpdated.tab'
-	val normalizedCoverageDown
-	val normalizedCoverageUp
-	val completenessBound
-
-	output:
-	path 'geneNormalizedUpdatedFiltered.tab', emit: geneNormalizedUpdatedFiltered
-
-	script:
-	"""
-	awk 'NR==1{print \$0}' $geneNormalizedUpdated > header
-	awk -v UpBound=$normalizedCoverageUp '\$3 < UpBound {print \$0}' $geneNormalizedUpdated > TMP1
-	awk -v DownBound=$normalizedCoverageDown '\$3 > DownBound {print \$0}' TMP1 > TMP2
-	awk -v completenessBound=$completenessBound '\$NF> completenessBound {print \$0}' TMP2 > TMP3
-	cat header TMP3 > geneNormalizedUpdatedFiltered.tab
-	"""
-}
-
-process plotCoveragevsCompleteness {
-	conda "${projectDir}/envs/plot.yaml"
-	
-	input:
-	path geneNormalizedUpdated, stageAs: 'gNS/'
-	val completeness
-	val coverage
-
-	output:
-	path 'plotCoverage_vs_Completeness.png', emit: plotCoverage_vs_Completeness
-	
-	script:
-	"""
-	plot_cvg_vs_completeness.py gNS/geneNormalizedUpdated.tab $completeness $coverage
-	"""
-}
 
 
 
