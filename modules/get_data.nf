@@ -49,7 +49,7 @@ process GET_DATA {
 			sleep 3
 		fi
 	}
-	export -f getData
+	export -f get_data
 	find ./accessions/ -name "*.map" | parallel -j $parallel get_data
 
 	mv ./accessions/*fasta ./
