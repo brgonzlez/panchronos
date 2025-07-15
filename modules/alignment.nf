@@ -50,9 +50,9 @@ process ALIGNMENT {
     		bam trimBam "\${name}_sorted_mappedreads.bam" "\${name}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
     		samtools view -q 30 -o "\${name}_qc.bam" "\${name}_softclipped.bam"
     		samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
-    		samtools sort -o "\${name}_DMC_P.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
-    		samtools coverage "\${name}_DMC_P.bam" > "\${name}_genomicsMetrics.txt"
-    		samtools fastq -@ $threadsGlobal "\${name}_DMC_P.bam" > "\${name}_final.fastq"
+    		samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
+    		samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
+    		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
 	}
 	export -f align
 	find $data/* -name "*.fastq" | parallel -j $parallel align
