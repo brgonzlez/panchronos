@@ -11,11 +11,13 @@ process PARSE_GENBANK {
 	path fastaFiles
 		
 	output:
-	tuple path('*fasta'), path('*gb'), emit: validFiles
+	tuple path('cleaned/*fasta'), path('cleaned/*gb'), emit: validFiles
 
 	script:
 	"""
 	#!/bin/bash
+
+	mkdir -p cleaned
 
 	parseTest.py > parseTest.txt
 	grep "is not a valid GenBank file" parseTest.txt | awk '{print \$1}' > blackListed.txt
@@ -28,8 +30,8 @@ process PARSE_GENBANK {
 		done < blackListed.txt
 	else
 		echo -e "Every file passed the test. Moving on."
+		cp *.gb cleaned/
+		cp *.fasta cleaned/
 	fi
-
-	cat .command.out .command.err >> fastaDatabase.log
 	"""
 }
