@@ -20,7 +20,7 @@ process GET_DATA {
 	#!/bin/bash
 
 	#get accessions list file
-    	query="txid\${tax_id}[Organism] AND complete genome[Title]" 
+    	query="txid${tax_id}[Organism] AND complete genome[Title]" 
         esearch -db nuccore -query "\$query" | efetch -format uid | head -n $genomes | efetch -db nuccore -format acc >> accessions.txt
     		
 	mkdir -p accessions
