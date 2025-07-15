@@ -12,7 +12,7 @@ process GET_DATA {
 	val parallel
 
 	output:
-	path '*fna', emit: fasta_files
+	path '*fasta', emit: fasta_files
 	path '*gb', emit: gbk_files
 
 	script:
