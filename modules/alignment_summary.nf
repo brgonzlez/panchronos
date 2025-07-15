@@ -58,7 +58,7 @@ process ALIGNMENT_SUMMARY {
                 samtools index "\$bam_file"
                 samtools depth -a "\$bam_file" > "\${samplename}_rawCoverage.txt"
                 samtools idxstats "\$bam_file" | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
-                samtools coverage "\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> completenessSummary.tab
+                samtools coverage "\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
 		mv "\$bam_file" ./"\${samplename}_TMP.bam"
 		mv "\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
 		picard AddOrReplaceReadGroups I="\${samplename}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
@@ -68,6 +68,8 @@ process ALIGNMENT_SUMMARY {
 	find ./ -name "postPangenomeAlignment*bam" | parallel -j $parallel rawStats
 
 	rm *TMP.bam*
+
+	cat *_completenessSummary.tab > completenessSummary.tab
 
 	cat .command.out >> alignmentSummary.log
 	"""
