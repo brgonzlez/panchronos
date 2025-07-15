@@ -5,6 +5,7 @@ process TREE_THRESHOLD {
 	
 	input:
 	path genesMSA, stageAs: 'genesAbovePercentMSA.fasta'
+	val threads
 
 	output:
 	path 'genesAbovePercentMSA.contree', emit: genesAbovePercentMSAContree
@@ -14,6 +15,6 @@ process TREE_THRESHOLD {
 
 	script:
 	"""
-	iqtree -s genesAbovePercentMSA.fasta --prefix genesAbovePercentMSA -T 10 -B 1000 -m MFP 
+	iqtree -s genesAbovePercentMSA.fasta --prefix genesAbovePercentMSA -T $threads -B 1000 -m MFP 
 	"""
 }
