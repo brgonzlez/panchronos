@@ -8,10 +8,11 @@ process REMOVE_REDUNDANCY {
 
 	input:
 	tuple path(fasta_files), path(gb_files)
+	val threads
 	val parallel
 
 	output:
-	tuple path("*fasta"), path("*gb"), emit: nonRedundant_files
+	tuple path("cleaned/*fasta"), path("cleaned/*gb"), emit: nonRedundant_files
 
 	script:
 	"""
@@ -40,7 +41,7 @@ process REMOVE_REDUNDANCY {
 	echo -e  "Clustering sequences\n"
 
 	find ./ -name "*.fasta" > genomesList.txt
-	fastANI --ql genomesList.txt --rl genomesList.txt --threads $task.cpus -o fastaniOutput.txt
+	fastANI --ql genomesList.txt --rl genomesList.txt --threads $threads -o fastaniOutput.txt
 
 	# awk '\$3 == 100 && \$1 != \$2 fastaniOutput.txt | is a two field input with multiple lines, where lines will have repeated strings on same of different field. Example:
 	# ./NZ_CP009712.1.fasta ./CP009712.1.fasta # line 1
@@ -83,6 +84,10 @@ process REMOVE_REDUNDANCY {
 		rm "\${ID}" "\${ID%.fasta}.gb" 
 	done < redundants.txt 
 
+	mkdir -p cleaned
+
+	mv *fasta cleaned/
+	mv *gb cleaned/
 
 	cat .command.out >> CLUSTERING.log
 	"""
