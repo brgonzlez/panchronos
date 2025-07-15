@@ -1,4 +1,4 @@
-name: entrez
+name: get_data
 channels:
   - bioconda
 dependencies:
