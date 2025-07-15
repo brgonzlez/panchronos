@@ -19,7 +19,7 @@ process UPDATE_MATRIX {
 	path 'matrix.tab', emit: matrix
 	path '*_final.csv', emit: finalCsv
 	path 'sample_names', emit: sampleNames
-	path 'INDEX', emit: INDEX
+	path 'INDEX', emit: index
 
 	script:
 	"""
