@@ -30,7 +30,7 @@ process NORMALIZE {
 		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
 		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$file")
 		refCount=\$(cat "\${name}_refLength.txt")
-		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" >> "\${name}"_globalMeanCoverage.txt
+		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
 
 		#Normalize coverage per gene
 		awk -v globalMean="\$globalMean" -v name="\$name" -v sampleCoverage="\$finalCount" -v refCount="\$refCount" '
@@ -51,12 +51,12 @@ process NORMALIZE {
 				print name"\t"gene"\t"normalizedGeneSimple"\t"normalizedGeneScaled"\t"normalizedGenomeSimple"\t"normalizedGenomeScaled
 			}
 		}
-		' "\$file" >> "\${name}"_geneNormalizedSummary.txt
+		' "\$file" > "\${name}"_geneNormalizedSummary.txt
 	}
 	export -f normalization
 	find ./ -name "*_rawCoverage.txt" | parallel -j $parallel normalization
 
-	cat *_geneNormalizedSummary.txt > geneNormalizedSummary.txt
-	cat *_globalMeanCoverage.txt > globalMeanCoverage.txt
+	cat *_geneNormalizedSummary.txt >> geneNormalizedSummary.txt
+	cat *_globalMeanCoverage.txt >> globalMeanCoverage.txt
 	"""
 }
