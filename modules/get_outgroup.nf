@@ -3,7 +3,7 @@
  */
 
 process GET_OUTGROUP {
-	conda "${projectDir}/envs/entrez.yaml"
+	conda "${projectDir}/envs/get_data.yaml"
 
 	input:
 	val outgroup_ID
