@@ -21,15 +21,15 @@ process TREE_CORE {
 
 
 	awk '/^>/ {
-    		header = $0
+    		header = \$0
     		getline seq
     		if (seq ~ /^[nN-]+$/) {
 			print header
     		}
 	}' maskedMatrixGenesUbiquitousMSA.fasta  > to_remove
 
-	awk 'NR==FNR {remove[$0]; next}
-     		/^>/ {keep = !($0 in remove)}
+	awk 'NR==FNR {remove[\$0]; next}
+     		/^>/ {keep = !(\$0 in remove)}
 	keep' to_remove maskedMatrixGenesUbiquitousMSA.fasta  > core_genome.fasta
 
         iqtree -s core_genome.fasta --prefix core_genome -T $threads -B 1000 -m MFP
