@@ -18,7 +18,6 @@ process FILTER_GENE_ALIGNMENTS {
 	output:
 	path 'sorted/*.fasta', emit: genesAlnSeq
 	path 'sampleNames.txt', emit: sampleNames
-	path 'special_cases/*fasta', emit: specialCases
 
 	script:
 	"""
