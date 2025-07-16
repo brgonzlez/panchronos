@@ -226,7 +226,7 @@ process FILTER_GENE_ALIGNMENTS {
                 done < modernSampleNames.txt
 	}
 	export -f modern_append_gaps
-	find panaroo_parsed/ -name "_parsing_panaroo.fasta" | parallel -j $parallel modern_append_gaps
+	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel modern_append_gaps
 
 
 
@@ -242,7 +242,7 @@ process FILTER_GENE_ALIGNMENTS {
                                 fakeSeq=\$(printf '%*s' "\$((seq_length))" | tr ' ' 'n')
                                 echo "\$fakeSeq" >> "\$fasta_file"
                         fi
-                done < sampleNames.txt
+                done < userSampleNames.txt
 	}
 
 	export -f ancient_append_missingness
