@@ -7,15 +7,32 @@ process TREE_ANCIENT {
 	val threads
 
         output:
-        path 'maskedMatrixGenesOnlyAncientMSA.contree', emit: maskedMatrixGenesOnlyAncientMSAConqtree
-	path 'maskedMatrixGenesOnlyAncientMSA.iqtree', emit: maskedMatrixGenesOnlyAncientMSAIqtree
-	path 'maskedMatrixGenesOnlyAncientMSA.log', emit: maskedMatrixGenesOnlyAncientMSALog
-	path 'maskedMatrixGenesOnlyAncientMSA.treefile', emit: maskedMatrixGenesOnlyAncientMSATreefile
+        path 'maskedMatrixGenesOnlyAncientMSA.contree', emit: maskedMatrixGenesOnlyAncientMSAConqtree , optional: true
+	path 'maskedMatrixGenesOnlyAncientMSA.iqtree', emit: maskedMatrixGenesOnlyAncientMSAIqtree , optional: true
+	path 'maskedMatrixGenesOnlyAncientMSA.log', emit: maskedMatrixGenesOnlyAncientMSALog , optional: true
+	path 'maskedMatrixGenesOnlyAncientMSA.treefile', emit: maskedMatrixGenesOnlyAncientMSATreefile , optional: true
 
         script:
         """
 	#!/bin/bash
 
-        iqtree -s maskedMatrixGenesOnlyAncientMSA.fasta --prefix maskedMatrixGenesOnlyAncientMSA -T $threads -B 1000 -m MFP
+	mkdir -p ${params.output}/TREE/
+
+
+	awk '/^>/ {
+    		header = \$0
+    		getline seq
+    		if (seq ~ /^[nN-]+\$/) {
+			print header
+    		}
+	}' maskedMatrixGenesOnlyAncientMSA.fasta  > to_remove
+
+	awk 'NR==FNR {remove[\$0]; next}
+     		/^>/ {keep = !(\$0 in remove)}
+	keep' to_remove maskedMatrixGenesOnlyAncientMSA.fasta  > ancient_set.fasta
+
+        iqtree -s ancient_set.fasta --prefix ancient_set -T $threads -B 1000 -m MFP
+
+	cp ancient_set* ${params.output}/TREE/
         """
 }
