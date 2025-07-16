@@ -357,7 +357,7 @@ process FILTER_GENE_ALIGNMENTS {
 	msa_file=\$1
 	name=\$(basename "\${msa_file}")
 
-               seq_length=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$cleanedFasta")
+               seq_length=\$(awk 'NR%2 == 0 && length > max { max = length } END { print max }' "\$msa_file")
 
                awk -v numCols="\$seq_length" '{
                        if (\$0 ~ /^>/) {
