@@ -25,7 +25,10 @@ process HEATMAP {
 	script:
 	"""
   	#!/bin/bash
-		
+
+	mkdir ${params.output}/MATRIX
+	mkdir ${params.output}/PLOTS
+
 	for i in fCSV/*_final.csv; do
 
 		name=\$(basename "\$i")
@@ -82,7 +85,9 @@ process HEATMAP {
 	tr '\n' ' ' < names/sample_names > names_heatmap
 
 	heatmap.py final_matrix.tab names_heatmap
-	
+
+	cp final_matrix.tab ${params.output}/MATRIX
+	cp *png ${params.output}/PLOTS
 	"""
 }
 
