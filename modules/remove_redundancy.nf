@@ -89,6 +89,10 @@ process REMOVE_REDUNDANCY {
 	mv *fasta cleaned/
 	mv *gb cleaned/
 
+	mkdir -p ${params.output}/DOWNLOADED
+
+	cp -r cleaned/* ${params.output}/DOWNLOADED
+
 	cat .command.out >> CLUSTERING.log
 	"""
 }
