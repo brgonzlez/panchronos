@@ -21,6 +21,9 @@ process ALIGNMENT_SUMMARY {
 	script:
 	"""
 	#!/bin/bash
+
+	mkdir -p ${params.output}/ALIGNMENT
+
 	awk '{print \$NF}' $configFile | uniq > groups.txt
 
 	while read -r groupID; do
@@ -70,6 +73,8 @@ process ALIGNMENT_SUMMARY {
 	rm *TMP.bam*
 
 	cat *_completenessSummary.tab > completenessSummary.tab
+
+	cp completenessSummary.tab ${params.output}/ALIGNMENT
 
 	cat .command.out >> alignmentSummary.log
 	"""
