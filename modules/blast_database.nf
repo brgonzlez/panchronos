@@ -15,6 +15,10 @@ process BLAST_DATABASE {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/PANGENOME
+
 	makeblastdb -in $panSeq -dbtype nucl -out pangenome_blast_database
+
+	cp pangenome_blast_database* ${params.output}/PANGENOME
 	"""
 }
