@@ -8,13 +8,19 @@ process TREE_CORE {
 	val threads
 
         output:
-        path 'maskedMatrixGenesUbiquitousMSA.contree', emit: maskedMatrixGenesUbiquitousMSAContree
-	path 'maskedMatrixGenesUbiquitousMSA.iqtree', emit: maskedMatrixGenesUbiquitousMSAIqtree
-	path 'maskedMatrixGenesUbiquitousMSA.log', emit: maskedMatrixGenesUbiquitousMSALog
-	path 'maskedMatrixGenesUbiquitousMSA.treefile', emit: maskedMatrixGenesUbiquitousMSATreefile
+        path 'maskedMatrixGenesUbiquitousMSA.contree', optional: true
+	path 'maskedMatrixGenesUbiquitousMSA.iqtree', optional: true
+	path 'maskedMatrixGenesUbiquitousMSA.log', optional: true
+	path 'maskedMatrixGenesUbiquitousMSA.treefile', optional: true
 
         script:
         """
+	#!/bin/bash
+
+	mkdir -p ${params.output}/TREE/
+
         iqtree -s maskedMatrixGenesUbiquitousMSA.fasta --prefix maskedMatrixGenesUbiquitousMSA -T $threads -B 1000 -m MFP
+
+	cp maskedMatrixGenesUbiquitousMSA* ${params.output}/TREE/
         """
 }
