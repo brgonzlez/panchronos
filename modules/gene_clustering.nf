@@ -18,7 +18,11 @@ process GENE_CLUSTERING {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/GENE_DATABASE/
+
 	cd-hit-est -i $fastaDB -o clustered_non_redundant_genes.fasta -c $clustering -T $threads -d 0 -g 1 -M 0
+
+	cp clustered_non_redundant_genes.fasta ${params.output}/GENE_DATABASE/
 
 	cat .command.out >> clustering.log
 	"""
