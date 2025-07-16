@@ -17,6 +17,8 @@ process BCFTOOLS_CONSENSUS {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/GENOTYPING
+
   	bcfconsensus() {
    	bam_file=\$1
     
@@ -26,5 +28,7 @@ process BCFTOOLS_CONSENSUS {
 	}
  	export -f bcfconsensus
   	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
+
+	cp extractedSequences* ${params.output}/GENOTYPING
 	"""
 }
