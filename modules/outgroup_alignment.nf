@@ -17,6 +17,8 @@ process OUTGROUP_ALIGNMENT {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/ALIGNMENT
+
 	bwa index $panGenomeRef
 	bwa mem -B 1 -E 1 $panGenomeRef $outgroupReads -t $threads > outgroupFasta.sam
 	samtools view -bS outgroupFasta.sam > outgroupFasta.bam
@@ -26,5 +28,7 @@ process OUTGROUP_ALIGNMENT {
 	samtools view -b -@ 10 -F 4 outgroupFastaSorted.bam > outgroupFastaSortedMappedreads.bam
 	samtools index outgroupFastaSortedMappedreads.bam
 	samtools sort -o outgroup_aligned.bam -O bam -@ $threads outgroupFastaSortedMappedreads.bam
+
+	cp outgroup_aligned.bam ${params.output}/ALIGNMENT
 	"""
 }
