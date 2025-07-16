@@ -18,6 +18,8 @@ process GATK_CONSENSUS {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/GENOTYPING
+
 	gatkconsensus() {
 	bam_file=\$1
 
@@ -36,5 +38,8 @@ process GATK_CONSENSUS {
 	}
 	export -f gatkconsensus
 	find ./ -name "*.bam" | parallel -j $parallel gatkconsensus
+
+	cp *GenotypedNormalized.vcf.gz ${params.output}/GENOTYPING
+	cp extractedSequences* ${params.output}/GENOTYPING
 	"""
 }
