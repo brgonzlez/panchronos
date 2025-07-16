@@ -8,10 +8,10 @@ process TREE_CORE {
 	val threads
 
         output:
-        path 'maskedMatrixGenesUbiquitousMSA.contree', optional: true
-	path 'maskedMatrixGenesUbiquitousMSA.iqtree', optional: true
-	path 'maskedMatrixGenesUbiquitousMSA.log', optional: true
-	path 'maskedMatrixGenesUbiquitousMSA.treefile', optional: true
+        path 'core_genome.contree', optional: true
+	path 'core_genome.iqtree', optional: true
+	path 'core_genome.log', optional: true
+	path 'core_genome.treefile', optional: true
 
         script:
         """
@@ -19,8 +19,21 @@ process TREE_CORE {
 
 	mkdir -p ${params.output}/TREE/
 
-        iqtree -s maskedMatrixGenesUbiquitousMSA.fasta --prefix maskedMatrixGenesUbiquitousMSA -T $threads -B 1000 -m MFP
 
-	cp maskedMatrixGenesUbiquitousMSA* ${params.output}/TREE/
+	awk '/^>/ {
+    		header = $0
+    		getline seq
+    		if (seq ~ /^[nN-]+$/) {
+			print header
+    		}
+	}' maskedMatrixGenesUbiquitousMSA.fasta  > to_remove
+
+	awk 'NR==FNR {remove[$0]; next}
+     		/^>/ {keep = !($0 in remove)}
+	keep' to_remove maskedMatrixGenesUbiquitousMSA.fasta  > core_genome.fasta
+
+        iqtree -s core_genome.fasta --prefix core_genome -T $threads -B 1000 -m MFP
+
+	cp core_genome* ${params.output}/TREE/
         """
 }
