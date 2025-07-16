@@ -20,6 +20,8 @@ process ALIGNMENT {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/ALIGNMENT
+
 	bwa index $panRef
 
 	#align() will align the data and perform several post-alignment computations
@@ -59,6 +61,10 @@ process ALIGNMENT {
 
 
 	rm *sam *sai *_lg.bam *_qc.bam *_sorted_mappedreads.bam*
+
+	cp *_aligned.bam ${params.output}/ALIGNMENT
+	cp *_final.fastq ${params.output}/ALIGNMENT
+
 	cat .command.out >> alignment.log
 	"""
 }
