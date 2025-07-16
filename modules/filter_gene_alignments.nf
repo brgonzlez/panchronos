@@ -52,11 +52,11 @@ process FILTER_GENE_ALIGNMENTS {
 	# modern_samples_list() will create a text file with modern genomes names
 	modern_samples_list() {
 	fasta=\$1
-        	name=\$(basename "\${fasta%.fna}")
+        	name=\$(basename "\${fasta%.fasta}")
         	echo "\${name}" > "\${name}"_modern_TMP
 	}
 	export -f modern_samples_list
-	find modern_data/ -name "*.fna" | parallel -j $parallel modern_samples_list
+	find modern_data/ -name "*.fasta" | parallel -j $parallel modern_samples_list
 
 	cat *_modern_TMP >> modernSampleNames.txt
 	rm *_modern_TMP
