@@ -7,13 +7,32 @@ process TREE_ACCESSORY {
 	val threads
 
         output:
-        path 'maskedMatrixGenesNoUbiquitousMSA.contree', emit: maskedMatrixGenesNoUbiquitousMSAContree
-	path 'maskedMatrixGenesNoUbiquitousMSA.iqtree', emit: maskedMatrixGenesNoUbiquitousMSAIqtree
-	path 'maskedMatrixGenesNoUbiquitousMSA.log', emit: maskedMatrixGenesNoUbiquitousMSALog
-	path 'maskedMatrixGenesNoUbiquitousMSA.treefile', emit: maskedMatrixGenesNoUbiquitousMSATreefile
+        path 'maskedMatrixGenesNoUbiquitousMSA.contree', emit: maskedMatrixGenesNoUbiquitousMSAContree , optional: true
+	path 'maskedMatrixGenesNoUbiquitousMSA.iqtree', emit: maskedMatrixGenesNoUbiquitousMSAIqtree , optional: true
+	path 'maskedMatrixGenesNoUbiquitousMSA.log', emit: maskedMatrixGenesNoUbiquitousMSALog , optional: true
+	path 'maskedMatrixGenesNoUbiquitousMSA.treefile', emit: maskedMatrixGenesNoUbiquitousMSATreefile , optional: true
 
         script:
         """
-        iqtree -s maskedMatrixGenesNoUbiquitousMSA.fasta --prefix maskedMatrixGenesNoUbiquitousMSA -T $threads -B 1000 -m MFP
+	#!/bin/bash
+
+	mkdir -p ${params.output}/TREE/
+
+
+	awk '/^>/ {
+    		header = \$0
+    		getline seq
+    		if (seq ~ /^[nN-]+\$/) {
+			print header
+    		}
+	}' maskedMatrixGenesNoUbiquitousMSA.fasta  > to_remove
+
+	awk 'NR==FNR {remove[\$0]; next}
+     		/^>/ {keep = !(\$0 in remove)}
+	keep' to_remove maskedMatrixGenesNoUbiquitousMSA.fasta  > accessory_genome.fasta
+
+        iqtree -s accessory_genome.fasta --prefix accessory_genome -T $threads -B 1000 -m MFP
+
+	cp accessory_genome* ${params.output}/TREE/
         """
 }
