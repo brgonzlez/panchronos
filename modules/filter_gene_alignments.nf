@@ -41,11 +41,11 @@ process FILTER_GENE_ALIGNMENTS {
         	exit 1
 	fi
 
-	if ! find modern_data/ -name "*fna" | grep -q .; then
-    		echo -e "No modern sequences with .fna extension were found in modern_data/. Check previous process. Stopping the pipeline."
+	if ! find modern_data/ -name "*fasta" | grep -q .; then
+    		echo -e "No modern sequences with .fasta extension were found in modern_data/. Check previous process. Stopping the pipeline."
     		exit 1
 	else
-        	echo -e "Fasta files with expected extension .fna were found. Proceeding with the process."
+        	echo -e "Fasta files with expected extension .fasta were found. Proceeding with the process."
 	fi
 
 
