@@ -23,6 +23,9 @@ process FILTER_GENE_ALIGNMENTS {
 	"""
 	#!/bin/bash
 
+
+	mkdir -p ${params.output}/GENE_MSA
+
 	shopt -s nullglob  #Prevent literal interpretation of wildcards if there are no matchings
 	#sanity check before starting the process
 
@@ -433,6 +436,8 @@ process FILTER_GENE_ALIGNMENTS {
 	find sanitised_msa/ -name "*.fasta" | parallel -j $parallel sortingMSA
 
 	echo -e "Done"
+
+	cp -r sorted/* ${params.output}/GENE_MSA
 
 	cat .command.out >> filterGeneAlignments.log
 	"""
