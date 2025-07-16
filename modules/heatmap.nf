@@ -26,8 +26,8 @@ process HEATMAP {
 	"""
   	#!/bin/bash
 
-	mkdir ${params.output}/MATRIX
-	mkdir ${params.output}/PLOTS
+	mkdir -p ${params.output}/MATRIX
+	mkdir -p ${params.output}/PLOTS
 
 	for i in fCSV/*_final.csv; do
 
