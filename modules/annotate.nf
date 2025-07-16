@@ -19,6 +19,8 @@ process ANNOTATE {
 	"""
 	#!/bin/bash
 
+	mv $clusteredSeqsDB ./clusteredSeqsDB.faa
+
 	ls -l *gb | awk 'NR==2{print \$NF}' > first.txt
 	name=\$(cat first.txt | awk -F'/' '{print \$NF}')
 	species=\$(head -n 20 "\$name" | grep "ORGANISM" | awk '{print \$2, \$3}' | sed -e 's/ /_/g')
@@ -30,7 +32,7 @@ process ANNOTATE {
 	fasta_file=\$1
 
 		name=\$(basename "\${fasta_file%.fasta}")
-		prokka --outdir "\${name%.fna}_prokka" --species "\$species" --proteins clusteredSeqsDB --rawproduct --cpus $threads "\${fasta_file}"
+		prokka --outdir "\${name%.fna}_prokka" --species "\$species" --proteins clusteredSeqsDB.faa --rawproduct --cpus $threads "\${fasta_file}"
 		mv "\${name%.fna}_prokka"/*gff annotated_files/"\${name}.gff"
 	}
 	export -f annotate
