@@ -22,7 +22,7 @@ process ALIGNMENT_SUMMARY {
 	"""
 	#!/bin/bash
 
-	mkdir -p ${params.output}/ALIGNMENT
+	mkdir -p ${params.output}/STATS
 
 	awk '{print \$NF}' $configFile | uniq > groups.txt
 
@@ -74,7 +74,7 @@ process ALIGNMENT_SUMMARY {
 
 	cat *_completenessSummary.tab > completenessSummary.tab
 
-	cp completenessSummary.tab ${params.output}/ALIGNMENT
+	cp completenessSummary.tab ${params.output}/STATS
 
 	cat .command.out >> alignmentSummary.log
 	"""
