@@ -14,6 +14,9 @@ process UPDATE_NORMALIZATION {
 	script:
 	"""
 	#!/bin/bash
+
+	mkdir -p ${params.output}/STATS
+
 	echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tgeneCompleteness" > geneNormalizedUpdated.tab
 
 	sed -i -e 's/~/_/g' geneNormalizedSummary.txt
@@ -36,5 +39,7 @@ process UPDATE_NORMALIZATION {
 	sed -i -e 's/ /\t/g' geneNormalizedUpdated.tab
 
 	rm TMP1 TMP2 
+
+	cp geneNormalizedUpdated.tab ${params.output}/STATS
 	"""
 }
