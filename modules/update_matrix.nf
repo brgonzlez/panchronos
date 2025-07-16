@@ -25,7 +25,6 @@ process UPDATE_MATRIX {
 	"""
 	#!/bin/bash
 
-	mkdir ${params.output}/MATRIX
 
 	awk 'NR==1{print \$0}' $pangenomeRtab > matrix.tab
 	awk 'NR>1 {print \$0}' $pangenomeRtab | sort -k 1 -t \$'\t' >> matrix.tab
@@ -48,6 +47,5 @@ process UPDATE_MATRIX {
 
 	done
 
-	cp matrix.tab ${params.output}/MATRIX
 	"""
 }
