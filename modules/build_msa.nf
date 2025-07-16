@@ -36,7 +36,7 @@ process BUILD_MSA {
 
 
 	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
+		file="genes/\${gene}.fasta"
 		if [[ -f "\$file" ]] ; then
 			paste genesAbovePercentMSA.fasta "\$file" > TMP; mv TMP genesAbovePercentMSA.fasta
 		else
@@ -49,7 +49,7 @@ process BUILD_MSA {
 
 
 	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
+		file="genes/\${gene}.fasta"
 		if [[ -f "\$file" ]] ; then
 			paste maskedMatrixGenesNoUbiquitousMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesNoUbiquitousMSA.fasta
 		else
@@ -62,7 +62,7 @@ process BUILD_MSA {
 
 
 	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
+		file="genes/\${gene}.fasta"
 		if [[ -f "\$file" ]] ; then
 			paste maskedMatrixGenesOnlyAncientMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesOnlyAncientMSA.fasta
 		else
@@ -73,7 +73,7 @@ process BUILD_MSA {
         awk -F'>' '/^>/ {print ">" \$2} !/^>/' maskedMatrixGenesOnlyAncientMSA.fasta > TMPo2; mv TMPo2 maskedMatrixGenesOnlyAncientMSA.fasta
 
 	while read -r gene; do
-		file="genes/\${gene}_Filtered.fasta"
+		file="genes/\${gene}.fasta"
 		if [[ -f "\$file" ]] ; then
 			paste maskedMatrixGenesUbiquitousMSA.fasta "\$file" > TMP; mv TMP maskedMatrixGenesUbiquitousMSA.fasta
 		else
