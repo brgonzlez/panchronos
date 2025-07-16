@@ -23,7 +23,7 @@ process TREE_CORE {
 	awk '/^>/ {
     		header = \$0
     		getline seq
-    		if (seq ~ /^[nN-]+$/) {
+    		if (seq ~ /^[nN-]+\$/) {
 			print header
     		}
 	}' maskedMatrixGenesUbiquitousMSA.fasta  > to_remove
