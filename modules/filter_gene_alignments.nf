@@ -75,7 +75,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f panaroo_fasta_suffix
 	find panaroo_genes/ -name "*.aln.fas" | parallel -j 10 panaroo_fasta_suffix
 
-	echo -e "Done\n"
+	echo -e "Done"
 
 	echo -e "Fixing FASTA headers and sequences formatting with seqtk in existing gene alignments"
 
@@ -88,7 +88,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f parsing_panaroo_msa
 	find panaroo_genes/ -name "*.fasta" | parallel -j $parallel parsing_panaroo_msa
 
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 
@@ -113,7 +113,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f index_and_formatting
 	find user_genes/ -name "*.fasta" | parallel -j $parallel index_and_formatting
 
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 	# Make a file with every sample combined
@@ -139,7 +139,7 @@ process FILTER_GENE_ALIGNMENTS {
 
 	export -f add_user_sample_sequences
 	find panaroo_parsed/ -name "*.fasta" | parallel -j $parallel add_user_sample_sequences
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 	echo -e "Adding outgroup gene sequences into each gene MSA file"
@@ -153,7 +153,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f add_outgroup_sequences
 	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel add_outgroup_sequences
 
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 	echo -e "Padding incomplete sequences to the right"
@@ -177,7 +177,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f panaroo_parsed_padding
 	find panaroo_parsed/ -name "*parsing_panaroo.fasta" | parallel -j $parallel panaroo_parsed_padding
 
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 
@@ -205,7 +205,7 @@ process FILTER_GENE_ALIGNMENTS {
 	}
 	export -f check_panaroo_headers_artifacts
 	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel check_panaroo_headers_artifacts
-	echo -e "Done\n"
+	echo -e "Done"
 
 
 
@@ -248,7 +248,7 @@ process FILTER_GENE_ALIGNMENTS {
 	export -f ancient_append_missingness
 	find panaroo_parsed/ -name "*_parsing_panaroo.fasta" | parallel -j $parallel ancient_append_missingness
 
-	echo -e "Done \n"
+	echo -e "Done"
 
 
 	# At this point there will be many msa that are finished: number of headers == number of samples AND headers names == all samples names. I need to find them based on this logic and send them
