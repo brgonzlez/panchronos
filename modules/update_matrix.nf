@@ -23,6 +23,10 @@ process UPDATE_MATRIX {
 
 	script:
 	"""
+	#!/bin/bash
+
+	mkdir ${params.output}/MATRIX
+
 	awk 'NR==1{print \$0}' $pangenomeRtab > matrix.tab
 	awk 'NR>1 {print \$0}' $pangenomeRtab | sort -k 1 -t \$'\t' >> matrix.tab
 	awk 'NR>1 {print \$1}' $pangenomeRtab | sort -k 1 -t \$'\t' > INDEX
@@ -43,5 +47,7 @@ process UPDATE_MATRIX {
 		lambda.py "\$i" $gCompleteness $lowerBound $upperBound
 
 	done
+
+	cp matrix.tab ${params.output}/MATRIX
 	"""
 }
