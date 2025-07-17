@@ -230,7 +230,7 @@ workflow {
 
 	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
 
-	NORMALIZE(ALIGNMENT_SUMMARY.out.refLenght, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
+	NORMALIZE(ALIGNMENT_SUMMARY.out.refLength, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
 	UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
 
