@@ -12,7 +12,7 @@ process ALIGNMENT {
 	tuple val(threadsGlobal), val(missingProb), val(seedAlignment), val(gapFraction),val(minReadLength),val(maxReadLength),val(parallel)
 
 	output:
-	path '*_DMC_P.bam', emit: postAlignedBams
+	path '*_aligned.bam', emit: postAlignedBams
 	path '*_final.fastq', emit: postAlignedReads
 	
 
