@@ -158,6 +158,7 @@ println "\n\033[1;31mProcess: make_pangenome.nf\033[0m"
 println "\n\033[1;37m[panaroo] Identity threshold\033[0m: ${params.pangenome_identity_threshold}"
 println "\n\033[1;37m[panaroo] Pangeome mode\033[0m: ${params.panaroo_pangenome_mode}"
 println "\n\033[1;37m[panaroo] Threads\033[0m: ${params.panaroo_pangenome_threads}"
+println "\n\033[1;37m[panaroo] Alignment type (core,pan)\033[0m: ${params.panaroo_alignment_type}"
 println "\n======================="
 println "\n\033[1;31mProcess: outgroup_alignment.nf\033[0m"
 println "\n\033[1;37m[bwa/samtools] Threads\033[0m: ${params.outgroup_alignment_threads}"
@@ -209,7 +210,7 @@ workflow {
 	ANNOTATE(GENE_CLUSTERING.out.clusteredDatabase, params.prokka_annotate_threads, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> tuple(fasta, gb)},
 		params.prokka_annotate_parallel)
 
-	MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads)
+	MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads, params.panaroo_alignment_type)
 
 	FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
 
