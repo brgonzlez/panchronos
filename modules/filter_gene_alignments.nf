@@ -423,7 +423,7 @@ process FILTER_GENE_ALIGNMENTS {
 
 	        while read -r header; do
                 	awk -v headerName="\$header" '
-	                        \$0 ~ headerName {
+	                        \$0 == headerName {
                         	print \$0     # Print the matched header
                         	getline      # Get the sequence line after the header and store it in line
                         	print \$0     # Print the sequene
