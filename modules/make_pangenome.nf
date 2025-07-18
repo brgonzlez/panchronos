@@ -10,6 +10,7 @@ process MAKE_PANGENOME {
 	val pangenomeMode
 	val pangenomeThreshold
 	val threads
+	path alignment
 
 	output:
 	path 'pan_genome_reference.fa' , emit: panSequence
@@ -20,7 +21,7 @@ process MAKE_PANGENOME {
 	"""
 	#!/bin/bash
 
-	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a core --core_threshold $pangenomeThreshold -t $threads
+	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a $alignment --core_threshold $pangenomeThreshold -t $threads
 
 	cat .command.out >> makePangenome.log
 	"""
