@@ -28,9 +28,13 @@ process TREE_CORE {
     		}
 	}' maskedMatrixGenesUbiquitousMSA.fasta  > to_remove
 
-	awk 'NR==FNR {remove[\$0]; next}
-     		/^>/ {keep = !(\$0 in remove)}
-	keep' to_remove maskedMatrixGenesUbiquitousMSA.fasta  > core_genome.fasta
+        if [[ -s to_remove ]]; then
+                awk 'NR==FNR {remove[\$0]; next}
+                /^>/ {keep = !(\$0 in remove)}
+                keep' to_remove maskedMatrixGenesUbiquitousMSA.fasta > core_genome.fasta
+        else
+                mv maskedMatrixGenesUbiquitousMSA.fasta core_genome.fasta
+        fi
 
         iqtree -s core_genome.fasta --prefix core_genome -T $threads -B 1000 -m MFP
 
