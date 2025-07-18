@@ -27,9 +27,13 @@ process TREE_ANCIENT {
     		}
 	}' maskedMatrixGenesOnlyAncientMSA.fasta  > to_remove
 
-	awk 'NR==FNR {remove[\$0]; next}
-     		/^>/ {keep = !(\$0 in remove)}
-	keep' to_remove maskedMatrixGenesOnlyAncientMSA.fasta  > ancient_set.fasta
+        if [[ -s to_remove ]]; then
+                awk 'NR==FNR {remove[\$0]; next}
+                /^>/ {keep = !(\$0 in remove)}
+                keep' to_remove maskedMatrixGenesOnlyAncientMSA.fasta > ancient_set.fasta
+        else
+                mv maskedMatrixGenesOnlyAncientMSA.fasta ancient_set.fasta
+        fi
 
         iqtree -s ancient_set.fasta --prefix ancient_set -T $threads -B 1000 -m MFP
 
