@@ -27,9 +27,14 @@ process TREE_ACCESSORY {
     		}
 	}' maskedMatrixGenesNoUbiquitousMSA.fasta  > to_remove
 
-	awk 'NR==FNR {remove[\$0]; next}
-     		/^>/ {keep = !(\$0 in remove)}
-	keep' to_remove maskedMatrixGenesNoUbiquitousMSA.fasta  > accessory_genome.fasta
+        if [[ -s to_remove ]]; then
+                awk 'NR==FNR {remove[\$0]; next}
+                /^>/ {keep = !(\$0 in remove)}
+                keep' to_remove maskedMatrixGenesNoUbiquitousMSA.fasta > accessory_genome.fasta
+        else
+                mv maskedMatrixGenesNoUbiquitousMSA.fasta accessory_genome.fasta
+        fi
+
 
         iqtree -s accessory_genome.fasta --prefix accessory_genome -T $threads -B 1000 -m MFP
 
