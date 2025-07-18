@@ -28,9 +28,13 @@ process TREE_THRESHOLD {
     		}
 	}' genesAbovePercentMSA.fasta  > to_remove
 
-	awk 'NR==FNR {remove[\$0]; next}
-     		/^>/ {keep = !(\$0 in remove)}
-	keep' to_remove genesAbovePercentMSA.fasta  > threshold.fasta
+        if [[ -s to_remove ]]; then
+                awk 'NR==FNR {remove[\$0]; next}
+                /^>/ {keep = !(\$0 in remove)}
+                keep' to_remove genesAbovePercentMSA.fasta > threshold.fasta
+        else
+                mv genesAbovePercentMSA.fasta threshold.fasta
+        fi
 
 	iqtree -s threshold.fasta --prefix threshold -T $threads -B 1000 -m MFP 
 
