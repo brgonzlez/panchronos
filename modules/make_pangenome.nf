@@ -10,7 +10,7 @@ process MAKE_PANGENOME {
 	val pangenomeMode
 	val pangenomeThreshold
 	val threads
-	path alignment
+	val alignment
 
 	output:
 	path 'pan_genome_reference.fa' , emit: panSequence
