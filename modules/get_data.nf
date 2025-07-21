@@ -28,7 +28,7 @@ process GET_DATA {
 
         while read -r link; do
 
-                touch links/"\\$link".map
+                touch links/"\$link".map
 
         done < links.txt
 
