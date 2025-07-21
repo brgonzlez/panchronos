@@ -18,42 +18,62 @@ process GET_DATA {
 	script:
 	"""
 	#!/bin/bash
+        #get downloading links
+        esearch -db assembly -query "txid${tax_id}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary \ 
+	| xtract -pattern DocumentSummary -element FtpPath_RefSeq | head -n $genomes >> links.txt
 
-	#get accessions list file
-        query="txid${tax_id}[Organism] AND (chromosome[Title] OR complete genome[Title]) NOT segment[Title]"
-        esearch -db nuccore -query "\$query" | efetch -format uid | head -n $genomes | efetch -db nuccore -format acc >> accessions.txt
-    		
-	mkdir -p accessions
+        #split those links to use parallel
 
-	while read -r accession; do
+        mkdir -p links
 
-		touch accessions/"\$accession".map
+        while read -r link; do
 
-	done < accessions.txt
+                touch links/"\\$link".map
+
+        done < links.txt
 
 
-	get_data() {
-	sample=\$1
-	ACCESSION=\$(echo "\${sample%.map}")
+        download_and_check() {
+        file=\$1
+        link=\$(cat "\$file")
+        filename=\$(basename "\$link")
 
-		efetch -db nuccore -id "\$ACCESSION" -format gbwithparts -mode text > "\${ACCESSION}.gb"
+        max_attempts=5
+        attempt=1
 
-		efetch -db nucleotide -id "\$ACCESSION" -format fasta > "\${ACCESSION}.fasta"
+                while [ "\$attempt" -le "\$max_attempts" ]; do
 
-		# TEst integrity without actually compressing them
-		if gzip -c "\${ACCESSION}.gb" > /dev/null && gzip -c "\${ACCESSION}.fasta" > /dev/null; then
-			echo "\${ACCESSION} files passed integrity check"
-		else
-			echo "Corrupted files detected for \${ACCESSION}. Retrying..."
-			rm -f "\${ACCESSION}.gb" "\${ACCESSION}.fasta"
-			sleep 3
-		fi
-	}
-	export -f get_data
-	find ./accessions/ -name "*.map" | parallel -j $parallel get_data
+                        wget -q "\$link/\${filename}_genomic.gbff.gz"
+                        wget -q "\$link/\${filename}_genomic.fna.gz"
 
-	mv ./accessions/*fasta ./
-	mv ./accessions/*gb ./
+                        gunzip -f "\${filename}_genomic.gbff.gz" 2>/dev/null
+                        gunzip -f "\${filename}_genomic.fna.gz" 2>/dev/null
+
+                        #check if .gz files are still present after decompressing them
+                        if [ -f "\${filename}_genomic.gbff.gz" ] || [ -f "\${filename}_genomic.fna.gz" ]; then
+                                echo "Corrupted files detected. Cleaning up and retrying..."
+                                rm -f "\${filename}_genomic.gbff.gz" "\${filename}_genomic.fna.gz"
+                                sleep 3
+                                attempt=\$((attempt + 1))
+                        else
+                                #change file extension and name
+                                name=$(head -n 1 "\${filename}_genomic.fna" | awk -F',' '{print \$1}' | sed -e 's/^>//' -e 's/[ -/().+]/_/g')
+
+                                mv "\${filename}_genomic.gbff" ./"\${name}.gb"
+                                mv "\${filename}_genomic.fna" ./"\${name}.fasta"
+
+                                return 0
+                        fi
+                done
+
+                echo "Failed to download \$filename after \$max_attempts attempts. Skipping."
+                return 1
+
+
+        }
+        export -f download_and_check
+        find ./links/ -name "*.map" | parallel -j $parallel download_and_check
+
 
 	cat .command.out >> get_data.log
 	"""
