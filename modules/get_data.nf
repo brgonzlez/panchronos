@@ -57,7 +57,7 @@ process GET_DATA {
                                 attempt=\$((attempt + 1))
                         else
                                 #change file extension and name
-                                name=$(head -n 1 "\${filename}_genomic.fna" | awk -F',' '{print \$1}' | sed -e 's/^>//' -e 's/[ -/().+]/_/g')
+                                name=\$(head -n 1 "\${filename}_genomic.fna" | awk -F',' '{print \$1}' | sed -e 's/^>//' -e 's/[ -/().+]/_/g')
 
                                 mv "\${filename}_genomic.gbff" ./"\${name}.gb"
                                 mv "\${filename}_genomic.fna" ./"\${name}.fasta"
