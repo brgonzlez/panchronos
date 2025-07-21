@@ -20,7 +20,7 @@ process GET_DATA {
 	#!/bin/bash
         #get downloading links
         esearch -db assembly -query "txid${tax_id}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary \ 
-	| xtract -pattern DocumentSummary -element FtpPath_RefSeq | head -n $genomes >> links.txt
+	| xtract -pattern DocumentSummary -element FtpPath_RefSeq FtpPath_GenBank | head -n $genomes >> links.txt
 
         #split those links to use parallel
 
