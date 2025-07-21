@@ -1,4 +1,3 @@
-
 /*
  * GET_DATA() will download FASTA and GenBank files from NCBI as long as a taxonomical ID is provided.
  */
@@ -19,19 +18,17 @@ process GET_DATA {
 	"""
 	#!/bin/bash
         #get downloading links
-        esearch -db assembly -query "txid${tax_id}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" | esummary \ 
-	| xtract -pattern DocumentSummary -element FtpPath_RefSeq FtpPath_GenBank | head -n $genomes >> links.txt
+	esearch -db assembly -query "txid${tax_id}[Organism] AND (latest[filter] AND (complete genome[filter] OR chromosome level[filter]))" \
+	| esummary \
+	| xtract -pattern DocumentSummary -element FtpPath_RefSeq FtpPath_GenBank \
+	| awk '{print (\$1 != "-" ? \$1 : \$2)}' \
+	| head -n $genomes >> links.txt
 
         #split those links to use parallel
-
-        mkdir -p links
-
-        while read -r link; do
-
-                touch links/"\$link".map
-
-        done < links.txt
-
+	mkdir -p links
+	while read -r link; do
+		echo "\$link" > links/"\${link##*/}".map
+	done < links.txt
 
         download_and_check() {
         file=\$1
