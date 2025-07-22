@@ -163,7 +163,7 @@ process FILTER_GENE_ALIGNMENTS {
 	panaroo_parsed_padding() {
 	MSA=\$1
         	name=\$(basename "\${MSA}")
-        	seqLength=\$(awk 'NR==2 {print length}' "\$MSA")
+        	seqLength=\$(awk '!/^>/ { if (length > max) max = length } END { print max }' "\$MSA")
 
         	awk -v seq_length="\$seqLength" '{
 	                if (\$0 ~ /^>/) {
