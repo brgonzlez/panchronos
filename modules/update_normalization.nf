@@ -7,6 +7,7 @@ process UPDATE_NORMALIZATION {
 	input:
 	path normalized
 	path completeness
+	val parallel
 
 	output:
 	path 'geneNormalizedUpdated.tab', emit: geneNormalizedUpdated
@@ -18,27 +19,42 @@ process UPDATE_NORMALIZATION {
 	mkdir -p ${params.output}/STATS
 
 	echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tgeneCompleteness" > geneNormalizedUpdated.tab
-
 	sed -i -e 's/~/_/g' geneNormalizedSummary.txt
 
-	awk 'NR>1{print \$1"XYZ"\$2, \$3, \$4, \$5, \$6}' geneNormalizedSummary.txt > TMP1
+	awk '{print \$1}' $completeness | uniq > samples.txt
 
-	awk '{print \$1"XYZ"\$2, \$3}' completenessSummary.tab > TMP2
+	while read -r sample; do
+		echo "\$sample" > "\$sample".map
+	done < samples.txt
+	
+	normalize_updating() {
+	file=\$1
+	name=\$(basename "\${file%.map}")
 
-	while read -r ID completeness;do
+		grep -w "\$name" geneNormalizedSummary.txt > "\$name"_geneNormalizedSummary
+		grep -w "\$name" completenessSummary.tab > "\$name"_completenessSummary
 
-		if grep -wq "\${ID}" TMP1; then
-			oldLine=\$(grep -w "\${ID}" TMP1)
-			specificCompleteness=\$(grep -w "\${ID}" TMP2 | awk '{print \$NF}')
-			echo -e "\${oldLine}\t\${specificCompleteness}" >> geneNormalizedUpdated.tab
-		fi
+		awk 'NR>1{print \$1"XYZ"\$2, \$3, \$4, \$5, \$6}' "\$name"_geneNormalizedSummary > "\$name"_TMP1
 
-	done < TMP2
+		awk '{print \$1"XYZ"\$2, \$3}' "\$name"_completenessSummary > "\$name"_TMP2
 
-	sed -i -e 's/XYZ/\t/g' geneNormalizedUpdated.tab
-	sed -i -e 's/ /\t/g' geneNormalizedUpdated.tab
+		while read -r ID completeness;do
 
-	rm TMP1 TMP2 
+			if grep -wq "\${ID}" "\$name"_TMP1; then
+				oldLine=\$(grep -w "\${ID}" "\$name"_TMP1)
+				specificCompleteness=\$(grep -w "\${ID}" "\$name"_TMP2 | awk '{print \$NF}')
+				echo -e "\${oldLine}\t\${specificCompleteness}" >> "\$name"_geneNormalizedUpdated.tab
+			fi
+	
+		done < "\$name"_TMP2
+	
+		sed -i -e 's/XYZ/\t/g' "\$name"_geneNormalizedUpdated.tab
+		sed -i -e 's/ /\t/g' "\$name"_geneNormalizedUpdated.tab
+	}
+	export -f normalize_updating
+	find ./ -name "*.map" | parallel -j $parallel normalize_updating
+
+	cat *_geneNormalizedUpdated.tab >> geneNormalizedUpdated.tab
 
 	cp geneNormalizedUpdated.tab ${params.output}/STATS
 	"""
