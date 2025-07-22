@@ -233,7 +233,7 @@ workflow {
 
 	NORMALIZE(ALIGNMENT_SUMMARY.out.refLength, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
-	UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary)
+	UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
 
 
 	if (params.genotyper == "gatk") {
