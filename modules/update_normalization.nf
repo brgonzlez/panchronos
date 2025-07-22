@@ -56,6 +56,8 @@ process UPDATE_NORMALIZATION {
 
 	cat *_geneNormalizedUpdated.tab >> geneNormalizedUpdated.tab
 
+	rm -f *TMP1 *TMP2
+
 	cp geneNormalizedUpdated.tab ${params.output}/STATS
 	"""
 }
