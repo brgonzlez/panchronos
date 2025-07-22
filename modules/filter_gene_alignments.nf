@@ -217,7 +217,7 @@ process FILTER_GENE_ALIGNMENTS {
 	modern_append_gaps() {
 	fasta_file=\$1
 
-		seq_length=\$(awk 'NR==2 {print length}' "\$fasta_file")
+		seq_length=\$(awk '!/^>/ { if (length > max) max = length } END { print max }' "\$fasta_file")
 
                 while read -r strain; do
                         if ! grep -wq "\$strain" "\$fasta_file"; then
@@ -236,7 +236,7 @@ process FILTER_GENE_ALIGNMENTS {
 	ancient_append_missingness() {
 	fasta_file=\$1
 
-	        seq_length=\$(awk 'NR==2 {print length}' "\$fasta_file")
+	        seq_length=\$(awk '!/^>/ { if (length > max) max = length } END { print max }' "\$fasta_file")
 
 		while read -r strain; do
                 	if ! grep -wq "\$strain" "\$fasta_file"; then
