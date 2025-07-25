@@ -77,80 +77,14 @@ normalizedGenomeScaled = (geneMeanDepth / globalMean) * (geneLength[gene] / refC
 
 # 4/ TODO
 
-
-
+Extend gene sequences to both ends.
+Add aligner step in filter_gene_alignment with either mafft or clustal.
 Add paired end reads options.
-
-
-
-Add UnifiedGenotyper option for --genotype and classify the current as --genotype bcftools. Improve the way bcftools is behaving. DONE, BUT STILL NEED TO MAKE BCFTOOLS A BIT BETTER
-
-
-
 Add the option to run parsnp instead of pMauve with --aligner
-
-
-
-Make alignment parameters with bwa aln variables that can be tuned. DONE
-
-
-
-Add a antimicrobial resistance pipe and link it with genes.
-
-
-
-Add pre-procesing step such as alignment against human reference , adapter removal and deduplication.
-
-
-
-Add heteroplasmy process before getting genotypes and update heterozygosis values into the updatedNormalized table. WORKING ON IT
-
-
-
-Add an option to filter reads based on length. DONE
-
-
-
-
+Add heteroplasmy process before getting genotypes and update heterozygosis values into the updatedNormalized table. 
 Maybe add MapDamage to get more metrics after alignment.
-
-
-
-
-Make mapping quality threshold a variable in alignment process. DONE
-
-
-
-
+Add options for bcftools related to base quality.
 Make documentation and improve --help message.
-
-
-
-
 Add a small test run with tiny dataset.
-
-
-
-
 Fix python heatmap labels related to number of samples. Make labels a bit bigger.
-
-
-
-
 Improve the diagram by making letters bigger.
-
-
-
-
-Evaluate the option to work with pangenome graph as well.
-
-
-
-
-Modify lambda.py to incorporate proper variables and also max normalized coverage and not only lower bound!!! IMPORTANT
-
-
-
-Add quality control to entrez in outgroup process to re try download if file is corrupted. IMPORTANT
-
-
