@@ -78,13 +78,33 @@ normalizedGenomeScaled = (geneMeanDepth / globalMean) * (geneLength[gene] / refC
 # 4/ TODO
 
 Extend gene sequences to both ends.
+
+
 Add aligner step in filter_gene_alignment with either mafft or clustal.
+
+
 Add paired end reads options.
+
+
 Add the option to run parsnp instead of pMauve with --aligner
+
+
 Add heteroplasmy process before getting genotypes and update heterozygosis values into the updatedNormalized table. 
+
+
 Maybe add MapDamage to get more metrics after alignment.
+
+
 Add options for bcftools related to base quality.
+
+
 Make documentation and improve --help message.
+
+
 Add a small test run with tiny dataset.
+
+
 Fix python heatmap labels related to number of samples. Make labels a bit bigger.
+
+
 Improve the diagram by making letters bigger.
