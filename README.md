@@ -108,3 +108,6 @@ Fix python heatmap labels related to number of samples. Make labels a bit bigger
 
 
 Improve the diagram by making letters bigger.
+
+
+Apply softclipping to CAM-9 before assembly
