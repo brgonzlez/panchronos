@@ -243,3 +243,7 @@ find ./ -name "*_extended_sequences.fasta" | parallel -j 10 rename_extended_sequ
 #now we just concatenate them
 
 cat *_extended_reference.fasta > extended_pangenome_reference_sequence.fasta
+
+
+working directory:
+/st1ssd/users/bruno/aBPA/work/bf/5d5aa05d37dadb0f7812184962391b/testLab
