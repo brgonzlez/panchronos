@@ -1,0 +1,7 @@
+name: extend_sequences
+channels:
+- bioconda
+- defaults
+dependencies:
+- samtools
+- bedtools
