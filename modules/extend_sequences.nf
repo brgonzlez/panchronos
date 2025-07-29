@@ -11,7 +11,9 @@ process EXTEND_SEQUENCES {
 	path gff (prokka)
 	path fasta
 	tuple path(final_graph), path(gene_data)
+	val extend
 	val parallel
+	
 
 	output:
 	path '' , emit: extended_reference
@@ -110,7 +112,7 @@ process EXTEND_SEQUENCES {
 	file=\$1
 	name=$(basename "\${file%.bed}")
 
-		bedtools slop -i "\$file" -g "\$name".fasta.fai -b 150 > "\$name"_extended_sequences.bed
+		bedtools slop -i "\$file" -g "\$name".fasta.fai -b $extend > "\$name"_extended_sequences.bed
 		bedtools getfasta -bed "\$name"_extended_sequences.bed -fi "\$name".fasta -name > "\$name"_extended_sequences.fasta
 	}
 	export -f extend_sequences
