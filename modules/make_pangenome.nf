@@ -16,6 +16,7 @@ process MAKE_PANGENOME {
 	path 'pan_genome_reference.fa' , emit: panSequence
 	path 'gene_presence_absence.Rtab' , emit: initialMatrix
 	path 'aligned_gene_sequences/*' , emit: alignedGenesSeqs
+	tuple path('final_graph.gml'), path('gene_data.csv'), emit: pangenome_metadata
 
 	script:
 	"""
