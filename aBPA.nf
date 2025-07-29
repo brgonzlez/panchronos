@@ -20,6 +20,7 @@ include { GENE_FASTA_DATABASE } from './modules/gene_fasta_database.nf'
 include { GENE_CLUSTERING } from './modules/gene_clustering.nf'
 include { ANNOTATE } from './modules/annotate.nf'
 include { MAKE_PANGENOME } from './modules/make_pangenome.nf'
+include { EXTEND_SEQUENCES } from './modules/extend_sequences.nf'
 include { FORMATTING_PANGENOME } from './modules/formatting_pangenome.nf'
 include { BLAST_DATABASE } from './modules/blast_database.nf'
 include { GET_OUTGROUP } from './modules/get_outgroup.nf'
@@ -213,6 +214,9 @@ workflow {
 	MAKE_PANGENOME(ANNOTATE.out.prokka_gff, params.panaroo_pangenome_mode, params.pangenome_identity_threshold, params.panaroo_pangenome_threads, params.panaroo_alignment_type)
 
 	FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
+
+	EXTEND_SEQUENCES(ANNOTATE.out.prokka_gff, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, tuple(MAKE_PANGENOME.out.final_graph, MAKE_PANGENOME.out.gene_data),
+			params.bedtools_slop, params.extend_sequences_parallel)
 
 	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
