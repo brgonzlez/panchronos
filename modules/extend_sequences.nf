@@ -8,7 +8,7 @@ process EXTEND_SEQUENCES {
 	conda "${projectDir}/envs/extend_sequences.yaml"
 
 	input:
-	path gff (prokka)
+	path gff
 	path fasta
 	tuple path(final_graph), path(gene_data)
 	val extend
