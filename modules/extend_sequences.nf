@@ -74,7 +74,7 @@ process EXTEND_SEQUENCES {
 
 	make_bed() {
 	file=\$1
-	name=$(basename "\${file%_selected_lines.gff}")
+	name=\$(basename "\${file%_selected_lines.gff}")
 
 		awk '\$3 == "CDS" || \$3 == "gene" {
     		sample = \$1
@@ -110,7 +110,7 @@ process EXTEND_SEQUENCES {
 	#now extend the sequences
 	extend_sequences() {
 	file=\$1
-	name=$(basename "\${file%.bed}")
+	name=\$(basename "\${file%.bed}")
 
 		bedtools slop -i "\$file" -g "\$name".fasta.fai -b $extend > "\$name"_extended_sequences.bed
 		bedtools getfasta -bed "\$name"_extended_sequences.bed -fi "\$name".fasta -name > "\$name"_extended_sequences.fasta
@@ -123,7 +123,7 @@ process EXTEND_SEQUENCES {
 
 	rename_extended_sequences() {
 	file=\$1
-	name=$(basename "\${file%_extended_sequences.fasta}")
+	name=\$(basename "\${file%_extended_sequences.fasta}")
 
 		awk '
 
