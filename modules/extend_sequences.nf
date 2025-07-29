@@ -16,7 +16,7 @@ process EXTEND_SEQUENCES {
 	
 
 	output:
-	path '' , emit: extended_reference
+	path 'extended_pangenome_reference_sequence.fasta' , emit: extended_reference
 
 	script:
 	"""
