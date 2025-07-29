@@ -215,7 +215,7 @@ workflow {
 
 	FORMATTING_PANGENOME(MAKE_PANGENOME.out.panSequence)
 
-	EXTEND_SEQUENCES(ANNOTATE.out.prokka_gff, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, tuple(MAKE_PANGENOME.out.final_graph, MAKE_PANGENOME.out.gene_data),
+	EXTEND_SEQUENCES(ANNOTATE.out.prokka_gff, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, MAKE_PANGENOME.out.pangenome_metadata.map { graph, gene_data -> tuple(graph, gene_data)},
 			params.bedtools_slop, params.extend_sequences_parallel)
 
 	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
