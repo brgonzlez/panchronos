@@ -90,7 +90,7 @@ process EXTEND_SEQUENCES {
     		}
 
     		print sample, start, end, name, ".", strand
-		}' OFS="\t" "\$file" > "$name".bed
+		}' OFS="\t" "\$file" > "\$name".bed
 
 	}
 	export -f make_bed
