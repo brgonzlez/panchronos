@@ -11,6 +11,7 @@ process EXTEND_SEQUENCES {
 	path gff (prokka)
 	path fasta
 	tuple path(final_graph), path(gene_data)
+	val parallel
 
 	output:
 	path '' , emit: extended_reference
