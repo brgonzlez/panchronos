@@ -37,7 +37,7 @@ process EXTEND_SEQUENCES {
 	
 		activator {
 	
-			if (\$1 == "seqIDs" && seq_ID == "" && \$2 ~ /^"[0-9]/) {  #id has to start with number
+			if (\$1 == "seqIDs" && seq_ID == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
 	
 				seq_ID = \$2
 	
