@@ -114,6 +114,25 @@ process EXTEND_SEQUENCES {
 
 		bedtools slop -i "\$file" -g "\$name".fasta.fai -b $extend > "\$name"_extended_sequences.bed
 		bedtools getfasta -bed "\$name"_extended_sequences.bed -fi "\$name".fasta -name > "\$name"_extended_sequences.fasta
+
+		#here I need to check: if sequence is in - strand, then get the complementary reverse.
+		awk '\$NF == "-" {print \$4}' "\$name"_extended_sequences.bed > "\$name"_negative_strand
+		awk '\$NF == "+" {print \$4}' "\$name"_extended_sequences.bed > "\$name"_positive_strand
+
+		while read -r gene_tag; do
+			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta >> "\$name"_tmp_positive.fasta
+		done < "\$name"_positive_strand
+
+		while read -r gene_tag; do
+    			#get the header+sequence
+    			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta > "\$name"_tmp_seq.fasta
+
+    			#apply reverse complement
+    			seqtk seq -r "\$name"_tmp_seq.fasta >> "\$name"_reverse_complement.fasta
+
+		done < "\$name"_negative_strand
+
+		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta > "\$name"_extended_sequences.fasta
 	}
 	export -f extend_sequences
 	find ./ -name "*.bed" | parallel -j $parallel extend_sequences
