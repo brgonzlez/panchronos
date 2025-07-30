@@ -28,7 +28,7 @@ process MAPDAMAGE {
 		mapDamage -i "\${file}" -r $panRef -d mapdamage_"\${name}"
 	}
 	export -f run_mapdamage
-	find /* -name "*.bam" | parallel -j $parallel run_mapdamage
+	find ./* -name "*.bam" | parallel -j $parallel run_mapdamage
 
 	cp -r mapdamage_* ${params.output}/MAPDAMAGE
 	"""
