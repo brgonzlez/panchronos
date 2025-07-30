@@ -1,0 +1,5 @@
+name: realign
+channels:
+ - bioconda
+dependencies:
+ - mafft
