@@ -21,6 +21,7 @@ process ALIGNMENT {
 	#!/bin/bash
 
 	mkdir -p ${params.output}/ALIGNMENT
+	mkdir -p ${params.output}/MAPDAMAGE
 
 	bwa index $panRef
 
@@ -55,6 +56,7 @@ process ALIGNMENT {
     		samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
     		samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
     		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
+		mapDamage -i "\${name}_sorted_mappedreads.bam" -r $panRef -d mapdamage_"\${name}"
 	}
 	export -f align
 	find $data/* -name "*.fastq*" | parallel -j $parallel align
@@ -64,6 +66,7 @@ process ALIGNMENT {
 
 	cp *_aligned.bam ${params.output}/ALIGNMENT
 	cp *_final.fastq ${params.output}/ALIGNMENT
+	cp -r mapdamage_* ${params.output}/MAPDAMAGE
 
 	cat .command.out >> alignment.log
 	"""
