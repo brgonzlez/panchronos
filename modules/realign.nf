@@ -23,7 +23,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	realign() {
 	file=\$1
 	name=\$(basename "\${file%.fasta}")
-		mafft --auto --thread $threads "\$file" > realigned/"\${name}".fasta
+		mafft --auto --thread $threads "\$file" | seqtk seq > realigned/"\${name}".fasta
 	}
 	export -f realign
 	find ./ -name "*fasta" | parallel -j $parallel realign
