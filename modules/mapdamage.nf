@@ -9,6 +9,7 @@ process MAPDAMAGE {
 	path panRef 
 	path index
 	path bams
+	val parallel
 
 	output:
 	stdout
