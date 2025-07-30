@@ -252,7 +252,7 @@ workflow {
 
 	} else if (params.genotyper == "bcftools") {
 		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
-					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality))
+					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality), params.bedtools_slop)
 		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
 
 	} else {
