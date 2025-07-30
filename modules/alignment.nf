@@ -22,7 +22,6 @@ process ALIGNMENT {
 	#!/bin/bash
 
 	mkdir -p ${params.output}/ALIGNMENT
-	mkdir -p ${params.output}/MAPDAMAGE
 
 	bwa index $panRef
 
@@ -66,7 +65,6 @@ process ALIGNMENT {
 
 	cp *_aligned.bam ${params.output}/ALIGNMENT
 	cp *_final.fastq ${params.output}/ALIGNMENT
-	cp -r mapdamage_* ${params.output}/MAPDAMAGE
 
 	cat .command.out >> alignment.log
 	"""
