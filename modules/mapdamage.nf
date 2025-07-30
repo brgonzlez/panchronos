@@ -6,7 +6,8 @@ process MAPDAMAGE {
 	conda "${projectDir}/envs/mapdamage.yaml"
 
   	input:
-	tuple path(panRef), path(index)
+	path panRef 
+	path index
 	path bams
 
 	output:
