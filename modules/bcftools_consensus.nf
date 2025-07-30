@@ -21,6 +21,10 @@ process BCFTOOLS_CONSENSUS {
 
 	mkdir -p ${params.output}/GENOTYPING
 
+
+	################################################################## It may change
+
+
   	bcfconsensus() {
    	bam_file=\$1
     
