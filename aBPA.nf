@@ -39,6 +39,7 @@ include { UPDATE_MATRIX } from './modules/update_matrix.nf'
 include { HEATMAP } from './modules/heatmap.nf'
 include { UPDATE_PLOT_COVERAGE_COMPLETENESS } from './modules/update_plot_coverage_completeness.nf'
 include { FILTER_GENE_ALIGNMENTS } from './modules/filter_gene_alignments.nf'
+include { REALIGN_GENE_ALIGNMENTS } from './modules/realign.nf'
 include { BUILD_MSA } from './modules/build_msa.nf'
 include { TREE_THRESHOLD } from './modules/tree_threshold.nf'
 include { TREE_CORE } from './modules/tree_core.nf'
@@ -279,7 +280,9 @@ workflow {
 	FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
 			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel)
 
-	BUILD_MSA(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
+	REALIGN_GENE_ALIGNMENTS(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, params.realign_parallel, params.mafft_threads)
+
+	BUILD_MSA(REALIGN_GENE_ALIGNMENTS.out.re_aligned, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
 		HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames)
 
 	TREE_THRESHOLD(BUILD_MSA.out.genesAbovePercentMSA, params.tree_threads)
