@@ -27,7 +27,7 @@ process BCFTOOLS_CONSENSUS {
 		basename=\$(basename "\${bam_file%.bam}")
 		bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" | bcftools call -c | vcfutils.pl vcf2fq > extractedSequences"\${basename}".fq
 		seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
-		rm -f extractedSequences"\${basename}".fq
+		#rm -f extractedSequences"\${basename}".fq
 
 		#now we need to do padding to make sure consensus sequences lengths are the same as in the reference genome
 		awk '
