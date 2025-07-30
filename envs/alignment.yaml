@@ -7,6 +7,6 @@ dependencies:
 - libgcc-ng
 - bwa
 - samtools=1.19
-- bamutil
+- bamutil=1.0.15
 - picard
-- mapdamage2
+- mapdamage2=2.2.3
