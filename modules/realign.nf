@@ -9,7 +9,8 @@ process REALIGN_GENE_ALIGNMENTS {
 	input:
 	path gene_msa	
 	val parallel
-	
+	val threads
+
 	output:
 	path 'realigned/*fasta', emit: re_aligned
 
@@ -22,7 +23,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	realign() {
 	file=\$1
 	name=\$(basename "\${file%.fasta}")
-		mafft --auto 
+		mafft --auto --thread $threads "\$file" > realigned/"\${name}".fasta
 	}
 	export -f realign
 	find ./ -name "*fasta" | parallel -j $parallel realign
