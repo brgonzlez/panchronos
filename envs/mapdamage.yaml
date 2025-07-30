@@ -1,0 +1,5 @@
+name: mapdamage
+channels:  
+- bioconda  
+dependencies: 
+- mapdamage2=2.2.3
