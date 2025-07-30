@@ -44,7 +44,7 @@ include { TREE_THRESHOLD } from './modules/tree_threshold.nf'
 include { TREE_CORE } from './modules/tree_core.nf'
 include { TREE_ACCESSORY } from './modules/tree_accessory.nf'
 include { TREE_ANCIENT } from './modules/tree_ancient.nf'
-
+include { MAPDAMAGE } from './modules/mapdamage.nf'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -184,6 +184,9 @@ println "\n======================="
 println "\n\033[1;31mProcess: filter_gene_alignments.nf\033[0m"
 println "\n\033[1;37mParallel \033[0m: ${params.filter_gene_alignments_parallel}"
 println "\n======================="
+println "\n\033[1;31mProcess: mapdamage.nf\033[0m"
+println "\n\033[1;37mParallel \033[0m: ${params.mapdamage_parallel}"
+println "\n======================="
 println "\n\033[1;31mPhylogeny\033[0m"
 println "\n\033[1;37m[iq-tree] Threads\033[0m: ${params.tree_threads}"
 println "\n=======================\n\n"
@@ -236,6 +239,9 @@ workflow {
 
 	ALIGNMENT(params.data, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
 		tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length, params.alignment_parallel))
+
+	MAPDAMAGE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
+		params.mapdamage_parallel)
 
 	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
 
