@@ -10,6 +10,7 @@ process BCFTOOLS_CONSENSUS {
 	path bamFiles
 	val parallel
 	tuple val(mapq) , val(baseq)
+	val extension
 
 	output:
 	path 'extractedSequences*.fasta', emit: consensusSequences
@@ -26,6 +27,47 @@ process BCFTOOLS_CONSENSUS {
 		basename=\$(basename "\${bam_file%.bam}")
 		bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" | bcftools call -c | vcfutils.pl vcf2fq > extractedSequences"\${basename}".fq
 		seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
+		rm -f extractedSequences"\${basename}".fq
+
+		#now we need to do padding to make sure consensus sequences lengths are the same as in the reference genome
+		awk '
+			FNR==NR {
+				if(/^>/) {
+					header = \$0
+					getline seq
+					gene[header] = length(seq)
+				}
+				next
+			}
+			{
+				if (/^>/) {
+					print
+        				current_header = \$0
+        				next
+    				} else {
+        				ref_len = gene[current_header]
+        				while (length(\$0) < ref_len) {
+            					\$0 = \$0 "n"
+        				}
+        				print
+    				}
+			}
+		' $panGenomeRef extractedSequences"\${basename}".fasta > "\${basename}"_padded && mv "\${basename}"_padded ./extractedSequences"\${basename}".fasta
+
+
+		#now remove the extended sequences
+		awk -v trim=$extension '
+			/^>/ { 
+				print 
+				next	
+			}
+
+			!/^>/ { 	
+				len = length(\$0)
+    				print substr(\$0, trim + 1, len - 2 * trim)
+			}' extractedSequences"\${basename}".fasta > trimmed_"\${basename}" && mv trimmed_"\${basename}" ./extractedSequences"\${basename}".fasta
+
+		
 	}
  	export -f bcfconsensus
   	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
