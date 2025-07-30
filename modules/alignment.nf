@@ -14,7 +14,8 @@ process ALIGNMENT {
 	output:
 	path '*_aligned.bam', emit: postAlignedBams
 	path '*_final.fastq', emit: postAlignedReads
-	
+	path '*_sorted_mappedreads.bam', emit: bam_mapdamage
+	path 'panGenomeReference.fasta.*' , emit: pan_index
 
 	script:
 	"""
@@ -56,13 +57,12 @@ process ALIGNMENT {
     		samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
     		samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
     		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
-		mapDamage -i "\${name}_sorted_mappedreads.bam" -r $panRef -d mapdamage_"\${name}"
 	}
 	export -f align
 	find $data/* -name "*.fastq*" | parallel -j $parallel align
 
 
-	rm *sam *sai *_lg.bam *_qc.bam *_sorted_mappedreads.bam*
+	rm *sam *sai *_lg.bam *_qc.bam 
 
 	cp *_aligned.bam ${params.output}/ALIGNMENT
 	cp *_final.fastq ${params.output}/ALIGNMENT
