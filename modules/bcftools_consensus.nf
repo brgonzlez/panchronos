@@ -21,17 +21,17 @@ process BCFTOOLS_CONSENSUS {
 
 	mkdir -p ${params.output}/GENOTYPING
 
+        bcfconsensus() {
+        bam_file=\$1
+        basename=\$(basename "\${bam_file%.bam}")
 
-	################################################################## It may change
-
-
-  	bcfconsensus() {
-   	bam_file=\$1
-    
-		basename=\$(basename "\${bam_file%.bam}")
-		bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" | bcftools call -c | vcfutils.pl vcf2fq > extractedSequences"\${basename}".fq
-		seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
-		#rm -f extractedSequences"\${basename}".fq
+                bcftools mpileup -f $panGenomeRef -q 30 -Q 20 "\$bam_file" > "\${basename}"_mpileup_file
+                bcftools call -c "\${basename}"_mpileup_file > "\${basename}".vcf
+                bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
+                bcftools index "\${basename}".vcf.gz
+                bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
+                seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
+                rm -f extractedSequences"\${basename}".fq
 
 		#now we need to do padding to make sure consensus sequences lengths are the same as in the reference genome
 		awk '
@@ -77,5 +77,6 @@ process BCFTOOLS_CONSENSUS {
   	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
 
 	cp extractedSequences* ${params.output}/GENOTYPING
+        cp *.vcf.gz* ${params.output}/GENOTYPING
 	"""
 }
