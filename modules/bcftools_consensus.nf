@@ -79,3 +79,45 @@ process BCFTOOLS_CONSENSUS {
 	cp extractedSequences* ${params.output}/GENOTYPING
 	"""
 }
+
+
+
+
+
+
+ 	bcfconsensus() {
+  	bam_file=$1
+
+	basename=$(basename "${bam_file%.bam}")
+	bcftools mpileup -f panGenomeReference.fasta -q 30 -Q 20 "$bam_file" > mpileup_file
+	bcftools call -c mpileup_file > called.vcf
+	bgzip -i -c called.vcf > called_compressed.vcf.gz
+	bcftools index called_compressed.vcf.gz
+	bcftools consensus -a N -f panGenomeReference.fasta called_compressed.vcf.gz > extractedSequences"${basename}".fq
+	seqtk seq -a extractedSequences"${basename}".fq > extractedSequences"${basename}".fasta
+	#rm -f extractedSequences"${basename}".fq
+
+	#now we need to do padding to make sure consensus sequences lengths are the same as in the reference genome
+	awk '
+		FNR==NR {
+			if(/^>/) {
+				header = $0
+				getline seq
+				gene[header] = length(seq)
+			}
+			next
+		}
+		{
+			if (/^>/) {
+				print
+       				current_header = $0
+       				next
+   				} else {
+       				ref_len = gene[current_header]
+       				while (length($0) < ref_len) {
+           					$0 = $0 "n"
+       				}
+       				print
+   				}
+		}
+	' panGenomeReference.fasta extractedSequences"${basename}".fasta > "${basename}"_padded && mv "${basename}"_padded ./extractedSequences"${basename}".fasta
