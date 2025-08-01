@@ -1,5 +1,6 @@
 name: mapdamage
 channels:  
+- conda-forge
 - bioconda  
 dependencies: 
 - mapdamage2=2.2.3
