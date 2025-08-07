@@ -15,31 +15,23 @@ First you need to have `nextflow` and `conda/mamba` installed. Please visit: htt
 >`$ git clone https://github.com/mudymudy/aBPA/`
 
 
-After downloading the repository you should see the folders `bin/` `config/` `envs/` and the files `aBPA.nf` and `nextflow.config`.
-If you can't be bothered to type nextflow run aBPA.nf every time, you can do (assuming you already exported nextflow $PATH into your .bashrc file):
+After downloading the repository you should see the folders `bin/` `config/` `envs/` and the files `aBPA.nf` and `nextflow.config`. To test `nextflow` availability you can try with `nextflow run aBPA.nf --help`. 
 
->`$ echo "alias aBPA='nextflow run aBPA.nf'" >> ~/.bashrc`
-
-
->`$ source ~/.bashrc`
-
-
-
-Then you can just type aBPA in the same directory where aBPA.nf is located.
 
 
 # 2/ First steps
 
 
-First things first. aBPA assumes you already know what bacteria is in your data (if you have metagenomic data). If you don't know what is in your data you need to do metagenomic profiling first. There a a number of tools that can perform this such as eager, aMeta or mapache.
+aBPA assumes you already know what bacteria/virus is in your data (if you have metagenomic data). If you don't know what is in your data you need to do metagenomic profiling first.
 
-Once you have a bacteria in mind, then you need to know the taxonomic ID and the taxonomic ID of another bacteria that you want to use as outgroup for phylogenetic reconstruction. 
+
+Once you have a bacteria in mind, then you need its taxonomic ID and for another specie that you want to use as outgroup for phylogenetic reconstruction. 
 
 
 ### Making the `config.tab` file
 
-The way the pipeline reads your data is through the config.tab file, which has to be located in the `config/` folder. The structure is as follows:
 
+The way the pipeline reads your fastq files is through the config.tab file. An example of this file can be found in the `config/` folder. The first column correspond to the sample name, second column to the amount of softclipping you want to apply on each end for every read and the third column is a group identification label. 
 
 
 
