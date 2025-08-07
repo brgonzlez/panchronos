@@ -18,6 +18,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/GENE_MSA
 	mkdir -p realigned
 
 	realign() {
@@ -27,5 +28,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	}
 	export -f realign
 	find ./ -name "*fasta" | parallel -j $parallel realign
+
+	cp -r realigned/* ${params.output}/GENE_MSA
 	"""
 }
