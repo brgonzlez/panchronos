@@ -69,25 +69,11 @@ normalizedGenomeScaled = (geneMeanDepth / globalMean) * (geneLength[gene] / refC
 
 # 4/ TODO
 
-Extend gene sequences to both ends.
-
-
-Add aligner step in filter_gene_alignment with either mafft or clustal.
-
 
 Add paired end reads options.
 
 
-Add the option to run parsnp instead of pMauve with --aligner
-
-
 Add heteroplasmy process before getting genotypes and update heterozygosis values into the updatedNormalized table. 
-
-
-Maybe add MapDamage to get more metrics after alignment.
-
-
-Add options for bcftools related to base quality.
 
 
 Make documentation and improve --help message.
@@ -102,4 +88,4 @@ Fix python heatmap labels related to number of samples. Make labels a bit bigger
 Improve the diagram by making letters bigger.
 
 
-Apply softclipping to CAM-9 before assembly
+IMPORTANT: In COVERAGE_BOUNDS we are indeed removing the genes that do not satisfy the completeness threshold but we are currently NOT masking those sequences after genotyping. This has to be fixed.
