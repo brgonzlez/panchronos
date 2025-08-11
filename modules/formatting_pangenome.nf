@@ -6,7 +6,8 @@ process  FORMATTING_PANGENOME {
 	conda "${projectDir}/envs/formatting_pangenome.yaml"
 
 	input:
-	path panGenomeReference
+	path panGenomeReference_extended
+	path panRef
 
 	output:
 	tuple path('panGenomeReference.fasta'), path('panGenomeReference.dict'), path('panGenomeReference.fasta.fai'), emit: indexed_pangenome
@@ -17,10 +18,13 @@ process  FORMATTING_PANGENOME {
 
 	mkdir -p ${params.output}/PANGENOME
 
-	seqtk seq $panGenomeReference > panGenomeReference.fasta
-	picard CreateSequenceDictionary -R panGenomeReference.fasta
-	samtools faidx panGenomeReference.fasta
+	seqtk seq $panGenomeReference_extended > panGenomeReference_extended.fasta
+	picard CreateSequenceDictionary -R panGenomeReference_extended.fasta
+	samtools faidx panGenomeReference_extended.fasta
 
+	seqtk seq $panRef >  panGenomeReference.fasta 
+
+	cp panGenomeReference_extended.fasta ${params.output}/PANGENOME
 	cp panGenomeReference.fasta ${params.output}/PANGENOME
 	"""
 }
