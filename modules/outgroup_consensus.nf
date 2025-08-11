@@ -12,8 +12,7 @@ process OUTGROUP_CONSENSUS {
 	val extension
 
 	output:
-	path 'extractedSequencesOutgroup.fasta', emit: extractedSequencesOutgroupFasta
-	path 'extractedSequencesOutgroup.fq', emit: extractedSequencesOutgroupFastq
+	path 'outgroup_genotyped.fasta', emit: extractedSequencesOutgroupFasta
 
 	script:
 	"""
