@@ -11,6 +11,7 @@ process BCFTOOLS_CONSENSUS {
 	val parallel
 	tuple val(mapq) , val(baseq)
 	val extension
+	path geneNormalizedUpdatedFiltered
 
 	output:
 	path 'extractedSequences*.fasta', emit: consensusSequences
@@ -20,7 +21,6 @@ process BCFTOOLS_CONSENSUS {
 	#!/bin/bash
 
 	mkdir -p ${params.output}/GENOTYPING
-
         bcfconsensus() {
         bam_file=\$1
         basename=\$(basename "\${bam_file%.bam}")
@@ -74,6 +74,9 @@ process BCFTOOLS_CONSENSUS {
 	}
  	export -f bcfconsensus
   	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
+
+	#now we need to remove samples that did not survive completeness/coverage filters
+	awk 'NR > 1 {print \$1, \$2}' $geneNormalizedUpdatedFiltered > 
 
 	cp extractedSequences* ${params.output}/GENOTYPING
         cp *.vcf.gz* ${params.output}/GENOTYPING
