@@ -58,7 +58,6 @@ process BCFTOOLS_CONSENSUS {
 			}
 		' $panGenomeRef extractedSequences"\${basename}".fasta > "\${basename}"_padded && mv "\${basename}"_padded ./extractedSequences"\${basename}".fasta
 
-
 		#now remove the extended sequences
 		awk -v trim=$extension '
 			/^>/ { 
