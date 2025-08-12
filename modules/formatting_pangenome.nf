@@ -11,6 +11,7 @@ process  FORMATTING_PANGENOME {
 
 	output:
 	tuple path('panGenomeReference_extended.fasta'), path('panGenomeReference_extended.dict'), path('panGenomeReference_extended.fasta.fai'), emit: indexed_pangenome
+	path 'panGenomeReference.fasta', emit: originalPangenomeReference
 
 	script:
 	"""
