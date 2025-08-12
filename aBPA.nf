@@ -230,7 +230,7 @@ workflow {
 
 	FORMATTING_PANGENOME(EXTEND_SEQUENCES.out.extended_reference, MAKE_PANGENOME.out.panSequence)
 
-	BLAST_DATABASE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+	BLAST_DATABASE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
 	GET_OUTGROUP(params.outgroup_tax_id)
 
@@ -242,10 +242,10 @@ workflow {
 	OUTGROUP_CONSENSUS(OUTGROUP_ALIGNMENT.out.outgroupFastaPostAlignment, 
 				FORMATTING_PANGENOME.out.originalPangenomeReference)
 
-	ALIGNMENT(params.data, FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
+	ALIGNMENT(params.data, FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config, 
 		tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length, params.alignment_parallel))
 
-	MAPDAMAGE(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
+	MAPDAMAGE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
 		params.mapdamage_parallel)
 
 	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
@@ -256,13 +256,13 @@ workflow {
 
 
 	if (params.genotyper == "gatk") {
-		GATK_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index ->  tuple(pangenome_reference, pangenome_dict, pangenome_index)}, 
+		GATK_CONSENSUS(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index ->  tuple(pangenome_reference, pangenome_dict, pangenome_index)}, 
 				ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel)
 		extractedSequencesFasta = GATK_CONSENSUS.out.gatkConsensusSequences
 		vcfFile = GATK_CONSENSUS.out.gatkGenotypes
 
 	} else if (params.genotyper == "bcftools") {
-		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
+		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
 					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality), 
 					params.bedtools_slop, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered)
 		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
