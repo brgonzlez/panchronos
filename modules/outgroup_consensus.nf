@@ -9,7 +9,6 @@ process OUTGROUP_CONSENSUS {
 	input:
 	path outgroupFastaPostAlignment
 	path panGenomeRef
-	val extension
 
 	output:
 	path 'outgroup_genotyped.fasta', emit: extractedSequencesOutgroupFasta
