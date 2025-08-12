@@ -10,7 +10,7 @@ process  FORMATTING_PANGENOME {
 	path panRef
 
 	output:
-	tuple path('panGenomeReference.fasta'), path('panGenomeReference.dict'), path('panGenomeReference.fasta.fai'), emit: indexed_pangenome
+	tuple path('panGenomeReference_extended.fasta'), path('panGenomeReference_extended.dict'), path('panGenomeReference_extended.fasta.fai'), emit: indexed_pangenome
 
 	script:
 	"""
