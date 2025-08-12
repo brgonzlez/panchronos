@@ -15,7 +15,7 @@ process ALIGNMENT {
 	path '*_aligned.bam', emit: postAlignedBams
 	path '*_final.fastq', emit: postAlignedReads
 	path '*_sorted_mappedreads.bam', emit: bam_mapdamage
-	path 'panGenomeReference.fasta.*' , emit: pan_index
+	path 'panGenomeReference_extended.fasta.*' , emit: pan_index
 
 	script:
 	"""
