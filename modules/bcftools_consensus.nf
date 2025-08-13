@@ -75,11 +75,7 @@ process BCFTOOLS_CONSENSUS {
   	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
 
 	
-	#we need to remove genes that did not survive completeness/coverage filters
-	#awk 'NR > 1 {print \$1, \$2}' $geneNormalizedUpdatedFiltered > genes.map
-
-
 	cp extractedSequences* ${params.output}/GENOTYPING
-        cp *.vcf.gz* ${params.output}/GENOTYPING
+	cp *.vcf.gz* ${params.output}/GENOTYPING
 	"""
 }
