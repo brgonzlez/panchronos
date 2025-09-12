@@ -27,9 +27,9 @@ with open(data, 'r') as file:
 
 
 updated_series = []
-#and row['normalizedCoverage'] <= upperBound, BETTER TO NOT ADD THIS AS WE WANT TO SEE THE POTENTIAL PROBLEMATIC GENES ANYWAYS AS THEY ARE NOT INCLUDED AT THE END
+
 for index, row in summary.iterrows():
-    if row['completeness'] >= geneCompleteness and row['normalizedCoverage'] >= lowerBound:
+    if row['completeness'] >= geneCompleteness and row['normalizedCoverage'] >= lowerBound and row['normalizedCoverage'] <= upperBound:
         updated_series.append(1)
     else:
         updated_series.append(0)
