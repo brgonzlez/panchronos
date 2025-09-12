@@ -9,7 +9,7 @@ process ALIGNMENT {
 	path data
 	path panRef
 	path configFile
-	tuple val(threadsGlobal), val(missingProb), val(seedAlignment), val(gapFraction),val(minReadLength),val(maxReadLength),val(parallel)
+	tuple val(threadsGlobal), val(missingProb), val(seedAlignment), val(gapFraction),val(minReadLength),val(maxReadLength),val(parallel), val(quality)
 
 	output:
 	path '*_aligned.bam', emit: postAlignedBams
@@ -51,7 +51,7 @@ process ALIGNMENT {
     		samtools view -b -@ $threadsGlobal -F 4 "\${name}_sorted.bam" > "\${name}_sorted_mappedreads.bam"
     		samtools index "\${name}_sorted_mappedreads.bam"
     		bam trimBam "\${name}_sorted_mappedreads.bam" "\${name}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
-    		samtools view -q 30 -o "\${name}_qc.bam" "\${name}_softclipped.bam"
+    		samtools view -q $quality -o "\${name}_qc.bam" "\${name}_softclipped.bam"
     		samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
     		samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
     		samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
