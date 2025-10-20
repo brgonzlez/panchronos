@@ -21,6 +21,7 @@ process HEATMAP {
 	path 'sampleOrderonlyAncient.txt', emit: sampleOrderonlyAncient
 	path 'genesAbovePercentSeries.txt', emit: genesAbovePercentSeries
 	path 'blackListedQualityChecked.txt', emit: blackListed
+	path '*FINAL_INDEX' , emit: genesIndex
 
 	script:
 	"""
