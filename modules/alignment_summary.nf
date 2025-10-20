@@ -4,7 +4,7 @@
 
 
 process ALIGNMENT_SUMMARY {
-	conda "${projectDir}/envs/alignment_summary.yaml"
+	conda "${projectDir}/envs/alignment.yaml"
 	
 	input:
 	path configFile
