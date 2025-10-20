@@ -4,15 +4,16 @@
 
 
 process ALIGNMENT_SUMMARY {
-	conda "${projectDir}/envs/alignment.yaml"
+	conda "${projectDir}/envs/alignment_summary.yaml"
 	
 	input:
 	path configFile
 	path bamfiles
 	val parallel
+	val trim
 
 	output:
-        path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
+    path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
 	path 'completenessSummary.tab', emit: completenessSummary
 	path '*_refLength.txt', emit: refLength
 	path '*_rawCoverage.txt' , emit: rawCoverage
@@ -59,13 +60,15 @@ process ALIGNMENT_SUMMARY {
 
                 samplename=\$(basename "\${bam_file%.bam}")
                 samtools index "\$bam_file"
-                samtools depth -a "\$bam_file" > "\${samplename}_rawCoverage.txt"
-                samtools idxstats "\$bam_file" | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
-                samtools coverage "\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
-		mv "\$bam_file" ./"\${samplename}_TMP.bam"
-		mv "\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
-		picard AddOrReplaceReadGroups I="\${samplename}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
-		samtools index "\${samplename}.bam"
+				bam trimBam "\$bam_file" trimmed_"\$bam_file" -L $trim -R $trim --clip
+				samtools index trimmed_"\$bam_file"
+                samtools depth -a trimmed_"\$bam_file" > "\${samplename}_rawCoverage.txt"
+                samtools idxstats trimmed_"\$bam_file" | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
+                samtools coverage trimmed_"\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
+				mv trimmed_"\$bam_file" ./"\${samplename}_TMP.bam"
+				mv trimmed_"\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
+				picard AddOrReplaceReadGroups I="\${samplename}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
+				samtools index "\${samplename}.bam"
 	}
 	export -f rawStats
 	find ./ -name "postPangenomeAlignment*bam" | parallel -j $parallel rawStats
