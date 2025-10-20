@@ -20,9 +20,9 @@ process BCFTOOLS_CONSENSUS {
 	#!/bin/bash
 
 	mkdir -p ${params.output}/GENOTYPING
-        bcfconsensus() {
-        bam_file=\$1
-        basename=\$(basename "\${bam_file%.bam}")
+    bcfconsensus() {
+    bam_file=\$1
+    basename=\$(basename "\${bam_file%.bam}")
 
                 bcftools mpileup -f $panGenomeRef -q 30 -Q 20 "\$bam_file" > "\${basename}"_mpileup_file
                 bcftools call -c "\${basename}"_mpileup_file > "\${basename}".vcf
@@ -56,24 +56,6 @@ process BCFTOOLS_CONSENSUS {
     				}
 			}
 		' $panGenomeRef extractedSequences"\${basename}".fasta > "\${basename}"_padded && mv "\${basename}"_padded ./extractedSequences"\${basename}".fasta
-
-		#now remove the extended sequences
-		awk -v trim=$extension '
-			/^>/ { 
-				print 
-				next	
-			}
-
-			!/^>/ { 	
-				len = length(\$0)
-    				print substr(\$0, trim + 1, len - 2 * trim)
-			}' extractedSequences"\${basename}".fasta > trimmed_"\${basename}" && mv trimmed_"\${basename}" ./extractedSequences"\${basename}".fasta
-
-		
-	}
- 	export -f bcfconsensus
-  	find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
-
 	
 	cp extractedSequences* ${params.output}/GENOTYPING
 	cp *.vcf.gz* ${params.output}/GENOTYPING
