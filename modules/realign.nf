@@ -10,7 +10,6 @@ process REALIGN_GENE_ALIGNMENTS {
 	path gene_msa	
 	val parallel
 	val threads
-	val trim
 	path indexes
 	val mask_seqs
 
