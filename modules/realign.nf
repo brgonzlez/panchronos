@@ -33,42 +33,76 @@ process REALIGN_GENE_ALIGNMENTS {
 	export -f realign
 	find ./ -name "*fasta" | parallel -j $parallel realign
 
-
+	#trim columns if they only have either n or -.
 	trimming_artifacts() {
-	fasta_file=\$1
+    fasta_file="\$1"
 
-		samples_n=\$(grep -c "^>" "\$fasta_file")
-		to_trim=\$(awk '!/^>/ { 
-								last_character = substr(\$0, length($0), 1)
-								if (last_character == "n" || last_character == "-")
-									non_nucleotides++
-								}
-
-								END {
-									print (non_nucleotides ? non_nucleotides : 0)}' "\$fasta_file")
-		
-	    if [[ "\$to_trim" -eq "\$samples_n" ]]; then
-	        awk '{
-
-	        	if (\$0 ~ /^>/) {
-	        		print \$0
-	        	}
-
-	        	else {
-	        		print substr(\$0, 1, length(\$0) - 1)
-	        	}
-	        }' "\$fasta_file" > trimmed_"\$fasta_file"
-
-	        mv trimmed_"\$fasta_file" ./"\$fasta_file"
-
-	    else
-	    	echo "No trimming needed for \$fasta_file"
-	    	mv "\$fasta_file" ./realigned_qc/
-	    fi
-
-		}
+    	awk '
+    	/^>/ {
+	        headers[++count] = \$0
+        	next
+    	}
+	
+	    {
+        	seqs[count] = \$0
+        	len = length(\$0)
+        	ftrim = 0
+        	btrim = 0
+	
+        	#scan backwards from end
+        	for (bpos = len; bpos >= 1; bpos--) {
+	            c = substr(\$0, bpos, 1)
+            	if (c == "n" || c == "N" || c == "-")
+	                btrim++
+            	else
+	                break
+        	}
+	
+        	#scan forward from start
+        	for (fpos = 1; fpos <= len; fpos++) {
+	            c = substr(\$0, fpos, 1)
+            	if (c == "n" || c == "N" || c == "-")
+	                ftrim++
+            	else
+	                break
+        	}
+	
+        	forward_trim[count] = ftrim
+        	backward_trim[count] = btrim
+    	}
+	
+	    END {
+        	#find smallest backward trim
+        	back_min = backward_trim[1]
+        	for (i = 2; i <= count; i++)
+	            if (backward_trim[i] < back_min)
+                	back_min = backward_trim[i]
+	
+        	#find smallest forward trim
+        	fwd_min = forward_trim[1]
+        	for (i = 2; i <= count; i++)
+	            if (forward_trim[i] < fwd_min)
+                	fwd_min = forward_trim[i]
+	
+        	if (back_min > 0)
+	            print "Backwards trimming", back_min, "characters from", FILENAME > "/dev/stderr"
+        	else
+	            print "No backwards trimming needed for", FILENAME > "/dev/stderr"
+	
+        	if (fwd_min > 0)
+	            print "Forward trimming", fwd_min, "characters from", FILENAME > "/dev/stderr"
+        	else
+	            print "No forward trimming needed for", FILENAME > "/dev/stderr"
+	
+        	#trim the sequences
+        	for (i = 1; i <= count; i++) {
+	            print headers[i]
+            	print substr(seqs[i], 1 + fwd_min, length(seqs[i]) - fwd_min - back_min)
+        	}
+    	}' "\$fasta_file" > "\${fasta_file%.fasta}_trimmed.fasta"
+	}
 	export -f trimming_artifacts
-	find ./realigned/ -name "*fasta" | parallel -j $parallel trimming_artifacts 
+	find ./ -name "*.fasta" | parallel -j $parallel trimming_artifacts
 
 
 	mask_sequences() {
