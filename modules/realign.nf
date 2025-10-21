@@ -12,7 +12,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	val threads
 
 	output:
-	path 'realigned_qc/*fasta', emit: re_aligned
+	path '*_trimmed.fasta', emit: re_aligned
 
 	script:
 	"""
@@ -20,7 +20,6 @@ process REALIGN_GENE_ALIGNMENTS {
 
 	mkdir -p ${params.output}/GENE_MSA
 	mkdir -p realigned
-	mkdir -p realigned_qc
 
 	realign() {
 	file=\$1
@@ -101,7 +100,7 @@ process REALIGN_GENE_ALIGNMENTS {
 	export -f trimming_artifacts
 	find ./ -name "*.fasta" | parallel -j $parallel trimming_artifacts
 
-
+	
 	#mask_sequences() {
 	#}
 	#export -f mask_sequences
@@ -112,6 +111,6 @@ process REALIGN_GENE_ALIGNMENTS {
 	#    echo "--mask_sequences set to 0. No masking will take place."
 	#fi
 
-	cp -r realigned_qc/* ${params.output}/GENE_MSA
+	cp -r *_trimmed.fasta ${params.output}/GENE_MSA
 	"""
 }
