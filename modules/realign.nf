@@ -105,8 +105,8 @@ process REALIGN_GENE_ALIGNMENTS {
 	#}
 	#export -f mask_sequences
 
-	#if [[ $mask_seqs -eq 1 ]]; then
-	#    find ./realigned/ -name "*fasta" | parallel -j $parallel mask_sequences
+	#if [[ mask_seqs -eq 1 ]]; then
+	#    find ./realigned/ -name "*fasta" | parallel -j parallel mask_sequences
 	#else
 	#    echo "--mask_sequences set to 0. No masking will take place."
 	#fi
