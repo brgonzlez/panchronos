@@ -56,7 +56,10 @@ process BCFTOOLS_CONSENSUS {
     				}
 			}
 		' $panGenomeRef extractedSequences"\${basename}".fasta > "\${basename}"_padded && mv "\${basename}"_padded ./extractedSequences"\${basename}".fasta
-	
+	}
+    export -f bcfconsensus
+    find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
+
 	cp extractedSequences* ${params.output}/GENOTYPING
 	cp *.vcf.gz* ${params.output}/GENOTYPING
 	"""
