@@ -4,6 +4,6 @@ channels:
 - conda-forge
 - defaults
 dependencies:
-- pandas
+- pandas=2.3.2
 - seaborn
 - matplotlib
