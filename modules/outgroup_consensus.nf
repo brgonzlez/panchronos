@@ -27,7 +27,7 @@ process OUTGROUP_CONSENSUS {
                 bcftools call -c "\${basename}"_mpileup_file > "\${basename}".vcf
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
-                bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
+                bcftools consensus -a - -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
                 seqtk seq -a extractedSequences"\${basename}".fq > outgroup_genotyped.fasta
                 rm -f extractedSequences"\${basename}".fq
 
