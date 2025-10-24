@@ -5,7 +5,8 @@
 
 process ALIGNMENT_SUMMARY {
 	conda "${projectDir}/envs/alignment.yaml"
-	
+	label 'demand_3'
+
 	input:
 	path configFile
 	path bamfiles
@@ -61,7 +62,7 @@ process ALIGNMENT_SUMMARY {
                 samplename=\$(basename "\${bam_file%.bam}")
                 samtools index "\$bam_file"
 				bam trimBam "\$bam_file" trimmed_"\$samplename".bam -L $trim -R $trim --clip
-				samtools sort -o sorted_"\$samplename".bam -O bam -@ $threadsGlobal trimmed_"\$samplename".bam
+				samtools sort -o sorted_"\$samplename".bam -O bam -@ $task.cpus trimmed_"\$samplename".bam
 				samtools index sorted_"\$samplename".bam
                 samtools depth -a sorted_"\$samplename".bam > "\${samplename}_rawCoverage.txt"
                 samtools idxstats sorted_"\$samplename".bam | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
