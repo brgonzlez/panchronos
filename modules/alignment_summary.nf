@@ -60,13 +60,14 @@ process ALIGNMENT_SUMMARY {
 
                 samplename=\$(basename "\${bam_file%.bam}")
                 samtools index "\$bam_file"
-				bam trimBam "\$bam_file" trimmed_"\$bam_file" -L $trim -R $trim --clip
-				samtools index trimmed_"\$bam_file"
-                samtools depth -a trimmed_"\$bam_file" > "\${samplename}_rawCoverage.txt"
-                samtools idxstats trimmed_"\$bam_file" | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
-                samtools coverage trimmed_"\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
-				mv trimmed_"\$bam_file" ./"\${samplename}_TMP.bam"
-				mv trimmed_"\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
+				bam trimBam "\$bam_file" trimmed_"\$samplename".bam -L $trim -R $trim --clip
+				samtools sort -o sorted_"\$samplename".bam -O bam -@ $threadsGlobal trimmed_"\$samplename".bam
+				samtools index sorted_"\$samplename".bam
+                samtools depth -a sorted_"\$samplename".bam > "\${samplename}_rawCoverage.txt"
+                samtools idxstats sorted_"\$samplename".bam | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
+                samtools coverage sorted_"\$samplename".bam | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
+				mv sorted_"\$samplename".bam ./"\${samplename}_TMP.bam"
+				mv sorted_"\$samplename".bam.bai ./"\${samplename}_TMP.bam.bai"
 				picard AddOrReplaceReadGroups I="\${samplename}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
 				samtools index "\${samplename}.bam"
 	}
