@@ -98,8 +98,9 @@ process REALIGN_GENE_ALIGNMENTS {
     	}' "\$fasta_file" > "\${fasta_file%.fasta}_trimmed.fasta"
 	}
 	export -f trimming_artifacts
-	find ./ -name "*.fasta" | parallel -j $parallel trimming_artifacts
+	find ./realigned/ -name "*.fasta" | parallel -j $parallel trimming_artifacts
 
+	mv ./realigned/*trimmed.fasta ./
 	
 	#mask_sequences() {
 	#}
