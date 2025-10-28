@@ -11,6 +11,7 @@ process BUILD_MSA {
 	path maskedMatrixGenesUbiquitous, stageAs: 'maskedMatrixGenesUbiquitous.txt'
 	path genesAbovePercentSeries, stageAs: 'genesAbovePercentSeries.txt'
 	path sampleNames, stageAs: 'sampleNames.txt'
+	val parallel
 
 	output:
 	path 'genesAbovePercentMSA.fasta', emit: genesAbovePercentMSA
@@ -33,7 +34,13 @@ process BUILD_MSA {
 	sed -i -e 's/~/_/g' maskedMatrixGenesOnlyAncient.txt
 	sed -i -e 's/~/_/g' maskedMatrixGenesUbiquitous.txt
 
+	rename() {
+	file=\$1
 
+		mv "\${file}" "\${file%_trimmed.fasta}.fasta"
+	}
+	export -f rename
+	find ./genes/ -name "*.fasta" | parallel -j $parallel rename
 
 	while read -r gene; do
 		file="genes/\${gene}.fasta"
