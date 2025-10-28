@@ -31,7 +31,7 @@ process NORMALIZE {
 		#Compute global mean coverage
 		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
 		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$file")
-		refCount=\$(cat "\${name}_refLength.txt")
+		refCount=\$(cat $refLength)
 		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
 
 		#Normalize coverage per gene
