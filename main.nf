@@ -289,7 +289,7 @@ workflow {
 	REALIGN_GENE_ALIGNMENTS(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, params.realign_parallel, params.mafft_threads)
 
 	BUILD_MSA(REALIGN_GENE_ALIGNMENTS.out.re_aligned, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient, 
-		HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames)
+		HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames, params.parallel)
 
 	TREE_THRESHOLD(BUILD_MSA.out.genesAbovePercentMSA, params.tree_threads)
 
