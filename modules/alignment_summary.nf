@@ -16,7 +16,6 @@ process ALIGNMENT_SUMMARY {
 	output:
     path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
 	path 'completenessSummary.tab', emit: completenessSummary
-	path '*_refLength.txt', emit: refLength
 	path '*_rawCoverage.txt' , emit: rawCoverage
 
 
@@ -65,7 +64,6 @@ process ALIGNMENT_SUMMARY {
 				samtools sort -o sorted_"\$samplename".bam -O bam -@ $task.cpus trimmed_"\$samplename".bam
 				samtools index sorted_"\$samplename".bam
                 samtools depth -a sorted_"\$samplename".bam > "\${samplename}_rawCoverage.txt"
-                samtools idxstats sorted_"\$samplename".bam | awk '{sum += \$2} END {print sum}' > "\${samplename}_refLength.txt"
                 samtools coverage sorted_"\$samplename".bam | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
 				mv sorted_"\$samplename".bam ./"\${samplename}_TMP.bam"
 				mv sorted_"\$samplename".bam.bai ./"\${samplename}_TMP.bam.bai"
