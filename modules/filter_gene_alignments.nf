@@ -328,11 +328,35 @@ process FILTER_GENE_ALIGNMENTS {
                                geneName=\$(basename "\${indexSeqs%_duplicated_*}")
                                sampleName=\$(basename "\${indexSeqs##*_duplicated_}")
 
-                               # Read the longest line based on letter count
+
                                sequence=\$(awk '
-                               {gsub(/[^a-zA-Z]/, "", \$0); len=length(\$0)}
-                               len > max_length {max_length=len; longest=\$0}
-                               END {print longest}' "\$indexSeqs")
+                               BEGIN {
+                                    first_line = ""
+                                    second_line = ""
+                               }
+
+                                /^[AaTtCcGg]/ && first_line == "" {     #avoid picking up the same string if there are 3 or more artifacts
+                                    first_line = \$0
+                                    next
+                                }
+
+                                /^-/ && second_line == "" { #same as before
+                                    second_line = \$0
+                                }
+
+                                END {
+                                    # find prefix of the first line (before first -)
+                                    split(first_line, a, "-")
+                                    first_string = a[1]
+                                    first_len = length(first_string) # this will be the starting point of second string
+
+                                    #concatenate starting part of second line from the same position
+                                    second_string = substr(second_line, first_len + 1)
+                                    merged = first_string second_string
+                                    print merged
+                                }
+                            ' "\$indexSeqs")
+
 
                        # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
                                echo ">\${sampleName}" >> special_cases/"\${name}.fasta"
