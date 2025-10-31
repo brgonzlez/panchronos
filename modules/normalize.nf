@@ -29,8 +29,8 @@ process NORMALIZE {
 		name=\$(basename "\${file%_rawCoverage.txt}")
 
 		#Compute global mean coverage
-		globalMean=\$(awk -v name="\$name" '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
-		finalCount=\$(awk -v name="\$name" '{fcount++} END {print fcount}' "\$file")
+		globalMean=\$(awk '{sum += \$3; count++} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
+		finalCount=\$(awk '\$3 > 0{fcount++} END {print fcount}' "\$file")
 		refCount=\$(cat $refLength)
 		echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
 
