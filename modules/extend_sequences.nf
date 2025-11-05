@@ -29,7 +29,7 @@ process EXTEND_SEQUENCES {
 		/^[[:space:]]*node/ {      #if node, activate the script and re-set values
 	
 			activator = 1
-			seq_ID = ""
+			centroid = ""
 			gene_name = ""
 			next
 	
@@ -37,16 +37,17 @@ process EXTEND_SEQUENCES {
 	
 		activator {
 	
-			if (\$1 == "seqIDs" && seq_ID == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
-	
-				seq_ID = \$2
-	
+			if (\$1 == "centroid" && centroid == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
+				gsub(/"/, "", \$2)
+				split(\$2, parts, ";")
+				centroid = parts
+
 			}
 	
 				else if (\$1 == "name") {
-	
+				gsub(/"/, "", \$2) 
 				gene_name = \$2
-				print seq_ID, gene_name
+				print centroid, gene_name
 				activator = 0
 	
 			}
