@@ -11,7 +11,7 @@ process BCFTOOLS_CONSENSUS {
 	val parallel
 	tuple val(mapq) , val(baseq)
 	val extension
-
+	
 	output:
 	path 'extractedSequences*.fasta', emit: consensusSequences
 
@@ -24,7 +24,7 @@ process BCFTOOLS_CONSENSUS {
     bam_file=\$1
     basename=\$(basename "\${bam_file%.bam}")
 
-                bcftools mpileup -f $panGenomeRef -q 30 -Q 20 "\$bam_file" > "\${basename}"_mpileup_file
+                bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
                 bcftools call -c "\${basename}"_mpileup_file --ploidy 1 > "\${basename}".vcf
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
