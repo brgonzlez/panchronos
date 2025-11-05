@@ -328,34 +328,32 @@ process FILTER_GENE_ALIGNMENTS {
                                geneName=\$(basename "\${indexSeqs%_duplicated_*}")
                                sampleName=\$(basename "\${indexSeqs##*_duplicated_}")
 
-
-                               sequence=\$(awk '
-                               BEGIN {
-                                    first_line = ""
-                                    second_line = ""
-                               }
-
-                                /^[AaTtCcGg]/ && first_line == "" {     #avoid picking up the same string if there are 3 or more artifacts
-                                    first_line = \$0
-                                    next
-                                }
-
-                                /^-/ && second_line == "" { #same as before
-                                    second_line = \$0
+                              sequence=\$(awk '
+                                {
+                                    seq_length = length(\$0)
+                                    line[NR] = \$0
+                                    num_lines = NR
                                 }
 
                                 END {
-                                    # find prefix of the first line (before first -)
-                                    split(first_line, a, "-")
-                                    first_string = a[1]
-                                    first_len = length(first_string) # this will be the starting point of second string
+                                    final = ""
+                                    for (pos = 1; pos <= seq_length; pos++) {
+                                        merged_char = "-"
+                                        for (l = 1; l <= num_lines; l++) {
+                                            c = substr(line[l], pos, 1)
+                                            if (c ~ /[aAtTgGcC]/) {
+                                                merged_char = c
+                                                break
+                                            }
+                                        }
+                                        final = final merged_char
+                                    }
 
-                                    #concatenate starting part of second line from the same position
-                                    second_string = substr(second_line, first_len + 1)
-                                    merged = first_string second_string
-                                    print merged
-                                }
-                            ' "\$indexSeqs")
+                                    # Remove dashes
+                                    gsub(/-/, "", final)
+                                    print final
+                                }' "\$indexSeqs")
+
 
 
                        # Finally add the selected sequence back to the cleaned original FASTA file with the header as well
