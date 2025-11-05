@@ -11,7 +11,6 @@ process ALIGNMENT_SUMMARY {
 	path configFile
 	path bamfiles
 	val parallel
-	val trim
 
 	output:
     path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
@@ -60,13 +59,10 @@ process ALIGNMENT_SUMMARY {
 
                 samplename=\$(basename "\${bam_file%.bam}")
                 samtools index "\$bam_file"
-				bam trimBam "\$bam_file" trimmed_"\$samplename".bam -L $trim -R $trim --clip
-				samtools sort -o sorted_"\$samplename".bam -O bam -@ $task.cpus trimmed_"\$samplename".bam
-				samtools index sorted_"\$samplename".bam
-                samtools depth -a sorted_"\$samplename".bam > "\${samplename}_rawCoverage.txt"
-                samtools coverage sorted_"\$samplename".bam | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
-				mv sorted_"\$samplename".bam ./"\${samplename}_TMP.bam"
-				mv sorted_"\$samplename".bam.bai ./"\${samplename}_TMP.bam.bai"
+                samtools depth -a "\$bam_file" > "\${samplename}_rawCoverage.txt"
+                samtools coverage "\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
+				mv "\$bam_file" ./"\${samplename}_TMP.bam"
+				mv "\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
 				picard AddOrReplaceReadGroups I="\${samplename}_TMP.bam" O="\${samplename}.bam" RGLB="\${samplename}" RGSM="\${samplename}" RGPU=Illumina RGPL=ILLUMINA RGID="\${samplename}" RGDS="\${samplename}"
 				samtools index "\${samplename}.bam"
 	}
