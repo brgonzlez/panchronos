@@ -38,14 +38,12 @@ process EXTEND_SEQUENCES {
 		activator {
 	
 			if (\$1 == "centroid" && centroid == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
-				gsub(/"/, "", \$2)
 				split(\$2, parts, ";")
-				centroid = parts
+				centroid = parts[1]
 
 			}
 	
 				else if (\$1 == "name") {
-				gsub(/"/, "", \$2) 
 				gene_name = \$2
 				print centroid, gene_name
 				activator = 0
