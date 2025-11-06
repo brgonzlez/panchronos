@@ -386,7 +386,7 @@ process FILTER_GENE_ALIGNMENTS {
                                print
                        } else {
                        while ( length(\$0) < numCols) {
-                               \$0 = \$0 "N"
+                               \$0 = \$0 "-"
                        }
                        print
                        }
