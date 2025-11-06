@@ -25,7 +25,7 @@ process BCFTOOLS_CONSENSUS {
     basename=\$(basename "\${bam_file%.bam}")
 
                 bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
-                bcftools call -c "\${basename}"_mpileup_file --ploidy 1 > "\${basename}".vcf
+                bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}".vcf
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
                 bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
