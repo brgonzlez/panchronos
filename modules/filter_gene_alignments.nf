@@ -393,10 +393,10 @@ process FILTER_GENE_ALIGNMENTS {
                }' "\$msa_file" > special_cases/tmp_"\${name}" && mv special_cases/tmp_"\${name}" "\${msa_file}"
        }
 
-	export -f checking_alignment_lengths
-	find special_cases/ -name "*.fasta" | parallel -j $parallel checking_alignment_lengths
-	echo -e "Done"
-
+	#export -f checking_alignment_lengths
+	#find special_cases/ -name "*.fasta" | parallel -j $parallel checking_alignment_lengths
+	#echo -e "Done"
+	#NOTE: We may not need this function anymore as we are re-aligning everything with mafft.
 
 	#now check if these cleaned fasta passed the sanitised_msa() test.
 	sanitised_msa_special_cases() {
