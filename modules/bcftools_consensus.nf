@@ -9,7 +9,7 @@ process BCFTOOLS_CONSENSUS {
 	path panGenomeRef
 	path bamFiles
 	val parallel
-	tuple val(mapq) , val(baseq)
+	tuple val(mapq) , val(baseq) , val(call_qual)
 	val extension
 	
 	output:
@@ -25,7 +25,8 @@ process BCFTOOLS_CONSENSUS {
     basename=\$(basename "\${bam_file%.bam}")
 
                 bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
-                bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}".vcf
+                bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}"_raw.vcf
+				bcftools filter -i 'QUAL>$call_qual' "\${basename}"_raw.vcf > "\${basename}".vcf
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
                 bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
