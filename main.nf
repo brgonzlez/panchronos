@@ -249,7 +249,7 @@ workflow {
 	MAPDAMAGE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
 		params.mapdamage_parallel)
 
-	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel)
+	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel, params.bedtools_slop)
 
 	NORMALIZE(MAKE_PANGENOME.out.pangenomeLength, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
