@@ -65,7 +65,7 @@ process ALIGNMENT_SUMMARY {
 				#Remove the extended positions from raw coverage
 				awk -v ext=$extend '
     				{
-        				last[$1] = \$2   # remember last position seen for each gene
+        				last[\$1] = \$2   # remember last position seen for each gene
         				data[NR] = \$0   # store all lines
         				id[NR] = \$1
         				pos[NR] = \$2
