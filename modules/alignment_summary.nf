@@ -11,6 +11,7 @@ process ALIGNMENT_SUMMARY {
 	path configFile
 	path bamfiles
 	val parallel
+	val extend
 
 	output:
     path 'postPangenomeAlignment*bam' , emit: postAlignmentFiles
@@ -59,7 +60,30 @@ process ALIGNMENT_SUMMARY {
 
                 samplename=\$(basename "\${bam_file%.bam}")
                 samtools index "\$bam_file"
-                samtools depth -a "\$bam_file" > "\${samplename}_rawCoverage.txt"
+                samtools depth -a "\$bam_file" > "\${samplename}_PreRawCoverage.txt"
+
+				#Remove the extended positions from raw coverage
+				awk -v ext=$extend '
+    				{
+        				last[$1] = \$2   # remember last position seen for each gene
+        				data[NR] = \$0   # store all lines
+        				id[NR] = \$1
+        				pos[NR] = \$2
+    				}
+    				END {
+        				for (g in last) {
+            				start[g] = ext + 1
+            				stop[g]  = last[g] - ext
+        				}
+				
+        				for (i = 1; i <= NR; i++) {
+            				g = id[i]
+            				p = pos[i]
+            				if (p >= start[g] && p <= stop[g])
+                				print data[i]
+        				}
+    				}'  "\${samplename}_PreRawCoverage.txt" > "\${samplename}_rawCoverage.txt"
+
                 samtools coverage "\$bam_file" | awk -v samplename="\$samplename" 'NR>1 {print samplename, \$1, \$6}' | sed -e 's/~/_/g' | sed -e 's/ /\t/g' | sort -k 1 -t \$'\t' >> "\${samplename}"_completenessSummary.tab
 				mv "\$bam_file" ./"\${samplename}_TMP.bam"
 				mv "\$bam_file".bai ./"\${samplename}_TMP.bam.bai"
