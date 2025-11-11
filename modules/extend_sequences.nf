@@ -277,7 +277,7 @@ process EXTEND_SEQUENCES {
 
 	#QC for gene list
 	while read -r gene; do
-		grep -A 1 -w "\$gene" pre_extended_pangenome_reference_sequence.fasta >> extended_pangenome_reference_sequence
+		grep -A 1 -w "\$gene" pre_extended_pangenome_reference_sequence.fasta >> extended_pangenome_reference_sequence.fasta
 		grep -A 1 -w "\$gene" pre_unextended_pangenome_reference_sequence.fasta >> unextended_pangenome_reference_sequence.fasta
 	done < $gene_list
 
