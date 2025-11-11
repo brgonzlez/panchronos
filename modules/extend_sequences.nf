@@ -17,6 +17,7 @@ process EXTEND_SEQUENCES {
 
 	output:
 	path 'extended_pangenome_reference_sequence.fasta' , emit: extended_reference
+	path 'pangenome_length.txt', emit: pangenome_length
 
 	script:
 	"""
@@ -260,5 +261,10 @@ process EXTEND_SEQUENCES {
 		grep -A 1 -w "\$gene" pre_extended_pangenome_reference_sequence.fasta >> extended_pangenome_reference_sequence
 		grep -A 1 -w "\$gene" pre_unextended_pangenome_reference_sequence.fasta >> unextended_pangenome_reference_sequence.fasta
 	done < $gene_list
+
+
+	#get pangenome length
+	seqtk seq unextended_pangenome_reference_sequence | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
+
 	"""
 }
