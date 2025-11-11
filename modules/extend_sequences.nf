@@ -136,7 +136,7 @@ process EXTEND_SEQUENCES {
 
 		done < "\$name"_negative_strand
 
-		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta 2>/dev/null > "\$name"_pre_extended_sequences.fasta
+		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta 2>/dev/null > "\$name"_extended_sequences.fasta
 
 	}
 	export -f extend_sequences
