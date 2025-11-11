@@ -251,7 +251,7 @@ workflow {
 
 	ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel, params.bedtools_slop)
 
-	NORMALIZE(MAKE_PANGENOME.out.pangenomeLength, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
+	NORMALIZE(EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
 
 	UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
 
