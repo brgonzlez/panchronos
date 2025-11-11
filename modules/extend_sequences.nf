@@ -120,10 +120,12 @@ process EXTEND_SEQUENCES {
 		awk '\$NF == "-" {print \$4}' "\$name"_extended_sequences.bed > "\$name"_negative_strand
 		awk '\$NF == "+" {print \$4}' "\$name"_extended_sequences.bed > "\$name"_positive_strand
 
+		#get positive lines
 		while read -r gene_tag; do
 			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta >> "\$name"_tmp_positive.fasta
 		done < "\$name"_positive_strand
 
+		#get negative lines and reverse them
 		while read -r gene_tag; do
     			#get the header+sequence
     			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta > "\$name"_tmp_seq.fasta
@@ -133,10 +135,21 @@ process EXTEND_SEQUENCES {
 
 		done < "\$name"_negative_strand
 
-		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta > "\$name"_extended_sequences.fasta
+		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta > "\$name"_pre_extended_sequences.fasta
 
-		#######################################
-		#Make un-extended version too
+	}
+	export -f extend_sequences
+	find ./ -name "*.bed" | parallel -j $parallel extend_sequences
+
+	rm *_extended_sequences.bed
+
+
+	#make unextended reference
+	unextended() {
+	file=\$1
+	name=\$(basename "\${file%.bed}")
+
+
 		bedtools getfasta -bed "\$file" -fi "\$name".fasta -name > "\$name"_un_extended_sequences.fasta
 
 		#if sequence is in - strand, then get the complementary reverse but for un-extended
@@ -158,9 +171,12 @@ process EXTEND_SEQUENCES {
 		done < "\$name"_negative_strand_unextended
 
 		cat "\$name"_tmp_positive_unextended.fasta "\$name"_reverse_complement_unextended.fasta > "\$name"_unextended_sequences.fasta
+
 	}
-	export -f extend_sequences
-	find ./ -name "*.bed" | parallel -j $parallel extend_sequences
+	export -f unextended
+	find ./ -name "*.bed" | parallel -j $parallel unextended
+
+
 
 	#now we need the gene names back!
 
