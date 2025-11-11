@@ -230,7 +230,7 @@ workflow {
 
 	FORMATTING_PANGENOME(EXTEND_SEQUENCES.out.extended_reference, MAKE_PANGENOME.out.panSequence)
 
-	BLAST_DATABASE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
+	BLAST_DATABASE(EXTEND_SEQUENCES.out.unextended_reference)
 
 	GET_OUTGROUP(params.outgroup_tax_id)
 
