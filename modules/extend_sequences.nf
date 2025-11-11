@@ -151,7 +151,7 @@ process EXTEND_SEQUENCES {
 	name=\$(basename "\${file%.bed}")
 
 
-		bedtools getfasta -bed "\$file" -fi "\$name".fasta -name > "\$name"_un_extended_sequences.fasta
+		bedtools getfasta -bed "\$file" -fi "\$name".fasta -name > "\$name"_unextended_sequences.fasta
 
 		#if sequence is in - strand, then get the complementary reverse but for un-extended
 		awk '\$NF == "-" {print \$4}' "\$file" > "\$name"_negative_strand_unextended
@@ -159,12 +159,12 @@ process EXTEND_SEQUENCES {
 
 
 		while read -r gene_tag; do
-			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta >> "\$name"_tmp_positive_unextended.fasta
+			grep -A1 -w "\$gene_tag" "\$name"_unextended_sequences.fasta >> "\$name"_tmp_positive_unextended.fasta
 		done < "\$name"_positive_strand_unextended
 
 		while read -r gene_tag; do
     			#get the header+sequence
-    			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta > "\$name"_tmp_seq_unextended.fasta
+    			grep -A1 -w "\$gene_tag" "\$name"_unextended_sequences.fasta > "\$name"_tmp_seq_unextended.fasta
 
     			#apply reverse complement
  				if [ -s "\${name}_tmp_seq_unextended.fasta" ]; then
