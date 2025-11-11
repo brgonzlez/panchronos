@@ -19,13 +19,13 @@ process  FORMATTING_PANGENOME {
 
 	mkdir -p ${params.output}/PANGENOME
 
-	seqtk seq $panGenomeReference_extended > panGenomeReference_extended.fasta
-	picard CreateSequenceDictionary -R panGenomeReference_extended.fasta
-	samtools faidx panGenomeReference_extended.fasta
+	seqtk seq $panGenomeReference_extended > extended_pangenome_reference.fasta
+	picard CreateSequenceDictionary -R extended_pangenome_reference.fasta
+	samtools faidx extended_pangenome_reference.fasta
 
-	seqtk seq $panRef >  panGenomeReference.fasta 
+	seqtk seq $panRef >  panGenomeReference_panaroo.fasta 
 
-	cp panGenomeReference_extended.fasta ${params.output}/PANGENOME
-	cp panGenomeReference.fasta ${params.output}/PANGENOME
+	cp extended_pangenome_reference.fasta ${params.output}/PANGENOME
+	cp panGenomeReference_panaroo.fasta ${params.output}/PANGENOME
 	"""
 }
