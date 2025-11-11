@@ -23,6 +23,8 @@ process EXTEND_SEQUENCES {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/PANGENOME
+
 	#fetch data from graph
 	awk '
 		BEGIN {OFS= "\t"}
@@ -285,5 +287,8 @@ process EXTEND_SEQUENCES {
 	#get pangenome length
 	seqtk seq unextended_pangenome_reference_sequence.fasta | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
 
+	#output
+	mv unextended_pangenome_reference_sequence.fasta ./unextended_pangenome_reference.fasta
+	cp unextended_pangenome_reference.fasta ${params.output}/PANGENOME
 	"""
 }
