@@ -18,6 +18,7 @@ process EXTEND_SEQUENCES {
 	output:
 	path 'extended_pangenome_reference_sequence.fasta' , emit: extended_reference
 	path 'pangenome_length.txt', emit: pangenome_length
+	path 'unextended_pangenome_reference.fasta', emit: unextended_reference
 
 	script:
 	"""
