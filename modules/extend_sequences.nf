@@ -13,7 +13,7 @@ process EXTEND_SEQUENCES {
 	tuple path(final_graph), path(gene_data)
 	val extend
 	val parallel
-	
+	path gene_list
 
 	output:
 	path 'extended_pangenome_reference_sequence.fasta' , emit: extended_reference
@@ -111,6 +111,7 @@ process EXTEND_SEQUENCES {
 	file=\$1
 	name=\$(basename "\${file%.bed}")
 
+		#Make extended individual sequences
 		bedtools slop -i "\$file" -g "\$name".fasta.fai -b $extend > "\$name"_extended_sequences.bed
 		bedtools getfasta -bed "\$name"_extended_sequences.bed -fi "\$name".fasta -name > "\$name"_extended_sequences.fasta
 
@@ -132,6 +133,30 @@ process EXTEND_SEQUENCES {
 		done < "\$name"_negative_strand
 
 		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta > "\$name"_extended_sequences.fasta
+
+		#######################################
+		#Make un-extended version too
+		bedtools getfasta -bed "\$file" -fi "\$name".fasta -name > "\$name"_un_extended_sequences.fasta
+
+		#if sequence is in - strand, then get the complementary reverse but for un-extended
+		awk '\$NF == "-" {print \$4}' "\$file" > "\$name"_negative_strand_unextended
+		awk '\$NF == "+" {print \$4}' "\$file" > "\$name"_positive_strand_unextended
+
+
+		while read -r gene_tag; do
+			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta >> "\$name"_tmp_positive_unextended.fasta
+		done < "\$name"_negative_strand_unextended
+
+		while read -r gene_tag; do
+    			#get the header+sequence
+    			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta > "\$name"_tmp_seq_unextended.fasta
+
+    			#apply reverse complement
+    			seqtk seq -r "\$name"_tmp_seq_unextended.fasta >> "\$name"_reverse_complement_unextended.fasta
+
+		done < "\$name"_positive_strand_unextended
+
+		cat "\$name"_tmp_positive_unextended.fasta "\$name"_reverse_complement_unextended.fasta > "\$name"_unextended_sequences.fasta
 	}
 	export -f extend_sequences
 	find ./ -name "*.bed" | parallel -j $parallel extend_sequences
@@ -180,8 +205,60 @@ process EXTEND_SEQUENCES {
 	find ./ -name "*_extended_sequences.fasta" | parallel -j $parallel rename_extended_sequences
 	
 
+
+
+	rename_unextended_sequences() {
+	file=\$1
+	name=\$(basename "\${file%_unextended_sequences.fasta}")
+
+		awk '
+
+			FNR==NR {
+
+				gene_tag = \$3
+				gene_name = \$4
+				pair[gene_tag] = gene_name
+				next
+			}
+			
+			/^>/ { 
+		
+				split(substr(\$0,2), subStrings, "::")
+				gene_tag_header = subStrings[1]
+	
+				if (gene_tag_header in pair) {
+	
+					print ">" pair[gene_tag_header]
+	
+				} 
+	
+				next
+	
+			}
+	
+			{
+	
+				print
+	
+			}
+			'	updated_seq_ids_per_node "\$file" > "\$name"_unextended_reference.fasta
+	
+	}
+	export -f rename_unextended_sequences
+	find ./ -name "*_unextended_sequences.fasta" | parallel -j $parallel rename_unextended_sequences
+
+
+
 	#now we just concatenate them
 
-	cat *_extended_reference.fasta > extended_pangenome_reference_sequence.fasta
+	cat *_extended_reference.fasta > pre_extended_pangenome_reference_sequence.fasta
+	cat *_unextended_reference.fasta > pre_unextended_pangenome_reference_sequence.fasta
+
+
+	#QC for gene list
+	while read -r gene; do
+		grep -A 1 -w "\$gene" pre_extended_pangenome_reference_sequence.fasta >> extended_pangenome_reference_sequence
+		grep -A 1 -w "\$gene" pre_unextended_pangenome_reference_sequence.fasta >> unextended_pangenome_reference_sequence.fasta
+	done < $gene_list
 	"""
 }
