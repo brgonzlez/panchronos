@@ -130,12 +130,13 @@ process EXTEND_SEQUENCES {
     			#get the header+sequence
     			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta > "\$name"_tmp_seq.fasta
 
-    			#apply reverse complement
-    			seqtk seq -r "\$name"_tmp_seq.fasta >> "\$name"_reverse_complement.fasta
+ 				if [ -s "\${name}_tmp_seq.fasta" ]; then
+        			seqtk seq -r "${name}_tmp_seq.fasta" >> "${name}_reverse_complement.fasta"
+    			fi
 
 		done < "\$name"_negative_strand
 
-		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta > "\$name"_pre_extended_sequences.fasta
+		cat "\$name"_tmp_positive.fasta "\$name"_reverse_complement.fasta 2>/dev/null > "\$name"_pre_extended_sequences.fasta
 
 	}
 	export -f extend_sequences
@@ -166,11 +167,13 @@ process EXTEND_SEQUENCES {
     			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta > "\$name"_tmp_seq_unextended.fasta
 
     			#apply reverse complement
-    			seqtk seq -r "\$name"_tmp_seq_unextended.fasta >> "\$name"_reverse_complement_unextended.fasta
+ 				if [ -s "\${name}_tmp_seq_unextended.fasta" ]; then
+	    			seqtk seq -r "\$name"_tmp_seq_unextended.fasta >> "\$name"_reverse_complement_unextended.fasta
+				fi
 
 		done < "\$name"_negative_strand_unextended
 
-		cat "\$name"_tmp_positive_unextended.fasta "\$name"_reverse_complement_unextended.fasta > "\$name"_unextended_sequences.fasta
+		cat "\$name"_tmp_positive_unextended.fasta "\$name"_reverse_complement_unextended.fasta 2>/dev/null > "\$name"_unextended_sequences.fasta
 
 	}
 	export -f unextended
