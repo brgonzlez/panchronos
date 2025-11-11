@@ -283,7 +283,7 @@ process EXTEND_SEQUENCES {
 
 
 	#get pangenome length
-	seqtk seq unextended_pangenome_reference_sequence | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
+	seqtk seq unextended_pangenome_reference_sequence.fasta | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
 
 	"""
 }
