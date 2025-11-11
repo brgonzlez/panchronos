@@ -131,7 +131,7 @@ process EXTEND_SEQUENCES {
     			grep -A1 -w "\$gene_tag" "\$name"_extended_sequences.fasta > "\$name"_tmp_seq.fasta
 
  				if [ -s "\${name}_tmp_seq.fasta" ]; then
-        			seqtk seq -r "${name}_tmp_seq.fasta" >> "${name}_reverse_complement.fasta"
+        			seqtk seq -r "\${name}_tmp_seq.fasta" >> "\${name}_reverse_complement.fasta"
     			fi
 
 		done < "\$name"_negative_strand
