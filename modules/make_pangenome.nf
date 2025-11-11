@@ -18,6 +18,7 @@ process MAKE_PANGENOME {
 	path 'aligned_gene_sequences/*' , emit: alignedGenesSeqs
 	tuple path('final_graph.gml'), path('gene_data.csv'), emit: pangenome_metadata
 	path 'pangenome_length.txt', emit: pangenomeLength
+	path 'gene_list.txt', emit: gene_list
 
 	script:
 	"""
@@ -28,6 +29,16 @@ process MAKE_PANGENOME {
 
 	#get pangenome length
 	seqtk seq pan_genome_reference.fa | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
+
+	#output gene list from aligned sequences
+    gene_list() {
+    file=\$1
+                name=\$(basename "\$file")
+                echo -e "\${name}" | sed -e 's/.aln.fas//g' -e 's/.fasta//g' -e 's/aligned_gene_sequences//g' -e '/^\$/d'  >> gene_list.txt
+    }
+    export -f gene_list
+    find ./aligned_gene_sequences/ -name "*" | parallel -j $threads gene_list
+
 	
 	cat .command.out >> makePangenome.log
 	"""
