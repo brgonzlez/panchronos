@@ -146,7 +146,7 @@ process EXTEND_SEQUENCES {
 
 		while read -r gene_tag; do
 			grep -A1 -w "\$gene_tag" "\$name"_un_extended_sequences.fasta >> "\$name"_tmp_positive_unextended.fasta
-		done < "\$name"_negative_strand_unextended
+		done < "\$name"_positive_strand_unextended
 
 		while read -r gene_tag; do
     			#get the header+sequence
@@ -155,7 +155,7 @@ process EXTEND_SEQUENCES {
     			#apply reverse complement
     			seqtk seq -r "\$name"_tmp_seq_unextended.fasta >> "\$name"_reverse_complement_unextended.fasta
 
-		done < "\$name"_positive_strand_unextended
+		done < "\$name"_negative_strand_unextended
 
 		cat "\$name"_tmp_positive_unextended.fasta "\$name"_reverse_complement_unextended.fasta > "\$name"_unextended_sequences.fasta
 	}
