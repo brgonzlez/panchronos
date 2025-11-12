@@ -301,7 +301,7 @@ process EXTEND_SEQUENCES {
 	    if grep -qw "\$geneID" gene_list.txt; then
         	echo -e "Gene \$geneID from graph was found to have a multiple sequence alignment from Panaroo" >> Pangenome_report.txt
     	else
-	        echo -e "Gene \$geneID from graph was not found to have a multiple sequence alignment from Panaroo." >> Pangenome_report.txt
+	        echo -e "WARNING: Gene \$geneID from graph was not found to have a multiple sequence alignment from Panaroo." >> Pangenome_report.txt
 	    fi
 	done < genes_in_graph.txt
 
