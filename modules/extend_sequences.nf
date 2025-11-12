@@ -288,8 +288,26 @@ process EXTEND_SEQUENCES {
 	#get pangenome length
 	seqtk seq unextended_pangenome_reference_sequence.fasta | awk '!/^>/ {line_length += length(\$0)} END {print line_length}' > pangenome_length.txt
 
+	#Report
+	grep -w "name" final_graph.gml | awk '{print \$2}' | sed -e 's/"//g' > genes_in_graph.txt
+
+	graphGenes=\$(wc -l < genes_in_graph.txt)
+	echo -e "Genes in final_graph.gml: \$graphGenes" >> Pangenome_report.txt
+
+	msaGenes=\$(wc -l < gene_list.txt)
+	echo -e "Genes that have MSA from Panaroo: \$msaGenes" >> Pangenome_report.txt
+
+	while read -r geneID; do
+	    if grep -qw "\$geneID" gene_list.txt; then
+        	echo -e "Gene \$geneID from graph was found to have a multiple sequence alignment from Panaroo" >> Pangenome_report.txt
+    	else
+	        echo -e "Gene \$geneID from graph was not found to have a multiple sequence alignment from Panaroo." >> Pangenome_report.txt
+	    fi
+	done < genes_in_graph.txt
+
 	#output
 	mv unextended_pangenome_reference_sequence.fasta ./unextended_pangenome_reference.fasta
 	cp unextended_pangenome_reference.fasta ${params.output}/PANGENOME
+	cp Pangenome_report.txt ${params.output}/PANGENOME
 	"""
 }
