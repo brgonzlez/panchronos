@@ -27,8 +27,14 @@ process UPDATE_MATRIX {
 
 
 	awk 'NR==1{print \$0}' $pangenomeRtab > matrix.tab
-	awk 'NR>1 {print \$0}' $pangenomeRtab | sort -k 1 -t \$'\t' >> matrix.tab
-	awk 'NR>1 {print \$1}' $pangenomeRtab | sort -k 1 -t \$'\t' > INDEX
+
+	#now get only the genes from gene_list
+	while read -r gene;do
+		grep -w "\$gene" $pangenomeRtab >> filtered.Rtab
+	done < $gene_list
+
+	awk 'NR>1 {print \$0}' filtered.Rtab | sort -k 1 -t \$'\t' >> matrix.tab
+	awk 'NR>1 {print \$1}' filtered.Rtab | sort -k 1 -t \$'\t' > INDEX
 
 	awk 'NR>1 {print \$1}' $globalMeanCoverage > sample_names
 
