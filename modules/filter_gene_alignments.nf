@@ -51,10 +51,19 @@ process FILTER_GENE_ALIGNMENTS {
 	#Remove duplicated genes from the dataset
 	mkdir ./redundant_genes
 
-	while read -r gene;do
-		mv panaroo_genes/"\$gene"* ./redundant_genes
-	done < $final_list_genes
+	#valid genes for matching
+	grep -F -f $final_list_genes /dev/null >/dev/null 2>&1
+
+	#move all files NOT in the list
+	for file in panaroo_genes/*; do
+	    base=\$(basename "\$file")
+	    gene=\${base%%.*}
 	
+	    # If gene not in list, move it
+    	if ! grep -Fxq "\$gene" $final_list_genes; then
+	    	   	mv "\$file" ./redundant_genes/
+    	fi
+	done
 
 	# modern_samples_list() will create a text file with modern genomes names
 	modern_samples_list() {
