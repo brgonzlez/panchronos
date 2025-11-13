@@ -13,7 +13,7 @@ process UPDATE_MATRIX {
 	val gCompleteness
 	val lowerBound
 	val upperBound
-
+	path gene_list
 
 	output:
 	path 'matrix.tab', emit: matrix
