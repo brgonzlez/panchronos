@@ -14,6 +14,7 @@ process FILTER_GENE_ALIGNMENTS {
 	path outgroupSeq, stageAs: 'outgroup'
 	path blackListed, stageAs: 'blackListed.txt'
 	val parallel
+	path final_list_genes
 
 	output:
 	path 'sorted/*.fasta', emit: genesAlnSeq
@@ -47,6 +48,13 @@ process FILTER_GENE_ALIGNMENTS {
         	echo -e "Fasta files with expected extension .fasta were found. Proceeding with the process."
 	fi
 
+	#Remove duplicated genes from the dataset
+	mkdir ./redundant_genes
+
+	while read -r gene;do
+		mv panaroo_genes/"\$gene"* ./redundant_genes
+	done < $final_list_genes
+	
 
 	# modern_samples_list() will create a text file with modern genomes names
 	modern_samples_list() {
