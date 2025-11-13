@@ -19,6 +19,7 @@ process EXTEND_SEQUENCES {
 	path 'extended_pangenome_reference_sequence.fasta' , emit: extended_reference
 	path 'pangenome_length.txt', emit: pangenome_length
 	path 'unextended_pangenome_reference.fasta', emit: unextended_reference
+	path 'final_list_genes.txt', emit: final_list_genes
 
 	script:
 	"""
@@ -350,6 +351,9 @@ process EXTEND_SEQUENCES {
 	    fi
 	done < genes_in_graph.txt
 
+	#final list of genes
+	awk '/^>/ {print \$0}' unextended_pangenome_reference_sequence.fasta | sed -e 's/>//g' | sort > final_list_genes.txt
+	
 	#output
 	mv unextended_pangenome_reference_sequence.fasta ./unextended_pangenome_reference.fasta
 	cp unextended_pangenome_reference.fasta ${params.output}/PANGENOME
