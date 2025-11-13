@@ -63,6 +63,51 @@ process EXTEND_SEQUENCES {
 		grep -w "\$seqID" $gene_data | awk -v gene_name=\$gene -F',' '{print \$1, \$3, \$4, gene_name}' >> updated_seq_ids_per_node
 		
 	done < seq_ids_per_node
+
+
+	#Now we need to do some cleaning
+
+	awk '{
+	
+		centroids[\$2] = centroids[\$2]"\t"\$4   #\$2 and \$3 should be the same for different lines if there are more copies of a centroid
+		centroid_count[\$2]++
+
+	}
+
+	END { for (id in centroids) {
+
+			if ( centroid_count[id] > 1) {
+
+				print id, centroids[id], centroid_count[id]
+			}
+	}
+
+	}' updated_seq_ids_per_node > redundant_genes.txt
+
+
+
+	awk '{print \$1}' redundant_genes.txt > exclude_centroids.txt
+
+
+
+	awk 'FNR==NR { ex[\$1]=1; next }
+	{
+  	if (\$2 in ex) {
+	    if (!seen[\$2]++) {
+      	print > "updated_seq_ids_per_node.cleaned"   #final file
+    	} else {
+      	print > "redundant_centroids_lines.txt"      #exclude redundant lines
+    	}
+  	} else {
+	    print > "updated_seq_ids_per_node.cleaned"
+  	}
+	}
+	' exclude_centroids.txt updated_seq_ids_per_node
+	
+
+	mv updated_seq_ids_per_node.cleaned ./updated_seq_ids_per_node
+
+
 	
 	#now we read updated_seq_ids_per_node to generate new gff files
 
