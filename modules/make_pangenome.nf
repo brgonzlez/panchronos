@@ -24,7 +24,7 @@ process MAKE_PANGENOME {
 	#!/bin/bash
 
 	#make pangenome
-	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a $alignment --core_threshold $pangenomeThreshold -t $threads
+	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a $alignment --merge-paralogs --core_threshold $pangenomeThreshold -t $threads
 
 	#output gene list from aligned sequences
     gene_list() {
