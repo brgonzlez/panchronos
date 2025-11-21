@@ -1,43 +1,56 @@
-# aBPA: ancient Bacterial Pangenome Analysis
+# panchronos workflow
 
-ancient Bacterial Pangenome Analysis is a `nextflow` package.
+`panchronos` is a `nextflow` pipeline. This pipeline was developed to perform the main computation processes for the paper: "" . `panchronos` aims to perform microbial phylogenetic reconstruction based on pangenome building and it's designed to handle low quality data (typical of ancient DNA datasets).
 
 # 1/ Installation
 
-
 First you need to have `nextflow` and `conda/mamba` installed. Please visit: https://www.nextflow.io/docs/latest/install.html and follow the instructions. In the case of conda, if you don't have any conda version installed I would recomend miniforge (https://github.com/conda-forge/miniforge).
-
 
 ### Then git clone this repository:
 
+>`$ git clone https://github.com/brgonzlez/panchronos/`
 
-
->`$ git clone https://github.com/mudymudy/aBPA/`
-
-
-After downloading the repository you should see the folders `bin/` `config/` `envs/` and the files `aBPA.nf` and `nextflow.config`. To test `nextflow` availability you can try with `nextflow run aBPA.nf --help`. 
-
-
+After downloading this repository you should see the folders `bin/` `config/` `envs/` and the files `main.nf` and `nextflow.config`. To test `nextflow` availability, you can try with `nextflow run main.nf --help`. 
 
 # 2/ First steps
 
+`panchronos` workflow assumes you already know what bacteria/virus is in your metagenomic data. If you don't know what's inside your data, you need to do metagenomic screening first.
 
-aBPA assumes you already know what bacteria/virus is in your data (if you have metagenomic data). If you don't know what is in your data you need to do metagenomic profiling first.
+Once you have an organism in mind, you need to search for its taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
+
+# 3/ Input/Ouput
+
+Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a config.tab file, {3} taxonomic IDs and {4} PATHS for your data and output folders. 
+
+### {1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). The PATH for this folder has to be specified in the `--data` parameter (See `configuration` section). `panchronos` does not support paired-end data, but you can include unmerged libraries for the same individual (Read about `config.tab` below).
+
+### {2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by same group ID (if you have different libraries for the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
+
+### {3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree).
 
 
-Once you have a bacteria in mind, then you need its taxonomic ID and for another specie that you want to use as outgroup for phylogenetic reconstruction. 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ### Making the `config.tab` file
 
-
-The way the pipeline reads your fastq files is through the config.tab file. An example of this file can be found in the `config/` folder. The first column correspond to the sample name, second column to the amount of softclipping you want to apply on each end for every read and the third column is a group identification label. 
-
-
-
-# 3/ Documentation
-
-
+The pipeline reads your fastq files through the config.tab file. An example of the file's format can be found in the `config/` folder. The first column correspond to the sample name, second column to the amount of softclipping you want to apply on each end for every read and the third column is a group identification label. 
 
 globalMeanCoverage.txt contains:
 
