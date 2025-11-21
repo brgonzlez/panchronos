@@ -18,88 +18,31 @@ After downloading this repository you should see the folders `bin/` `config/` `e
 
 Once you have an organism in mind, you need to search for its taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
 
-# 3/ Input/Ouput
+# 3/ Input
 
 Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a config.tab file, {3} taxonomic IDs and {4} PATHS for your data and output folders. 
 
-{1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). The PATH for this folder has to be specified in the `--data` parameter (See `configuration` section). `panchronos` does not support paired-end data, but you can include unmerged libraries for the same individual (Read about `config.tab` below). **Do not** include files that you don't want to include in the analysis in the same folder.
+{1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). `panchronos` does not support paired-end data, which means you need to collapse them first. You can include multiple unmerged single-end/collapsed libraries for the same individual (Read about `config.tab` below).
 
 {2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by group ID (if you have different libraries that belongs to the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
 
-{3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions.
+{3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions (*.fasta and *.gb).
 
+{4} You need to have two folders ready before running the workflow: One for your fastq/.gz data and one for storing the outputs. **Only store the data that will be included in the analysis in the data folder and nothing else.**
+You can tell the pipeline where to locate these folder with `--data` and `--output` (See `configuration` section).
 
-
-
-
-
-
-
-
-
-# 4/ Parameters
+# 4/ Configuration
 
 The workflow's behavior can be controlled by modifying the `nextflow.config` file.
 
 
+# 5/ Running the pipeline
 
 
+# 6/ Output
 
 
+# 7/ Documentation
 
+To read a more comprehensive documentation you can follow this link (Shigeki's website).
 
-
-### Making the `config.tab` file
-
-The pipeline reads your fastq files through the config.tab file. An example of the file's format can be found in the `config/` folder. The first column correspond to the sample name, second column to the amount of softclipping you want to apply on each end for every read and the third column is a group identification label. 
-
-globalMeanCoverage.txt contains:
-
-sampleID
-
-sampleCoverage = Total number of bases of the reference genome genes where there is at least 1 read covering.
-
-refCount = Total number of bases of the reference genome, including genes that are not being covered by reads.
-
-globalMean = Mean depth of coverage of every gene where there is at least 1 read covering.
-
-geneNormalizedSummary.txt contains:
-
-sampleID
-gene = Gene name
-
-normalizedGeneSimple = (geneMeanDepth / globalMean)
--	geneMeanDepth -> Mean Depth of coverage of a particular gene.
-
-normalizedGeneScaled = (geneMeanDepth / globalMean) * geneLength[gene]
--	geneLength[gene] -> Length of a particular gene.
-
-normalizedGenomeSimple = (geneMeanDepth / globalMean) * (geneLength[gene] / sampleCoverage)
-
-normalizedGenomeScaled = (geneMeanDepth / globalMean) * (geneLength[gene] / refCount)
-
-
-
-
-# 4/ TODO
-
-
-Add paired end reads options.
-
-
-Add heteroplasmy process before getting genotypes and update heterozygosis values into the updatedNormalized table. 
-
-
-Make documentation and improve --help message.
-
-
-Add a small test run with tiny dataset.
-
-
-Fix python heatmap labels related to number of samples. Make labels a bit bigger.
-
-
-Improve the diagram by making letters bigger.
-
-
-IMPORTANT: In COVERAGE_BOUNDS we are indeed removing the genes that do not satisfy the completeness threshold but we are currently NOT masking those sequences after genotyping. This has to be fixed.
