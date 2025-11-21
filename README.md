@@ -22,13 +22,11 @@ Once you have an organism in mind, you need to search for its taxonomic ID. Addi
 
 Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a config.tab file, {3} taxonomic IDs and {4} PATHS for your data and output folders. 
 
-### {1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). The PATH for this folder has to be specified in the `--data` parameter (See `configuration` section). `panchronos` does not support paired-end data, but you can include unmerged libraries for the same individual (Read about `config.tab` below).
+{1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). The PATH for this folder has to be specified in the `--data` parameter (See `configuration` section). `panchronos` does not support paired-end data, but you can include unmerged libraries for the same individual (Read about `config.tab` below). **Do not** include files that you don't want to include in the analysis in the same folder.
 
-### {2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by same group ID (if you have different libraries for the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
+{2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by group ID (if you have different libraries that belongs to the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
 
-### {3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree).
-
-
+{3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions.
 
 
 
@@ -39,6 +37,9 @@ Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a con
 
 
 
+# 4/ Parameters
+
+The workflow's behavior can be controlled by modifying the `nextflow.config` file.
 
 
 
