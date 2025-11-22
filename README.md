@@ -33,10 +33,16 @@ You can tell the pipeline where to locate these folder with `--data` and `--outp
 
 # 4/ Configuration
 
-The workflow's behavior can be controlled by modifying the `nextflow.config` file.
+The workflow's behavior can be controlled by modifying the `nextflow.config` file. In this file, you will find every parameter that is available for fine tuning and you can directly specify your analysis settings by replacing the default values. Parameters are often linked to a specific module and you should pay special attention to the CPU usage. Besides each software thread usage the pipeline may also have threads allocated to parallel computing. 
+For example, if you set up --alignment threads 10, --alignment parallel 5 and you have 5 samples in the config.tab file, the pipeline will take 50 threads to execute that particular process.
 
 
 # 5/ Running the pipeline
+
+
+These values can be overwritten when you call a parameter directly from the terminal:
+>'nextflow run main.nf --data /new/path' 
+In this case /new/path will be used by the workflow instead of the path that is specified in nextflow.config file.
 
 
 # 6/ Output
