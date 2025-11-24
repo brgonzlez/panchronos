@@ -5,7 +5,7 @@
 ![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
 _Pipeline's overview_
 
-![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.svg)
+![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/paper-diagram-v2.drawio.svg)
 
 # 1/ Installation
 
