@@ -5,7 +5,6 @@
 ![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
 _Pipeline's overview_
 
-![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/paper-diagram-v2.drawio.svg)
 
 # 1/ Installation
 
@@ -35,26 +34,48 @@ Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a con
 {3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions (*.fasta and *.gb).
 
 {4} You need to have two folders ready before running the workflow: One for your fastq/.gz data and one for storing the outputs. **Only store the data that will be included in the analysis in the data folder and nothing else.**
-You can tell the pipeline where to locate these folder with `--data` and `--output` (See `configuration` section).
+You can tell the pipeline where to locate these folder with `--data` and `--output` (See `configuration` section below).
 
 # 4/ Configuration
 
-The workflow's behavior can be controlled by modifying the `nextflow.config` file. In this file, you will find every parameter that is available for fine tuning and you can directly specify your analysis settings by replacing the default values. Parameters are often linked to a specific module and you should pay special attention to the CPU usage. Besides each software thread usage the pipeline may also have threads allocated to parallel computing. 
-For example, if you set up --alignment threads 10, --alignment parallel 5 and you have 5 samples in the config.tab file, the pipeline will take 50 threads to execute that particular process.
+The workflow's behavior can be controlled by modifying the `nextflow.config` file. In this file, you will find every parameter that is available for fine tuning. You can directly specify your analysis settings by replacing the default values. 
 
+Parameters are often linked to a specific module and you should pay special attention to the CPU usage. Besides each software thread usage the pipeline may also have threads allocated to parallel computing. 
+For example, if you set up --alignment_threads 10, --alignment_parallel 5 and you have 5 samples in the config.tab file, the pipeline will take 50 threads to execute that particular process.
+
+
+**NOTE: Don't assign more than 3 threads to --get_data_parallel as NCBI will deny a request if it is >3.**
 
 # 5/ Running the pipeline
 
 
-These values can be overwritten when you call a parameter directly from the terminal:
->'nextflow run main.nf --data /new/path' 
-In this case /new/path will be used by the workflow instead of the path that is specified in nextflow.config file.
+If you used `nextflow.config` file to specify your settings (including PATHs), then you can simply exectue the workflow with: 
+
+
+>`nextflow run main.nf -resume` 
+
+I would recommend including the option `-resume` on every run as it will make good use of nextflow's cache system. 
+You can also directly set up a parameter value through the terminal by adding double dashes before the parameter name. Note that these values will overwrite whatever is in `nextflow.config` file:
+
+>`nextflow run main.nf --data /new/path/ --panaroo_alignment_type core -resume`
+
+In this case, the values "/new/path/" and "core" will be used by the workflow instead of the ones that are specified in nextflow.config file for those particular parameters. 
+Aditionally, when you execute the workflow it will print out every parameter that will be use in the current run, so you can double check your settings.
 
 
 # 6/ Output
 
+As soon as a process is finished, if there is an important output it will be send to `--output` folder. In summary:
+
+
+
+
 
 # 7/ Documentation
 
-To read a more comprehensive documentation you can follow this link (Shigeki's website).
 
+If unaware of the workflow's settings, try out:
+
+>`nextflow run main.nf --help`
+
+Or you can follow this link (Shigeki's website) for a more comprehensive documentation.
