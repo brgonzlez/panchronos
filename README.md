@@ -2,6 +2,10 @@
 
 `panchronos` is a `nextflow` pipeline. This pipeline was developed to perform the main computation processes for the paper: "" . `panchronos` aims to perform microbial phylogenetic reconstruction based on pangenome building and it's designed to handle low quality data (typical of ancient DNA datasets).
 
+![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
+_Pipeline's overview_
+
+
 # 1/ Installation
 
 First you need to have `nextflow` and `conda/mamba` installed. Please visit: https://www.nextflow.io/docs/latest/install.html and follow the instructions. In the case of conda, if you don't have any conda version installed I would recomend miniforge (https://github.com/conda-forge/miniforge).
@@ -13,8 +17,6 @@ First you need to have `nextflow` and `conda/mamba` installed. Please visit: htt
 After downloading this repository you should see the folders `bin/` `config/` `envs/` and the files `main.nf` and `nextflow.config`. To test `nextflow` availability, you can try with `nextflow run main.nf --help`. 
 
 # 2/ First steps
-
-![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
 
 
 `panchronos` workflow assumes you already know what bacteria/virus is in your metagenomic data. If you don't know what's inside your data, you need to do metagenomic screening first.
