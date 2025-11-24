@@ -1,6 +1,6 @@
 # panchronos workflow
 
-`panchronos` is a `nextflow` pipeline. This pipeline was developed to perform the main computation processes for the paper: "" . `panchronos` aims to perform microbial phylogenetic reconstruction based on pangenome building and it's designed to handle low quality data (typical of ancient DNA datasets).
+`panchronos` is a `nextflow` pipeline. This pipeline was developed to perform the main computation processes for the paper: _"The genomic identity of early smallpox in South America"_ . `panchronos` aims to perform microbial phylogenetic reconstruction based on pangenome building and it's designed to handle low quality data (typical of ancient DNA datasets).
 
 ![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
 _Pipeline's overview_
@@ -68,8 +68,18 @@ Aditionally, when you execute the workflow it will print out every parameter tha
 Once the workflow is running, important outputs will start populating the `--output` directory as soon as those files are generated and they will be organised by folders:
 
 | Folder | Description | Format |
-| --------- | :------- | ------ | 
-|**ALIGNMENT**| desc | .bam , .fastq |
+| :--- | :--- | :---: | 
+|ALIGNMENT| Aligned data against pangenome reference sequences | .bam , .fastq |
+|DOWNLOADED| Input data for pangenome building. If `--trusted_data` was used it will store your own curated datasets | .fasta , .gb |
+|GENE_DATABASE| Guide file for prokka. Includes clustered genes from `GenBank` files prior to annotation | .fasta |
+|GENE_MSA| Each individual gene multiple sequence alignment | .fasta |
+|GENOTYPING| Results from variant calling, including final consensus sequences per sample per gene plus vcf files. | .fasta, .vcf* |
+|MAPDAMAGE| Results from damage pattern assessment using `mapDamage` | Multiple files |
+|MATRIX| Final matrix of presence/absence of genes | .tab |
+|PANGENOME| Outputs from pangenome building and extending. Included are the original Panaroo reference genome plus the extended/unextended versions. Additionally, a BLAST database from the extended version of the pangenome is included | .fasta, BLAST database |
+|PLOTS| Presence/absence heatmap and coverage vs completeness plots | .png |
+|STATS| Several files with basic statistics, particularly showcasing normalisation coverage and completeness per gene per sample | .tab , .txt |
+|TREE| Results from IQTREE. The concatenated MSA files that were used to reconstruct the phylogenies are also included | .fasta , .treefile |
 
 
 
