@@ -25,13 +25,20 @@ process ALIGNMENT {
 
 	bwa index $panRef
 
+	
 	#align() will align the data and perform several post-alignment computations
 	align() {
 	sample=\$1
     	
 		name=\$(basename "\${sample%.fastq*}")
     		
-    		softClip=\$(grep "\$name" $configFile | awk '{print \$2}')
+	        # if --test
+		if [ -f "./test.fastq.gz" ]; then
+			softClip=5
+		else
+	    		softClip=\$(grep "\$name" $configFile | awk '{print \$2}')
+		fi
+
        		# Making read groups
     		rg_id="\${name}"  # sample name as id
     		rg_sm="\${name}" # sample name again
@@ -58,8 +65,13 @@ process ALIGNMENT {
     		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
 	}
 	export -f align
-	find $data/* -name "*.fastq*" | parallel -j $parallel align
 
+	#if --test
+	if [ -f "./test.fastq.gz" ]; then
+	    find ./ -name "test.fastq.gz" | parallel -j $parallel align
+	else
+	    find $data/* -name "*.fastq*" | parallel -j $parallel align
+	fi
 
 	rm *sam *sai *_lg.bam *_qc.bam 
 
