@@ -65,9 +65,11 @@ Aditionally, when you execute the workflow it will print out every parameter tha
 
 # 6/ Output
 
-As soon as a process is finished, if there is an important output it will be send to `--output` folder. In summary:
+Once the workflow is running, important outputs will start populating the `--output` directory as soon as those files are generated and they will be organised by folders:
 
-
+| Folder | Description | Format |
+| --------- | :------- | ------ | 
+|**ALIGNMENT**| desc | .bam , .fastq |
 
 
 
