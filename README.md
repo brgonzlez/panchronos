@@ -14,6 +14,9 @@ After downloading this repository you should see the folders `bin/` `config/` `e
 
 # 2/ First steps
 
+![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
+
+
 `panchronos` workflow assumes you already know what bacteria/virus is in your metagenomic data. If you don't know what's inside your data, you need to do metagenomic screening first.
 
 Once you have an organism in mind, you need to search for its taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
