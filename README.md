@@ -45,9 +45,9 @@ To run `panchronos`, the workflow requires the following four components:
 `config.tab` is a tab-separated text file with three fields:
 | Sample name | Soft-clipping value | Group ID |
 |----------|----------|----------|
-| Sample_A.fastq | 2 | Neolithic_pestis  |
-| Sample_B.fastq | 2 | Neolithic_pestis  |
-| Sample_C.fastq | 5 | Neolithic_pestis  |
+| Sample_A.fastq | 2 | Individual_1  |
+| Sample_B.fastq | 2 | Individual_1  |
+| Sample_C.fastq | 5 | Individual_1  |
 
 The workflow uses this file to:
 - Apply sample-specific soft clipping, and
@@ -128,7 +128,10 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**STATS**| Summary statistics, including gene-level coverage and completeness normalization per sample | `.tab`, `.txt` |
 |**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other standard outputs from IQ-TREE |
 
-# 7/ Documentation
+# 7/ Tools installed by `panchronos`
+- 
+
+# 8/ Documentation
 If you are unsure about the available workflow settings or parameters, you can display all options directly from the terminal using:
 
 >`nextflow run main.nf --help`
