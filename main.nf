@@ -310,11 +310,4 @@ workflow {
 	TREE_ACCESSORY(BUILD_MSA.out.maskedMatrixGenesNoUbiquitousMSA, params.tree_threads)
 
 	TREE_ANCIENT(BUILD_MSA.out.maskedMatrixGenesOnlyAncientMSA, params.tree_threads)
-
-	// pMauve(fastaDatabase.out.validFasta)
-	// xmfaToFasta(pMauve.out.pMauveCoreGenome)
-	// filterMauveFasta(xmfaToFasta.out.pMauveFastaMSA)
-	// startingTree(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA)
-	// findRecombinationSpots(filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, startingTree.out.startingTreeMauveFasta, startingTree.out.kappa)
-	// mapRecombinantsToGenes(findRecombinationSpots.out.recombinationMap, filterMauveFasta.out.concatenatedSeqtkMauveFastaMSA, blastMe.out.panGenomeReferenceDB, prokkaMakeAnnotations.out.prokkaGFF)
 }
