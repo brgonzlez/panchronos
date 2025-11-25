@@ -119,20 +119,18 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**ALIGNMENT**| Aligned reads against the pangenome reference sequences | `.bam`, `.fastq` |
 |**DOWNLOADED**| Input genomes used for pangenome construction. If `--trusted_data` is provided, this folder stores the user-supplied curated datasets | `.fasta`, `.gb` |
 |**GENE_DATABASE**| Guide file for `Prokka`, containing clustered genes extracted from `GenBank` files prior to annotation | `.fasta` |
-|**GENE_MSA**| Individual gene multiple sequence alignments | `.fasta` |
-|**GENOTYPING**| Results from variant calling, including final consensus sequences per sample per gene plus vcf files. | `.fasta`, `.vcf*` |
-|**MAPDAMAGE**| Results from damage pattern assessment using `mapDamage` | Multiple files |
-|**MATRIX**| Final matrix of presence/absence of genes | .tab |
-|**PANGENOME**| Outputs from pangenome building and extending. Included are the original Panaroo reference genome plus the extended/unextended versions. Additionally, a BLAST database from the extended version of the pangenome is included | .fasta, BLAST database |
-|**PLOTS**| Presence/absence heatmap and coverage vs completeness plots | .png |
-|**STATS**| Several files with basic statistics, particularly showcasing normalisation coverage and completeness per gene per sample | .tab , .txt |
-|**TREE**| Results from IQTREE. The concatenated MSA files that were used to reconstruct the phylogenies are also included | .fasta , .treefile |
+|**GENE_MSA**| Multiple sequence alignments for each individual gene | `.fasta` |
+|**GENOTYPING**| Variant-calling results, including consensus sequences per sample per gene, and associated VCF files | `.fasta`, `.vcf*` |
+|**MAPDAMAGE**| Output from DNA damage pattern assessment using `mapDamage` | Multiple files |
+|**MATRIX**| Final gene presence/absence matrix | `.tab` |
+|**PANGENOME**| Outputs from pangenome construction and extension. Includes the original Panaroo reference genome, extended/unextended versions, and a BLAST database | `.fasta`, BLAST database |
+|**PLOTS**| Visualizations including presence/absence heatmaps and coverage vs. completeness plots | `.png` |
+|**STATS**| Summary statistics, including gene-level coverage and completeness normalization per sample | `.tab`, `.txt` |
+|**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other standard outputs from IQ-TREE |
 
 # 7/ Documentation
-
-
-If unaware of the workflow's settings, try out:
+If you are unsure about the available workflow settings or parameters, you can display all options directly from the terminal using:
 
 >`nextflow run main.nf --help`
 
-Or you can follow this link (Shigeki's website) for a more comprehensive documentation.
+For more extensive and detailed documentation, you can also refer to the materials available on: https://shigekinakagomelab.com/Software/.
