@@ -41,7 +41,16 @@ To run `panchronos`, the workflow requires the following four components:
 - `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
 - Multiple single-end/collapsed libraries from the same individual can be included—see `config.tab` below for grouping instructions.
 
-{2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by group ID (if you have different libraries that belongs to the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
+# 2. `config.tab` file
+`config.tab` is a tab-separated text file with three fields:
+$1 Sample name
+$2 Soft-clipping value
+$3 Group ID
+
+The workflow uses this file to:
+- Apply sample-specific soft clipping, and
+- Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID).
+You can see an example file in the `config/` directory of the repository.
 
 {3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions (*.fasta and *.gb).
 
