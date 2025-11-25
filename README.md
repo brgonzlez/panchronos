@@ -19,13 +19,13 @@ After cloning the repositor, you should see the directories `bin/` `config/` `en
 
 The `panchronos` workflow assumes that you already know which bacteria or virus is present in your metagenomic dataset. If you are unsure, you should perform metagenomic screening beforehand to identify candidate organisms.
 
-Once you have selected the organism of interest, look up its ### NCBI Taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
+Once you have selected the organism of interest, look up its NCBI Taxonomic ID. You will also need the Taxonomic ID of a closely related species to use as an outgroup for phylogenetic reconstruction. 
 
-Before you run the workflow with your data, you can try and do a test run (this is optional) to check that the pipeline intended behaviors are working well. To do so, you can try:
+Before you run the workflow with your own data, you can perform an optional test run to ensure that the pipeline behaves as expected:
 
 >`nextflow run main.nf --test`
 
-This will install the neccessary conda environments that will be use whenever you run the workflow. This is not mandatory as they will be created on any first run you do.
+This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
 # 3/ Input
 
