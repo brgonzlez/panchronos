@@ -35,13 +35,13 @@ To run `panchronos`, the workflow requires the following four components:
 (3) Taxonomic IDs
 (4) Paths to your data and output directories
 
-<span style="font-size:80%"># 1. FASTQ files</span>
+# (1). FASTQ files
 - The workflow accepts compressed (`.gz`) or uncompressed `.fastq` files.
 - All input FASTQ files should be placed in the same directory if you are analysing multiple datasets.
 - `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
 - Multiple single-end/collapsed libraries from the same individual can be included—see `config.tab` below for grouping instructions.
 
-# 2. `config.tab` file
+# (2). `config.tab` file
 `config.tab` is a tab-separated text file with three fields:
 | Sample name | Soft-clipping value | Group ID |
 |----------|----------|----------|
@@ -54,7 +54,7 @@ The workflow uses this file to:
 - Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID).
 You can see an example file in the `config/` directory of the repository.
 
-# 3. Required taxonomic IDs
+# (3). Required taxonomic IDs
 You need to provide two NCBI taxonomic IDs:
 1. Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
 2. Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
@@ -65,7 +65,7 @@ Important requirements:
 - FASTA and GenBank filenames must match exactly (aside from extensions).
 - Required extensions: `*.fasta` and `*.gb`
 
-# 4. Data and output directories
+# (4). Data and output directories
 Before running the workflow, prepare two directories:
 - A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis.**
 - A separate folder where pipeline outputs will be written.
@@ -77,13 +77,18 @@ Provide their paths with the parameters:
 See the Configuration section below.
 
 # 4/ Configuration
-The workflow's behavior can be controlled by modifying the `nextflow.config` file. In this file, you will find every parameter that is available for fine tuning. You can directly specify your analysis settings by replacing the default values. 
+The workflow's configuration is controlled through the `nextflow.config` file. This file contains all available parameters, allowing you to fine-tune the pipeline according to your analysis needs. You can adjust the default values directly to match your setup and computational resources.
 
-Parameters are often linked to a specific module and you should pay special attention to the CPU usage. Besides each software thread usage the pipeline may also have threads allocated to parallel computing. 
-For example, if you set up `--alignment_threads 10`, `--alignment_parallel 5` and you have 5 samples in the config.tab file, the pipeline will take 50 threads to execute that particular process.
+Many parameters are associated with specific workflow modules, and CPU/thread usage is particularly important to configure carefully. In addition to threads used by individual tools, the pipeline may spawn parallel jobs, multiplying the total number of threads in use.
+For example:
+- `--alignment_threads 10`
+- `--alignment_parallel 5`
+- 5 samples in the `config.tab`
+This combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
 
-
-**NOTE: Don't assign more than 3 threads to --get_data_parallel as NCBI will deny a request if it is >3.**
+**Important NOTE:**
+**Don't assign more than 3 threads to `--get_data_parallel`.**
+NCBI will reject download requests if the number of parallel queries exceeds 3.
 
 # 5/ Running the pipeline
 
