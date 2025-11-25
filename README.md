@@ -139,13 +139,13 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other outputs from IQ-TREE |
 
 # 7/ Tools installed by `panchronos`
-The following tools will be automatically installed:
+`panchronos` has been tested only with the specific tool versions listed below, all of which are installed automatically when the workflow is executed. Compatibility with newer or different releases is not guaranteed.
 - Entrez Direct
 - Biopython v1.85
 - fastANI v1.34
 - CD-HIT v4.8.1
 - Prokka v1.14.6
-- Panaroo v1.5.2 (`panchronos` has been only tested with this version of Panaroo, and compatibility with newer releases is not guaranteed.)
+- Panaroo v1.5.2
 - bedtools v2.31.1
 - seqtk v1.5
 - BWA v0.7.18
