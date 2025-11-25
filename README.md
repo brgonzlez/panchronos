@@ -8,9 +8,9 @@ _Workflow's overview_
 First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recomend using Miniforge: https://github.com/conda-forge/miniforge
 
 To verify that Nextflow is properly installed and available in your environment, please run: 
-
->`nextflow info`
-
+```
+nextflow info
+```
 
 ### Then git clone this repository:
 
