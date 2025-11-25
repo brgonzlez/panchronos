@@ -22,9 +22,9 @@ After cloning the repository, you should see the directories bin/ config/ envs/,
 
 # 2/ Perform test run
 
-To perform test run, please go to the main directory where you cloned `panchronos` (where the `main.nf` file is located) and execute:
+To perform test run, please go to the main directory where you cloned `panchronos` (the folder containing the `main.nf` file) and execute the following command:
 
-**IMPORTANT: When `nextflow` is installing an environment, do not cancel it as it will produce a broken installation.**
+**IMPORTANT: When `Nextflow` is installing a `Conda` environment, do not interrupt or cancel the process, as it can result in a corrupted environment that must be deleted and rebuilt.**
 
 ```
 dir=$(pwd)
@@ -32,8 +32,7 @@ mkdir -p "$dir"/test/results_test/
 nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test --tax_id 10255 --outgroup_tax_id 28871 --genomes 5
 ```
 
-This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
-
+This test run will download five genomes of _Variola virus_ (`--genomes 5`, `--tax_id 10255`) and one genome of _Taterapox virus_ (`--outgroup_tax_id 28871`) as an outgroup. It will then use one of the _Variola_ genomes as a template to generate short-read data with damage patterns. The `Conda` environments created during this test run process will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
 # 3/ Input
 
