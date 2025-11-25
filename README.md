@@ -29,9 +29,17 @@ This test run will install the required `Conda` environments, which will be reus
 
 # 3/ Input
 
-Esentially, the workflow needs these things to run: {1} *.fastq files, {2} a config.tab file, {3} taxonomic IDs and {4} PATHS for your data and output folders. 
+To run `panchronos`, the workflow requires the following four components:
+(1) `.fastq` files
+(2) `config.tab` file
+(3) Taxonomic IDs
+(4) Paths to your data and output directories
 
-{1} The fastq files can be either compressed (.gz) or not, and they must be located in the same folder (if you have multiple datasets). `panchronos` does not support paired-end data, which means you need to collapse them first. You can include multiple unmerged single-end/collapsed libraries for the same individual (Read about `config.tab` below).
+# 1. FASTQ files
+- The workflow accepts compressed (`.gz`) or uncompressed `.fastq` files.
+- All input FASTQ files should be placed in the same directory if you are analysing multiple datasets.
+- `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
+- Multiple single-end/collapsed libraries from the same individual can be included—see `config.tab` below for grouping instructions.
 
 {2} config.tab file is a tab-separated text file with 3 fields: $1 Sample name, $2 Soft-clipping value and $3 Group ID. The pipeline will read this file and will perform sample-specific soft-clipping and merge aligned data by group ID (if you have different libraries that belongs to the same individual, you can specify same group ID for each). You can see an example of this file in the config/ folder.
 
