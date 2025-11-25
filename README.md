@@ -146,6 +146,7 @@ The following tools will be automatically installed:
 - CD-HIT v4.8.1
 - Prokka v1.14.6
 - Panaroo v1.5.2 (`panchronos` has been only tested with this version of Panaroo, and compatibility with newer releases is not guaranteed.)
+- bedtools v2.31.1
 - seqtk v1.5
 - BWA v0.7.18
 - bamUtil v1.0.15
