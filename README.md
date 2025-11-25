@@ -63,11 +63,11 @@ You can control how many genomes to download for pangenome building using the `-
 If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
 Important requirements:
 - FASTA and GenBank filenames must match exactly (aside from extensions).
-- Required extensions: `*.fasta` and `*.gb`
+- Required extensions: `.fasta` and `.gb`
 
 # (4) Data and output directories
 Before running the workflow, prepare two directories:
-- A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis.**
+- A folder containing only your `FASTQ/FASTQ.gz` files. **Only store the data that will be included in the analysis.**
 - A separate folder where pipeline outputs will be written.
 
 Provide their paths with the parameters:
@@ -129,7 +129,21 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other standard outputs from IQ-TREE |
 
 # 7/ Tools installed by `panchronos`
-- 
+- Entrez Direct
+- Biopython v1.85
+- fastANI v1.34
+- CD-HIT v4.8.1
+- Prokka v1.14.6
+- Panaroo v1.5.2
+- seqtk v1.5
+- BWA v0.7.18
+- bamUtil v1.0.15
+- SAMtools v1.19
+- mapDamage v2.2.3
+- art_illumina v2.5.8
+- bcftools v1.21
+- MAFFT v7.525
+- IQ-TREE v3.0.1
 
 # 8/ Documentation
 If you are unsure about the available workflow settings or parameters, you can display all options directly from the terminal using:
