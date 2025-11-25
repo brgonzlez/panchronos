@@ -14,7 +14,7 @@ First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextf
 
 >`$ git clone https://github.com/brgonzlez/panchronos/`
 
-After downloading this repository you should see the folders `bin/` `config/` `envs/` and the files `main.nf` and `nextflow.config`. To test `nextflow` availability, you can try with `nextflow info` on the terminal. 
+After cloning the repositor, you should see the directories `bin/` `config/` `envs/`, along with the files `main.nf` and `nextflow.config`. To veryfy that `Nextflow` is properly installed and availabile in your environment, please run: `nextflow info` 
 
 # 2/ First steps
 
