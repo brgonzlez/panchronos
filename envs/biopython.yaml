@@ -5,4 +5,4 @@ channels:
 - conda-forge  
 - defaults
 dependencies:  
-- biopython
+- biopython=1.85
