@@ -28,7 +28,8 @@ To perform test run, please go to the main directory where you cloned `panchrono
 
 ```
 dir=$(pwd)
-nextflow run main.nf --test --config "$dir"/test/config_test.tab
+mkdir -p "$dir"/test/results_test/
+nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test
 ```
 
 This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
