@@ -67,8 +67,9 @@ Important requirements:
 
 # 4. Data and output directories
 Before running the workflow, prepare two directories:
-- A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis in the data folder and nothing else.**
+- A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis.**
 - A separate folder where pipeline outputs will be written.
+
 Provide their paths with the parameters:
 - `--data` (input FASTQ directory)
 - `--output` (output directory)
@@ -76,7 +77,6 @@ Provide their paths with the parameters:
 See the Configuration section below.
 
 # 4/ Configuration
-
 The workflow's behavior can be controlled by modifying the `nextflow.config` file. In this file, you will find every parameter that is available for fine tuning. You can directly specify your analysis settings by replacing the default values. 
 
 Parameters are often linked to a specific module and you should pay special attention to the CPU usage. Besides each software thread usage the pipeline may also have threads allocated to parallel computing. 
