@@ -43,9 +43,9 @@ To run `panchronos`, the workflow requires the following four components:
 
 # 2. `config.tab` file
 `config.tab` is a tab-separated text file with three fields:
-$1 Sample name
-$2 Soft-clipping value
-$3 Group ID
+| Sample name | Soft-clipping value | Group ID |
+|----------|----------|----------|
+| Sample_A.fastq | 2 | Neolithic_pestis  |
 
 The workflow uses this file to:
 - Apply sample-specific soft clipping, and
