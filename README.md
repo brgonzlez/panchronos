@@ -35,13 +35,13 @@ To run `panchronos`, the workflow requires the following four components:
 (3) Taxonomic IDs
 (4) Paths to your data and output directories
 
-# (1). FASTQ files
+# (1) FASTQ files
 - The workflow accepts compressed (`.gz`) or uncompressed `.fastq` files.
 - All input FASTQ files should be placed in the same directory if you are analysing multiple datasets.
 - `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
 - Multiple single-end/collapsed libraries from the same individual can be included—see `config.tab` below for grouping instructions.
 
-# (2). `config.tab` file
+# (2) `config.tab` file
 `config.tab` is a tab-separated text file with three fields:
 | Sample name | Soft-clipping value | Group ID |
 |----------|----------|----------|
@@ -54,7 +54,7 @@ The workflow uses this file to:
 - Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID).
 You can see an example file in the `config/` directory of the repository.
 
-# (3). Required taxonomic IDs
+# (3) Required taxonomic IDs
 You need to provide two NCBI taxonomic IDs:
 1. Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
 2. Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
@@ -65,7 +65,7 @@ Important requirements:
 - FASTA and GenBank filenames must match exactly (aside from extensions).
 - Required extensions: `*.fasta` and `*.gb`
 
-# (4). Data and output directories
+# (4) Data and output directories
 Before running the workflow, prepare two directories:
 - A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis.**
 - A separate folder where pipeline outputs will be written.
@@ -112,24 +112,21 @@ Whenever the workflow starts, Nextflow prints a summary of all parameters used f
 This allows you to quickly verify that your settings are being applied correctly.
 
 # 6/ Output
-
-Once the workflow is running, important outputs will start populating the `--output` directory as soon as those files are generated and they will be organised by folders:
+As the workflow runs, the `--output` directory will begin to populate with results. Files are written as soon as they are generated and are automatically organized into structured subdirectories, making it easy to track each stage of the analysis.
 
 | Folder | Description | Format |
 | :--- | :--- | :---: | 
-|ALIGNMENT| Aligned data against pangenome reference sequences | .bam , .fastq |
-|DOWNLOADED| Input data for pangenome building. If `--trusted_data` was used it will store your own curated datasets | .fasta , .gb |
-|GENE_DATABASE| Guide file for prokka. Includes clustered genes from `GenBank` files prior to annotation | .fasta |
-|GENE_MSA| Each individual gene multiple sequence alignment | .fasta |
-|GENOTYPING| Results from variant calling, including final consensus sequences per sample per gene plus vcf files. | .fasta, .vcf* |
-|MAPDAMAGE| Results from damage pattern assessment using `mapDamage` | Multiple files |
-|MATRIX| Final matrix of presence/absence of genes | .tab |
-|PANGENOME| Outputs from pangenome building and extending. Included are the original Panaroo reference genome plus the extended/unextended versions. Additionally, a BLAST database from the extended version of the pangenome is included | .fasta, BLAST database |
-|PLOTS| Presence/absence heatmap and coverage vs completeness plots | .png |
-|STATS| Several files with basic statistics, particularly showcasing normalisation coverage and completeness per gene per sample | .tab , .txt |
-|TREE| Results from IQTREE. The concatenated MSA files that were used to reconstruct the phylogenies are also included | .fasta , .treefile |
-
-
+|**ALIGNMENT**| Aligned reads against the pangenome reference sequences | `.bam`, `.fastq` |
+|**DOWNLOADED**| Input genomes used for pangenome construction. If `--trusted_data` is provided, this folder stores the user-supplied curated datasets | `.fasta`, `.gb` |
+|**GENE_DATABASE**| Guide file for `Prokka`, containing clustered genes extracted from `GenBank` files prior to annotation | `.fasta` |
+|**GENE_MSA**| Individual gene multiple sequence alignments | `.fasta` |
+|**GENOTYPING**| Results from variant calling, including final consensus sequences per sample per gene plus vcf files. | `.fasta`, `.vcf*` |
+|**MAPDAMAGE**| Results from damage pattern assessment using `mapDamage` | Multiple files |
+|**MATRIX**| Final matrix of presence/absence of genes | .tab |
+|**PANGENOME**| Outputs from pangenome building and extending. Included are the original Panaroo reference genome plus the extended/unextended versions. Additionally, a BLAST database from the extended version of the pangenome is included | .fasta, BLAST database |
+|**PLOTS**| Presence/absence heatmap and coverage vs completeness plots | .png |
+|**STATS**| Several files with basic statistics, particularly showcasing normalisation coverage and completeness per gene per sample | .tab , .txt |
+|**TREE**| Results from IQTREE. The concatenated MSA files that were used to reconstruct the phylogenies are also included | .fasta , .treefile |
 
 # 7/ Documentation
 
