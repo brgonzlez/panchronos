@@ -2,4 +2,4 @@ name: get_data
 channels:
   - bioconda
 dependencies:
-  - entrez-direct
+  - entrez-direct=24.0
