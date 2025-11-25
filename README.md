@@ -5,7 +5,6 @@
 ![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
 _Pipeline's overview_
 
-
 # 1/ Installation
 
 First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recomend using Miniforge: https://github.com/conda-forge/miniforge
@@ -18,10 +17,9 @@ After cloning the repositor, you should see the directories `bin/` `config/` `en
 
 # 2/ First steps
 
+The `panchronos` workflow assumes that you already know which bacteria or virus is present in your metagenomic dataset. If you are unsure, you should perform metagenomic screening beforehand to identify candidate organisms.
 
-`panchronos` workflow assumes you already know what bacteria/virus is in your metagenomic data. If you don't know what's inside your data, you need to do metagenomic screening first.
-
-Once you have an organism in mind, you need to search for its taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
+Once you have selected the organism of interest, look up its ### NCBI Taxonomic ID. Additionally, do the same for another specie that you want to use as outgroup for phylogenetic reconstruction. 
 
 Before you run the workflow with your data, you can try and do a test run (this is optional) to check that the pipeline intended behaviors are working well. To do so, you can try:
 
