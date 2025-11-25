@@ -20,7 +20,7 @@ git clone https://github.com/brgonzlez/panchronos/
 
 After cloning the repository, you should see the directories bin/ config/ envs/, along with the files `main.nf` and `nextflow.config`.
 
-### Perform test run
+# 2/ Perform test run
 
 To perform test run, please go to the main directory where you cloned `panchronos` (where the `main.nf` file is located) and execute:
 
@@ -29,7 +29,7 @@ To perform test run, please go to the main directory where you cloned `panchrono
 ```
 dir=$(pwd)
 mkdir -p "$dir"/test/results_test/
-nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test
+nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test --tax_id 10255 --outgroup_tax_id 28871 --genomes 5
 ```
 
 This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
