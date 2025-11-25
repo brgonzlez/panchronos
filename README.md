@@ -57,6 +57,7 @@ You need to provide two NCBI taxonomic IDs:
 You can control how many genomes to download for pangenome building using the `--genomes` parameter.
 
 If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
+
 Important requirements:
 - FASTA and GenBank filenames must match exactly (aside from extensions).
 - Required extensions: `.fasta` and `.gb`
