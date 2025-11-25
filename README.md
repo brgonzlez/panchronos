@@ -35,7 +35,7 @@ To run `panchronos`, the workflow requires the following four components:
 (3) Taxonomic IDs
 (4) Paths to your data and output directories
 
-# 1. FASTQ files
+<span style="font-size:80%"># 1. FASTQ files</span>
 - The workflow accepts compressed (`.gz`) or uncompressed `.fastq` files.
 - All input FASTQ files should be placed in the same directory if you are analysing multiple datasets.
 - `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
