@@ -84,15 +84,16 @@ For example:
 - `--alignment_threads 10`
 - `--alignment_parallel 5`
 - 5 samples in the `config.tab`
-This combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
+
+his combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
 
 **Important NOTE:**
+
 **Don't assign more than 3 threads to `--get_data_parallel`.**
+
 NCBI will reject download requests if the number of parallel queries exceeds 3.
 
 # 5/ Running the pipeline
-
-
 If you used `nextflow.config` file to specify your settings (including PATHs), then you can simply exectue the workflow with: 
 
 
