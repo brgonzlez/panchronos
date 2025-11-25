@@ -162,6 +162,3 @@ If you are unsure about the available workflow settings or parameters, you can d
 >`nextflow run main.nf --help`
 
 For more extensive and detailed documentation, you can also refer to the materials available on: https://shigekinakagomelab.com/Software/.
-
-# 9/ License
-`panchronos` is free software, released under the XXX.
