@@ -105,7 +105,7 @@ Values provided this way take precedence over those defined in the `nextflow.con
 
 In this example, the values `/new/path/` and `core` will be used instead of the corresponding entries in `nextflow.config`.
 
-Whenever the workflow starts, Nextflow prints a summary of all parameters used for the current run.
+Whenever the workflow starts, `panchronos` prints a summary of all parameters used for the current run.
 This allows you to quickly verify that your settings are being applied correctly.
 
 # 6/ Output
