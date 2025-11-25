@@ -46,16 +46,34 @@ To run `panchronos`, the workflow requires the following four components:
 | Sample name | Soft-clipping value | Group ID |
 |----------|----------|----------|
 | Sample_A.fastq | 2 | Neolithic_pestis  |
+| Sample_B.fastq | 2 | Neolithic_pestis  |
+| Sample_C.fastq | 5 | Neolithic_pestis  |
 
 The workflow uses this file to:
 - Apply sample-specific soft clipping, and
 - Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID).
 You can see an example file in the `config/` directory of the repository.
 
-{3} There are two taxonomic IDs that you need to collect: One for the species you want to use for pangenome construction and one for the outgroup (this is used for the sole purpose of rooting the phylogenetic tree). The taxonomic ID for your specie of interest will be handled by the workflow to download the files that will be needed for pangenome building. You can control the number of samples you want to download with the `--genomes` parameter. If you already have both `FASTA` and `GenBank` files that you want to use for pangenome building, you can specify the PATH in `--trusted_data` to let the workflow use your curated dataset instead of downloading samples for you. Beware that the `FASTA` and `GenBank` filenames must coincide and have the appropiate extensions (*.fasta and *.gb).
+# 3. Required taxonomic IDs
+You need to provide two NCBI taxonomic IDs:
+1. Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
+2. Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
+You can control how many genomes to download for pangenome building using the `--genomes` parameter.
 
-{4} You need to have two folders ready before running the workflow: One for your fastq/.gz data and one for storing the outputs. **Only store the data that will be included in the analysis in the data folder and nothing else.**
-You can tell the pipeline where to locate these folder with `--data` and `--output` (See Configuration section below).
+If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
+Important requirements:
+- FASTA and GenBank filenames must match exactly (aside from extensions).
+- Required extensions: `*.fasta` and `*.gb`
+
+# 4. Data and output directories
+Before running the workflow, prepare two directories:
+- A folder containing only your FASTQ/FASTQ.gz (i.e. input) files. **Only store the data that will be included in the analysis in the data folder and nothing else.**
+- A separate folder where pipeline outputs will be written.
+Provide their paths with the parameters:
+- `--data` (input FASTQ directory)
+- `--output` (output directory)
+
+See the Configuration section below.
 
 # 4/ Configuration
 
