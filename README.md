@@ -1,12 +1,10 @@
 ### panchronos workflow
-
-`panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses for the paper: _"The genomic identity of early smallpox in South America."_  It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low quality and fragmented data (typical of ancient DNA datasets).
+`panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses for the paper: "_The genomic identity of early smallpox in South America_."  It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low quality and fragmented data (typical of ancient DNA datasets).
 
 ![Workflow overview](https://github.com/brgonzlez/panchronos/blob/main/.paper-diagram-v2.drawio.png)
-_Pipeline's overview_
+_Workflow's overview_
 
 # 1/ Installation
-
 First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recomend using Miniforge: https://github.com/conda-forge/miniforge
 
 ### Then git clone this repository:
@@ -16,7 +14,6 @@ First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextf
 After cloning the repositor, you should see the directories `bin/` `config/` `envs/`, along with the files `main.nf` and `nextflow.config`. To veryfy that `Nextflow` is properly installed and availabile in your environment, please run: `nextflow info` 
 
 # 2/ First steps
-
 The `panchronos` workflow assumes that you already know which bacteria or virus is present in your metagenomic dataset. If you are unsure, you should perform metagenomic screening beforehand to identify candidate organisms.
 
 Once you have selected the organism of interest, look up its NCBI Taxonomic ID. You will also need the Taxonomic ID of a closely related species to use as an outgroup for phylogenetic reconstruction. 
@@ -28,7 +25,6 @@ Before you run the workflow with your own data, you can perform an optional test
 This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
 # 3/ Input
-
 To run `panchronos`, the workflow requires the following four components:
 (1) `.fastq` files
 (2) `config.tab` file
@@ -129,6 +125,7 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other standard outputs from IQ-TREE |
 
 # 7/ Tools installed by `panchronos`
+The following tools will be automatically installed:
 - Entrez Direct
 - Biopython v1.85
 - fastANI v1.34
