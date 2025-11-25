@@ -7,24 +7,37 @@ _Workflow's overview_
 # 1/ Installation
 First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recomend using Miniforge: https://github.com/conda-forge/miniforge
 
+To veryfy that Nextflow is properly installed and available in your environment, please run: 
+
+>`nextflow info`
+
+
 ### Then git clone this repository:
 
->`$ git clone https://github.com/brgonzlez/panchronos/`
+```
+git clone https://github.com/brgonzlez/panchronos/
+```
 
-After cloning the repositor, you should see the directories `bin/` `config/` `envs/`, along with the files `main.nf` and `nextflow.config`. To veryfy that `Nextflow` is properly installed and availabile in your environment, please run: `nextflow info` 
+After cloning the repository, you should see the directories bin/ config/ envs/, along with the files `main.nf` and `nextflow.config`.
 
-# 2/ First steps
-The `panchronos` workflow assumes that you already know which bacteria or virus is present in your metagenomic dataset. If you are unsure, you should perform metagenomic screening beforehand to identify candidate organisms.
+### Perform test run
 
-Once you have selected the organism of interest, look up its NCBI Taxonomic ID. You will also need the Taxonomic ID of a closely related species to use as an outgroup for phylogenetic reconstruction. 
+To perform test run, please go to the main directory where you cloned `panchronos` (where the `main.nf` file is located) and execute:
 
-Before you run the workflow with your own data, you can perform an optional test run to ensure that the pipeline behaves as expected:
+**IMPORTANT: When `nextflow` is installing an environment, do not cancel it as it will produce a broken installation.**
 
->`nextflow run main.nf --test`
+```
+dir=$(pwd)
+nextflow run main.nf --test --config "$dir"/test/config_test.tab
+```
 
 This test run will install the required `Conda` environments, which will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
+
 # 3/ Input
+
+The `panchronos` workflow assumes that you already know which bacteria or virus is present in your metagenomic dataset. If you are unsure, you should perform metagenomic screening beforehand to identify candidate organisms.
+
 To run `panchronos`, the workflow requires the following four components:
 (1) `.fastq` files
 (2) `config.tab` file
