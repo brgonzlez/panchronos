@@ -52,8 +52,8 @@ You can see an example file in the `config/` directory of the repository.
 
 # (3) Required taxonomic IDs
 You need to provide two NCBI taxonomic IDs:
-1. Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
-2. Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
+- Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
+- Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
 You can control how many genomes to download for pangenome building using the `--genomes` parameter.
 
 If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
