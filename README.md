@@ -32,10 +32,10 @@ To run `panchronos`, the workflow requires the following four components:
 (4) Paths to your data and output directories
 
 # (1) FASTQ files
-- The workflow accepts compressed (`.gz`) or uncompressed `.fastq` files.
+- The workflow accepts compressed (`.gz`) or uncompressed `.fastq` or `.fq` files.
 - All input FASTQ files should be placed in the same directory if you are analysing multiple datasets.
 - `panchronos` does not support paired-end data. If you have paired-end reads, you must collapse/merge them beforehand.
-- Multiple single-end/collapsed libraries from the same individual can be included—see `config.tab` below for grouping instructions.
+- Multiple single-end/collapsed libraries from the same individual can be included. Please see `config.tab` below for grouping instructions.
 
 # (2) `config.tab` file
 `config.tab` is a tab-separated text file with three fields:
@@ -47,7 +47,7 @@ To run `panchronos`, the workflow requires the following four components:
 
 The workflow uses this file to:
 - Apply sample-specific soft clipping, and
-- Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID).
+- Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID) after alignment.
 You can see an example file in the `config/` directory of the repository.
 
 # (3) Required taxonomic IDs
@@ -123,7 +123,7 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**PANGENOME**| Outputs from pangenome construction and extension. Includes the original Panaroo reference genome, extended/unextended versions, and a BLAST database | `.fasta`, BLAST database |
 |**PLOTS**| Visualizations including presence/absence heatmaps and coverage vs. completeness plots | `.png` |
 |**STATS**| Summary statistics, including gene-level coverage and completeness normalization per sample | `.tab`, `.txt` |
-|**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other standard outputs from IQ-TREE |
+|**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other outputs from IQ-TREE |
 
 # 7/ Tools installed by `panchronos`
 The following tools will be automatically installed:
