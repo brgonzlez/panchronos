@@ -85,28 +85,31 @@ For example:
 - `--alignment_parallel 5`
 - 5 samples in the `config.tab`
 
-his combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
+This combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
 
 **Important NOTE:**
-
 **Don't assign more than 3 threads to `--get_data_parallel`.**
 
 NCBI will reject download requests if the number of parallel queries exceeds 3.
 
 # 5/ Running the pipeline
-If you used `nextflow.config` file to specify your settings (including PATHs), then you can simply exectue the workflow with: 
-
+Once you have configured your settings in the `nextflow.config` file (including all required paths), you can exectue the workflow with: 
 
 >`nextflow run main.nf -resume` 
 
-I would recommend including the option `-resume` on every run as it will make good use of nextflow's cache system. 
-You can also directly set up a parameter value through the terminal by adding double dashes before the parameter name. Note that these values will overwrite whatever is in `nextflow.config` file:
+It is recommended to include the `-resume` flag for every run, as this enables Nextflow’s caching system and prevents unnecessary recomputation.
+
+**Overriding parameters from the command line**
+
+You can override any parameter directly from the terminal by prefixing it with `--`.
+Values provided this way take precedence over those defined in the `nextflow.config` file:
 
 >`nextflow run main.nf --data /new/path/ --panaroo_alignment_type core -resume`
 
-In this case, the values "/new/path/" and "core" will be used by the workflow instead of the ones that are specified in nextflow.config file for those particular parameters. 
-Aditionally, when you execute the workflow it will print out every parameter that will be use in the current run, so you can double check your settings.
+In this example, the values `/new/path/` and `core` will be used instead of the corresponding entries in `nextflow.config`.
 
+Whenever the workflow starts, Nextflow prints a summary of all parameters used for the current run.
+This allows you to quickly verify that your settings are being applied correctly.
 
 # 6/ Output
 
