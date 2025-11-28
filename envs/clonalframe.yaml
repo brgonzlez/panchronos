@@ -1,5 +1,0 @@
-name: clonalframeml
-channels:
- - bioconda
-dependencies:
-- clonalframeml
