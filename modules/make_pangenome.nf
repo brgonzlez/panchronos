@@ -30,10 +30,13 @@ process MAKE_PANGENOME {
     gene_list() {
     file=\$1
                 name=\$(basename "\$file")
-                echo -e "\${name}" | sed -e 's/.aln.fas//g' -e 's/.fasta//g' -e 's/aligned_gene_sequences//g' -e '/^\$/d'  >> gene_list.txt
+                echo -e "\${name}" | sed -e 's/.aln.fas//g' -e 's/.fasta//g' -e 's/aligned_gene_sequences//g' -e '/^\$/d' -e 's/~/_/g' >> gene_list.txt
     }
     export -f gene_list
     find ./aligned_gene_sequences/ -name "*" | parallel -j $threads gene_list
+
+	#replace ~ with _ on final graph
+	sed -i -e 's/~/_/g' final_graph.gml
 
 	
 	cat .command.out >> makePangenome.log
