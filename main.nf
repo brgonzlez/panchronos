@@ -85,7 +85,7 @@ def print_help() {
 	println "  --prokka_annotate_threads <INT>			thread usage for prokka (Current value: $(params.prokka_annotate_threads))"
 	println "  --pangenome_identity_threshold <INT>		gene clustering threshold for Panaroo (Current value: $(params.pangenome_identity_threshold))"
 	println "  --panaroo_pangenome_mode <STRING>		Panaroo pangenone mode [strict,moderate,sensitive] (Current value: $(params.panaroo_pangenome_mode))"
-	println "  --panaroo_pangenome_threads <INT>		thread usage for Panaroo pangenome building (Current value: $(params.panaroo_pangenome_threads))
+	println "  --panaroo_pangenome_threads <INT>		thread usage for Panaroo pangenome building (Current value: $(params.panaroo_pangenome_threads))"
 	println "  --panaroo_alignment_type <STRING>		Panaroo gene alignment mode [core,pan] (Current value: $(params.panaroo_alignment_type))"
 	println "  --outgroup_alignment_threads <INT>		thread usage for outgroup alignment (Current value: $(params.outgroup_alignment_threads))"
 	println "  --alignment_threads <INT>				thread usage for alignment (Current value: $(params.alignment_threads))"
