@@ -78,7 +78,7 @@ def print_help() {
 	println "  --genomes <INT>							number of genomes to download (Current value: $(params.genomes))"
 	println "  --get_data_parallel <INT>				number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: params.get_data_parallel)"
 	println "  --remove_redundancy_parallel <INT>		parallel computing value for remove_redundancy.nf module [single core] (Current value: $(params.remove_redundancy_parallel))"
-	println "  --fastANI_threads <INT>					thread usage for fastANI (Current value: $(params.fastANI_threads))
+	println "  --fastANI_threads <INT>					thread usage for fastANI (Current value: $(params.fastANI_threads))"
 	println "  --gene_identity_clustering <INT>			gene clustering threshold for CD-HIT (Current value: $(params.gene_identity_clustering))"
 	println "  --cd_hit_threads <INT>					thread usage for CD-HIT (Current value: $(params.cd_hit_threads))"
 	println "  --prokka_annotate_parallel <INT>			parallel computing value for gene annotation [multi core] (Current value: $(params.prokka_annotate_parallel))"
