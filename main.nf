@@ -76,7 +76,7 @@ def print_help() {
 	 println "  --parallel <INT>                             global parallel computing value (Current value: ${params.parallel})"
 	 println "  --trusted_data <INT>                         user curated input data PATH (*FASTA,*gb)"
 	 println "  --genomes <INT>                              number of genomes to download (Current value: ${params.genomes})"
-	 println "  --get_data_parallel <INT>                    number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: params.get_data_parallel)"
+	 println "  --get_data_parallel <INT>                    number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: ${params.get_data_parallel})"
 	 println "  --remove_redundancy_parallel <INT>           parallel computing value for remove_redundancy.nf module [single core] (Current value: ${params.remove_redundancy_parallel})"
 	 println "  --fastANI_threads <INT>                      thread usage for fastANI (Current value: ${params.fastANI_threads})"
 	 println "  --gene_identity_clustering <INT>             gene clustering threshold for CD-HIT (Current value: ${params.gene_identity_clustering})"
