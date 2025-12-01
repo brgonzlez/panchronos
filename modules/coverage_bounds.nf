@@ -21,5 +21,7 @@ process COVERAGE_BOUNDS {
 	awk -v DownBound=$normalizedCoverageDown '\$3 > DownBound {print \$0}' TMP1 > TMP2
 	awk -v completenessBound=$completenessBound '\$NF> completenessBound {print \$0}' TMP2 > TMP3
 	cat header TMP3 > geneNormalizedUpdatedFiltered.tab
+
+	cp geneNormalizedUpdatedFiltered.tab ${params.output}/STATS/panchronos_normalisation_summary_filtered.tab
 	"""
 }
