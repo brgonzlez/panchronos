@@ -19,7 +19,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
-	plot_cvg_vs_completeness.py geneNormalizedUpdated.tab $completeness $coverage
+	plot_cvg_vs_completeness.py $geneNormalizedUpdated $completeness $coverage
 
 	cp *png ${params.output}/PLOTS
 	"""
