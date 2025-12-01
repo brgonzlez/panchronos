@@ -58,6 +58,6 @@ process UPDATE_NORMALIZATION {
 
 	rm -f *TMP1 *TMP2
 
-	cp geneNormalizedUpdated.tab ${params.output}/STATS
+	cp geneNormalizedUpdated.tab ${params.output}/STATS/panchronos_normalisation_summary.tab
 	"""
 }
