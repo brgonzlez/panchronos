@@ -87,6 +87,11 @@ process HEATMAP {
 
 	heatmap.py final_matrix.tab names_heatmap
 
+	# Let's put sensible names so I can use that file for masking low qual genes
+	for sample in *Z_FINAL_INDEX
+postPangenomeAlignment_test_INDEX.Z_FINAL_INDEX
+
+
 	cp final_matrix.tab ${params.output}/MATRIX
 	cp *png ${params.output}/PLOTS
 	"""
