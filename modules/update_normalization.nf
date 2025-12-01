@@ -1,5 +1,5 @@
 /*
- * UPDATE_NORMALIZATION{} will .
+ * UPDATE_NORMALIZATION{} will append completeness/breadth of coverage per gene into the summary tab file.
  */
 
 process UPDATE_NORMALIZATION {
