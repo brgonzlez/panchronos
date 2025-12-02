@@ -11,6 +11,7 @@ process BCFTOOLS_CONSENSUS {
 	val parallel
 	tuple val(mapq) , val(baseq) , val(call_qual)
 	val extension
+	path genes_2_mask
 	
 	output:
 	path 'extractedSequences*.fasta', emit: consensusSequences
@@ -76,6 +77,9 @@ process BCFTOOLS_CONSENSUS {
     export -f bcfconsensus
     find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
 
+
+	#Now we mask those sus genes
+	
 
 	cp extractedSequences* ${params.output}/GENOTYPING
 	cp *.vcf.gz* ${params.output}/GENOTYPING
