@@ -15,6 +15,7 @@ process FILTER_GENE_ALIGNMENTS {
 	path blackListed, stageAs: 'blackListed.txt'
 	val parallel
 	path final_list_genes
+	path genes_2_mask
 
 	output:
 	path 'sorted/*.fasta', emit: genesAlnSeq
@@ -64,6 +65,82 @@ process FILTER_GENE_ALIGNMENTS {
 	    	   	mv "\$file" ./redundant_genes/
     	fi
 	done
+
+
+	#mask genes that should not be present
+	mkdir -p genes_to_mask
+	mv *presence_absence_genes.index genes_to_mask
+
+
+	genes_2_mask() {
+	file=\$1
+
+		name=\$(basename "\${file%_presence_absence_genes.index}")
+		awk 'NR>1 && \$2 == 0 {print \$1}' "\$file" > "\$name"_tmp && mv "\$name"_tmp "\$file"
+
+	}
+	export -f genes_2_mask
+	find ./genes_to_mask -name "*_presence_absence_genes.index" | parallel -j $parallel genes_2_mask
+
+
+
+	mask_user_genes() {
+	user_gene_seqs=\$1
+	name=\$(basename "\${user_gene_seqs}")
+	cleaner_name="\${name#extractedSequences}"; name="\${name%.fasta}"
+
+
+		awk 'FNR=NR{ #list of genes to mask
+			genes[\$1] = 1
+			next
+		}
+        #second file
+        /^>/ {
+            # print previous sequence (if not masked)
+            if(seq != ""){
+                if(masked){
+                    gsub(/./,"N",seq)
+                }
+                print seq
+            }
+
+            # reset for new sequence
+            seq=""
+            masked=0
+
+            # extract gene name from header: remove leading ">"
+            gene = substr(\$1,2)
+
+            # if gene in mask list
+            if(gene in mask){
+                masked=1
+            }
+
+            # print header
+            print
+            next
+        }
+
+        # Sequence lines → accumulate them
+        {
+            seq = seq \$0
+            next
+        }
+
+        # After file ends, print final sequence
+        END {
+            if(seq != ""){
+                if(masked){
+                    gsub(/./,"N",seq)
+                }
+                print seq
+            }
+       }' ./genes_to_mask/"\${cleaner_name}_presence_absence_genes.index" "\$user_gene_seqs" > "\${name}"_tmp_masked && mv "\${name}"_tmp_masked "\${user_gene_seqs}"
+	}
+	export -f mask_user_genes
+	find ./user_genes/ -name "*" | parallel -j $parallel mask_user_genes
+
+
 
 	# modern_samples_list() will create a text file with modern genomes names
 	modern_samples_list() {
