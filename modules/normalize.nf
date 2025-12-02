@@ -61,7 +61,6 @@ process NORMALIZE {
 	cat *_geneNormalizedSummary.txt >> geneNormalizedSummary.txt
 	cat *_globalMeanCoverage.txt >> globalMeanCoverage.txt
 
-	cp geneNormalizedSummary.txt ${params.output}/STATS
-	cp globalMeanCoverage.txt ${params.output}/STATS
+	cp globalMeanCoverage.txt ${params.output}/STATS/panchronos_global_mean_coverage.txt
 	"""
 }
