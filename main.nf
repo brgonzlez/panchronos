@@ -284,7 +284,7 @@ workflow {
 	} else if (params.genotyper == "bcftools") {
 		BCFTOOLS_CONSENSUS(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, 
 					ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality), 
-					params.bedtools_slop, HEATMAP.out.genesIndex)
+					params.bedtools_slop)
 		extractedSequencesFasta = BCFTOOLS_CONSENSUS.out.consensusSequences
 
 	} else {
@@ -292,7 +292,7 @@ workflow {
 	}
 
 	FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, 
-			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel, EXTEND_SEQUENCES.out.final_list_genes)
+			params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel, EXTEND_SEQUENCES.out.final_list_genes, HEATMAP.out.genesIndex)
 
 	REALIGN_GENE_ALIGNMENTS(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, params.realign_parallel, params.mafft_threads)
 
