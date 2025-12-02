@@ -1,9 +1,10 @@
 /*
- * MAPPING{} will index a graph and map reads against it.
+ * HEATMAP{} will generate an index file with genes presence/absence list after cutoffs, a set of lists with genes based on conditions and plot heatmaps.
  */
 
 process HEATMAP {
 	conda "${projectDir}/envs/heatmap.yaml"
+	label 'demand_4'
 
 	input:
 	path fCSV, stageAs: 'fCSV/*'
@@ -21,7 +22,7 @@ process HEATMAP {
 	path 'sampleOrderonlyAncient.txt', emit: sampleOrderonlyAncient
 	path 'genesAbovePercentSeries.txt', emit: genesAbovePercentSeries
 	path 'blackListedQualityChecked.txt', emit: blackListed
-	path '*FINAL_INDEX' , emit: genesIndex
+	path '*_presence_absence_genes.index' , emit: genesIndex
 
 	script:
 	"""
@@ -30,66 +31,72 @@ process HEATMAP {
 	mkdir -p ${params.output}/MATRIX
 	mkdir -p ${params.output}/PLOTS
 
-	for i in fCSV/*_final.csv; do
 
-		name=\$(basename "\$i")
-		sed  -e 's/,/\t/g' "\$i" | awk 'NR>1{print \$0}' > "\${name%_index.tmp_final.csv}"_INDEX.Z
+	formatting_fcsv() {
+	i=\$1
+		name=\$(basename "\${i%_index.tmp_final.csv}")
+		sed  -e 's/,/\t/g' "\$i" | awk 'NR>1{print \$0}' > "\${name}"_present_genes.txt
+	}
+	export -f formatting_fcsv
+	find ./fCSV/ -name "*_final.csv" | parallel -j $task.cpus formatting_fcsv
 
-	done
 
-
-	for i in *_INDEX.Z; do
-		name=\$(basename "\$i")
-		#Create the FINAL_INDEX file
-		echo "\${name%_INDEX.Z}" > "\${name}"_FINAL_INDEX
+	add_missing_genes() {
+	i=\$1
+		name=\$(basename "\${i%_present_genes.txt}")
+		#Create the presence_absence_genes.index file
+		echo "\${name}" > "\${name}"_presence_absence_genes.index
     
 		#Process the INDEX file
 		while read -r gene; do
 			toprint=\$(echo "\$gene 0")
 			if grep -wq "\$gene" "\$i"; then
-				grep -w "\$gene" "\$i" >> "\${name}"_FINAL_INDEX
+				grep -w "\$gene" "\$i" >> "\${name}"_presence_absence_genes.index
 			else
-				echo "\$toprint" >> "\${name}"_FINAL_INDEX
+				echo "\$toprint" >> "\${name}"_presence_absence_genes.index
 			fi
 		done < INDEX/INDEX
     
 		#Extract the last column
-		awk '{print \$NF}' "\${name}"_FINAL_INDEX > "\${name}"_FINALCOLUMN
+		awk '{print \$NF}' "\${name}"_presence_absence_genes.index > "\${name}"_last_column.txt
+	}
+	export -f add_missing_genes
+	find ./ -name "*present_genes.txt" | parallel -j $task.cpus add_missing_genes
 
-	done
-        # I need to add a quality control step right here. User samples can be false positives sometimes or just super low quality and have 0 genes after filtering
-        # Then, black list unwanted samples and exclude them from the final_matrix.tab document.
-        for checkSample in *_FINALCOLUMN; do
-                sampleName=\$(basename "\${checkSample%_INDEX.Z_FINALCOLUMN}")
-                counts=\$(grep -c "0" "\$checkSample")
-                totalLines=\$(wc -l "\$checkSample" | awk '{print \$1 - 1}')
-                proportion=\$(awk -v absence="\$counts" -v record="\$totalLines" 'BEGIN { print (absence / record ) }')         
 
-                if  (( \$(awk -v p="\$proportion" 'BEGIN { print (p > 0.95) }' ) )); then
-                        echo "\$sampleName" >> blackListedQualityChecked.txt
-                fi
-        done
-	
+	# I need to add a quality control step right here. User samples can be false positives sometimes or just super low quality and have 0 genes after filtering
+    # Then, black list unwanted samples and exclude them from the final_matrix.tab document.
+
+	qual_control() {
+	checkSample=\$1
+
+    	sampleName=\$(basename "\${checkSample%_last_column.txt}")
+		counts=\$(grep -c "0" "\$checkSample")
+        totalLines=\$(wc -l "\$checkSample" | awk '{print \$1 - 1}')
+        proportion=\$(awk -v absence="\$counts" -v record="\$totalLines" 'BEGIN { print (absence / record ) }')         
+
+        	if  (( \$(awk -v p="\$proportion" 'BEGIN { print (p > 0.95) }' ) )); then
+            	echo "\$sampleName" >> blackListedQualityChecked.txt
+            fi
+		}
+	export -f qual_control
+	find ./ -name "*_last_column.txt" | parallel -j $task.cpus qual_control
+
 	# Do this only if blacklisted
 	if [[ -s blackListedQualityChecked.txt ]]; then
 		while read -r removeMe; do
-			mv "\${removeMe}_INDEX.Z_FINALCOLUMN" "\${removeMe}LowQualitySample"    
+			mv "\${removeMe}_last_column.txt" "\${removeMe}LowQualitySample"    
 			grep -v "\${removeMe}" names/sample_names > names/sample_names.tmp
 			mv names/sample_names.tmp names/sample_names
 		done < blackListedQualityChecked.txt    
 	else
 		touch blackListedQualityChecked.txt
-	
 	fi
 
-	paste matrix/matrix.tab *_FINALCOLUMN > final_matrix.tab
+	paste matrix/matrix.tab *_last_column.txt > final_matrix.tab
 	tr '\n' ' ' < names/sample_names > names_heatmap
 
 	heatmap.py final_matrix.tab names_heatmap
-
-	# Let's put sensible names so I can use that file for masking low qual genes
-	for sample in *Z_FINAL_INDEX
-postPangenomeAlignment_test_INDEX.Z_FINAL_INDEX
 
 
 	cp final_matrix.tab ${params.output}/MATRIX
