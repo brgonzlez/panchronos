@@ -89,6 +89,7 @@ process FILTER_GENE_ALIGNMENTS {
 	name=\$(basename "\${user_gene_seqs}")
 	cleaner_name="\${name#extractedSequences}"; name="\${name%.fasta}"
 
+		echo -e "\$cleaner_name"
 
 		awk 'FNR=NR{ #list of genes to mask
 			genes[\$1] = 1
@@ -138,7 +139,7 @@ process FILTER_GENE_ALIGNMENTS {
        }' ./genes_to_mask/"\${cleaner_name}_presence_absence_genes.index" "\$user_gene_seqs" > "\${name}"_tmp_masked && mv "\${name}"_tmp_masked "\${user_gene_seqs}"
 	}
 	export -f mask_user_genes
-	find ./user_genes/ -name "*" | parallel -j $parallel mask_user_genes
+	find ./user_genes/ -name "*fasta" | parallel -j $parallel mask_user_genes
 
 
 
