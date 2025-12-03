@@ -87,7 +87,8 @@ process FILTER_GENE_ALIGNMENTS {
 	mask_user_genes() {
 	user_gene_seqs=\$1
 	name=\$(basename "\${user_gene_seqs}")
-	cleaner_name="\${name#extractedSequences}"; name="\${name%.fasta}"
+	name="\${name%.fasta}"
+	cleaner_name="\${name#extractedSequences}"
 
 		echo -e "\$cleaner_name"
 
