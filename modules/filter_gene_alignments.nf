@@ -83,64 +83,43 @@ process FILTER_GENE_ALIGNMENTS {
 	find ./genes_to_mask -name "*_presence_absence_genes.index" | parallel -j $parallel genes_2_mask
 
 
-
 	mask_user_genes() {
 	user_gene_seqs=\$1
 	name=\$(basename "\${user_gene_seqs}")
 	name="\${name%.fasta}"
 	cleaner_name="\${name#extractedSequences}"
 
-		echo -e "\$cleaner_name"
 
-		awk 'FNR=NR{ #list of genes to mask
+
+		awk 'FNR==NR{ #list of genes to mask
 			genes[\$1] = 1
 			next
 		}
-        #second file
-        /^>/ {
-            # print previous sequence (if not masked)
-            if(seq != ""){
-                if(masked){
-                    gsub(/./,"N",seq)
-                }
-                print seq
-            }
+	
+	        #second file
+	        /^>/  { 
+	
 
-            # reset for new sequence
-            seq=""
-            masked=0
-
-            # extract gene name from header: remove leading ">"
-            gene = substr(\$1,2)
-
-            # if gene in mask list
-            if(gene in mask){
-                masked=1
-            }
-
-            # print header
-            print
-            next
-        }
-
-        # Sequence lines → accumulate them
-        {
-            seq = seq \$0
-            next
-        }
-
-        # After file ends, print final sequence
-        END {
-            if(seq != ""){
-                if(masked){
-                    gsub(/./,"N",seq)
-                }
-                print seq
-            }
-       }' ./genes_to_mask/"\${cleaner_name}_presence_absence_genes.index" "\$user_gene_seqs" > "\${name}"_tmp_masked && mv "\${name}"_tmp_masked "\${user_gene_seqs}"
+	            print # print header
+        	    gene = substr(\$0,2) #strip > from header for regex matching
+	            getline seq #store sequence for header
+	
+	            if (gene in genes) {
+	                # mask sequence
+	                gsub(/./, "N", seq)
+	                print seq
+	            } else {
+	                # print sequence as-is
+	                print seq
+	            }
+	
+	            next
+        	}' ./genes_to_mask/"\${cleaner_name}_presence_absence_genes.index" "\$user_gene_seqs" > "\${name}"_tmp_masked && mv "\${name}"_tmp_masked "\${user_gene_seqs}" 
 	}
 	export -f mask_user_genes
 	find ./user_genes/ -name "*fasta" | parallel -j $parallel mask_user_genes
+
+
 
 
 
