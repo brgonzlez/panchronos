@@ -20,6 +20,9 @@ process PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
+	#clean-up the names
+	sed -i -e 's/postPangenomeAlignment_//g' $geneNormalizedUpdated
+
 	#we make one file per sample
 	awk 'NR>1 {print \$1}' $geneNormalizedUpdated | sort | uniq > samples.txt
 
@@ -38,7 +41,6 @@ process PLOT_COVERAGE_COMPLETENESS {
 	export -f plot_cov
 	find ./ -name "*_individual_normalised.tab" | parallel -j $task.cpus plot_cov
 
-	plot_cvg_vs_completeness.py $geneNormalizedUpdated $completeness $coverage_lower $coverage_upper
 
 	cp *png ${params.output}/PLOTS
 	"""
