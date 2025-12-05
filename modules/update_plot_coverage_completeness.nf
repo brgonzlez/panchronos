@@ -20,6 +20,9 @@ process UPDATE_PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
+	#clean-up the names
+	sed -e -i 's/postPangenomeAlignment_//g' $geneNormalizedUpdatedFiltered
+
 	#we make one file per sample
 	awk 'NR>1 {print \$1}' $geneNormalizedUpdatedFiltered | sort | uniq > samples.txt
 
