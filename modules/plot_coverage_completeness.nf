@@ -20,11 +20,14 @@ process PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
+	#we make one file per sample
+	awk 'NR>1 {print \$1}' $geneNormalizedUpdated | sort | uniq > samples.txt
+
 
 	while read -r sample;do
 		name=\$(echo "\${sample#postPangenomeAlignment_}")
-		awk 'NR==1{print \$0}' $geneNormalizedUpdatedFiltered > "\$name"_individual_normalised.tab
-		grep -w "\$sample" $geneNormalizedUpdatedFiltered >> "\$name"_individual_normalised.tab
+		awk 'NR==1{print \$0}' $geneNormalizedUpdated > "\$name"_individual_normalised.tab
+		grep -w "\$sample" $geneNormalizedUpdated >> "\$name"_individual_normalised.tab
 	done < samples.txt
 
 	plot_cov() {
