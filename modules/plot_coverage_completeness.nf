@@ -10,6 +10,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 	val completeness
 	val coverage_lower
 	val coverage_upper
+	val normalised_boundary_plot
 
 	output:
 	path 'plotCoverage_vs_Completeness*', emit: plotCoverage_vs_Completeness
@@ -36,7 +37,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 	plot_cov() {
 	tab_file=\$1
 
-	plot_cvg_vs_completeness.py "\$tab_file" $completeness $coverage_lower $coverage_upper
+	plot_cvg_vs_completeness.py "\$tab_file" $completeness $coverage_lower $coverage_upper $normalised_boundary_plot
 	}
 	export -f plot_cov
 	find ./ -name "*_individual_normalised.tab" | parallel -j $task.cpus plot_cov
