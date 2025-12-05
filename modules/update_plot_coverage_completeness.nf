@@ -10,6 +10,7 @@ process UPDATE_PLOT_COVERAGE_COMPLETENESS {
 	val completeness
 	val coverage_lower
 	val coverage_upper
+	val normalised_boundary_plot
 
 	output:
 	path 'plotCoverage_vs_Completeness_filtered*', emit: plotCoverageVsCompletenessFiltered
@@ -36,7 +37,7 @@ process UPDATE_PLOT_COVERAGE_COMPLETENESS {
 	tab_file=\$1
 
 	name=\$(basename "\${tab_file%_individual_normalised.tab}")
-	plot_cvg_vs_completeness.py "\$tab_file" $completeness $coverage_lower $coverage_upper
+	plot_cvg_vs_completeness.py "\$tab_file" $completeness $coverage_lower $coverage_upper $normalised_boundary_plot
 	mv plotCoverage_vs_Completeness_"\${name}".png plotCoverage_vs_Completeness_filtered_"\${name}".png
 	}
 	export -f plot_cov
