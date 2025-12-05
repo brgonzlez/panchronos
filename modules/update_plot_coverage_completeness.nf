@@ -12,7 +12,7 @@ process UPDATE_PLOT_COVERAGE_COMPLETENESS {
 	val coverage_upper
 
 	output:
-	path 'plotCoverageVsCompletenessFiltered.png', emit: plotCoverageVsCompletenessFiltered
+	path 'plotCoverage_vs_Completeness_filtered*', emit: plotCoverageVsCompletenessFiltered
 	
 	script:
 	"""
@@ -20,8 +20,26 @@ process UPDATE_PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
-	plot_cvg_vs_completeness.py $geneNormalizedUpdatedFiltered $completeness $coverage_lower $coverage_upper
-	mv plotCoverage_vs_Completeness.png ./plotCoverageVsCompletenessFiltered.png
+	#we make one file per sample
+	awk 'NR>1 {print \$1}' $geneNormalizedUpdatedFiltered | sort | uniq > samples.txt
+
+	while read -r sample;do
+		name=\$(echo "\${sample#postPangenomeAlignment_}")
+		awk 'NR==1{print \$0}' $geneNormalizedUpdatedFiltered > "\$name"_individual_normalised.tab
+		grep -w "\$sample" $geneNormalizedUpdatedFiltered >> "\$name"_individual_normalised.tab
+	done < samples.txt
+
+	plot_cov() {
+	tab_file=\$1
+
+	name=\$(basename "\${tab_file%_individual_normalised.tab}")
+	plot_cvg_vs_completeness.py "\$tab_file" $completeness $coverage_lower $coverage_upper
+	mv plotCoverage_vs_Completeness_"\${name}".png plotCoverage_vs_Completeness_filtered_"\${name}".png
+	}
+	export -f plot_cov
+	find ./ -name "*_individual_normalised.tab" | parallel -j $task.cpus plot_cov
+
+	
 
 	cp *png ${params.output}/PLOTS
 	"""
