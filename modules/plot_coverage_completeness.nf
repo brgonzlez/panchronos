@@ -12,7 +12,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 	val coverage_upper
 
 	output:
-	path 'plotCoverage_vs_Completeness.png', emit: plotCoverage_vs_Completeness
+	path 'plotCoverage_vs_Completeness*', emit: plotCoverage_vs_Completeness
 	
 	script:
 	"""
