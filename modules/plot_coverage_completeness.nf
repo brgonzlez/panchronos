@@ -8,7 +8,8 @@ process PLOT_COVERAGE_COMPLETENESS {
 	input:
 	path geneNormalizedUpdated
 	val completeness
-	val coverage
+	val coverage_lower
+	val coverage_upper
 
 	output:
 	path 'plotCoverage_vs_Completeness.png', emit: plotCoverage_vs_Completeness
@@ -19,7 +20,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 
 	mkdir -p ${params.output}/PLOTS
 
-	plot_cvg_vs_completeness.py $geneNormalizedUpdated $completeness $coverage
+	plot_cvg_vs_completeness.py $geneNormalizedUpdated $completeness $coverage_lower $coverage_upper
 
 	cp *png ${params.output}/PLOTS
 	"""
