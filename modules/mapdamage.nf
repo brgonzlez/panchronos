@@ -12,7 +12,7 @@ process MAPDAMAGE {
 	val parallel
 
 	output:
-	stdout
+	stdout, optional: true
 
 
 	script:
