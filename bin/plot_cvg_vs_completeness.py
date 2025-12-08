@@ -19,17 +19,20 @@ data = sys.argv[1]
 completeness_str = sys.argv[2]
 coverage_lower_str = sys.argv[3]
 coverage_upper_str = sys.argv[4]
-normalised_boundary = sys.argv[5]
+normalised_boundary_str = sys.argv[5]
 
 print(f"Data file: {data}")
-print(f"Completeness: {completeness_str}")
-print(f"Coverage: {coverage_lower_str}")
-print(f"Coverage: {coverage_upper_str}")
+print(f"Gene Completeness: {completeness_str}")
+print(f"Normalised Coverage Lower Bound: {coverage_lower_str}")
+print(f"Normalised Coverage Upper Bound: {coverage_upper_str}")
+print(f"Normalised Coverage Plot Bound: {normalised_boundary_str}")
+
 
 try:
     completeness = int(completeness_str)
     coverage_lower = float(coverage_lower_str)
     coverage_upper = float(coverage_upper_str)
+    normalised_boundary = float(normalised_boundary_str)
 except ValueError as e:
     print(f"Error converting arguments to float: {e}")
     sys.exit(1)
@@ -37,7 +40,6 @@ except ValueError as e:
 
 with open(data, 'r') as file:
         summary = pd.read_csv(data, sep='\t')
-        print("geneNormalizedUpdated.tab file loaded successfully into python.")
         print(summary.head())
 
 max_value = summary['normalizedGeneSimple'].max()
