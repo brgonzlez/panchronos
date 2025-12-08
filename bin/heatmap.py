@@ -25,6 +25,15 @@ matplotlib.use('Agg')
 
 data=sys.argv[1]
 namesfile=sys.argv[2]
+threshold_value_str = sys.argv[3]
+max_samples_per_heatmap_str = sys.argv[4]
+
+try:
+    threshold_value = float(threshold_value_str)
+    max_samples_per_heatmap = int(max_samples_per_heatmap_str)
+except ValueError as e:
+    print(f"Error converting arguments to float: {e}")
+    sys.exit(1)
 
 with open(namesfile, 'r') as f:
     names = f.read().split()  # Read all names and split by whitespace
@@ -76,7 +85,7 @@ maskedMatrixGenesUbiquitous_series.to_csv("maskedMatrixGenesUbiquitous.txt", sep
 # 3. Make a new dataframe with this set of genes: Plot it and export it to working directory.
 
 num_samples = matrix.shape[1]
-threshold = 0.8 * num_samples
+threshold = threshold_value * num_samples
 genesAbovePercent = matrix[(matrix.sum(axis=1) >= threshold)]
 genesAbovePercentIndex = genesAbovePercent.index
 genesAbovePercentSeries = pd.Series(genesAbovePercentIndex, name="Genes")
@@ -187,6 +196,31 @@ def create_clustered_heatmap(data, names, label):
     plt.show()
 
 
-create_clustered_heatmap(maskedMatrixNoUbiquitous, names, "noUbiquitous")
-create_clustered_heatmap(maskedOnlyAncient, names, "onlyAncient")
-create_clustered_heatmap(genesAbovePercent, names, "abovePercent")
+def split_and_plot(df, names, label, max_samples):
+    total_samples = df.shape[1]
+    
+    # If small enough, plot normally
+    if total_samples <= max_samples:
+        create_clustered_heatmap(df, names, label)
+        return
+
+    # Otherwise, split into chunks
+    num_chunks = int(np.ceil(total_samples / max_samples))
+
+    print(f"Splitting heatmap into {num_chunks} parts ({total_samples} samples total)")
+
+    for i in range(num_chunks):
+        start = i * max_samples
+        end = min((i + 1) * max_samples, total_samples)
+
+        df_chunk = df.iloc[:, start:end]
+
+        chunk_label = f"{label}_part{i+1}"
+        print(f"Creating heatmap: {chunk_label} ({start}–{end} columns)")
+
+        create_clustered_heatmap(df_chunk, names, chunk_label)
+
+
+split_and_plot(maskedMatrixNoUbiquitous, names, "noUbiquitous", max_samples_per_heatmap)
+split_and_plot(maskedOnlyAncient, names, "onlyAncient", max_samples_per_heatmap)
+split_and_plot(genesAbovePercent, names, "abovePercent", max_samples_per_heatmap)
