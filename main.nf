@@ -109,6 +109,8 @@ def print_help() {
 	 println "  --variant_call_quality                <INT>  minimum variant call quality for genotyping (Current value: ${params.variant_call_quality})"
 	 println "  --filter_gene_alignments_parallel     <INT>  parallel computing thread usage for filter_gene_alignment.nf module [single core] (Current value: ${params.filter_gene_alignments_parallel})"
 	 println "  --tree_threads                        <INT>  thread usage for IQ-TREE. WARNING: This value will be x4 as there will be 4 phylogenetic runs in parallel. (Current value: ${params.tree_threads})"
+	 println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
+	 println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
 	 println "  --version                                    print version and exit"
 	 println "  --help                                       print this page and exit"
 
@@ -273,7 +275,7 @@ workflow {
 	UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZE.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, 
 		params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
 
-	HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames)
+	HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
 
 	UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, 
 										params.normalised_coverage_boundary_plot)
