@@ -11,6 +11,8 @@ process HEATMAP {
 	path INDEX, stageAs: 'INDEX/*'
 	path matrix, stageAs: 'matrix/*'
 	path names, stageAs: 'names/*'
+	val threshold_value
+	val samples_heatmap
 
 	output:
 	path 'final_matrix.tab', emit: finalMatrix
@@ -96,7 +98,7 @@ process HEATMAP {
 	paste matrix/matrix.tab *_last_column.txt > final_matrix.tab
 	tr '\n' ' ' < names/sample_names > names_heatmap
 
-	heatmap.py final_matrix.tab names_heatmap
+	heatmap.py final_matrix.tab names_heatmap threshold_value samples_heatmap
 
 
 	cp final_matrix.tab ${params.output}/MATRIX
