@@ -15,8 +15,8 @@ process HEATMAP {
 	val samples_heatmap
 
 	output:
-	path 'final_matrix.tab', emit: finalMatrix
-	path 'presenceAbsence*.png', emit: presenceAbsence
+	path 'final_matrix.tab', emit: finalMatrix 
+	path 'presenceAbsence*.png', emit: presenceAbsence, optional: true
 	path 'maskedMatrixGenesOnlyAncient.txt', emit: maskedMatrixGenesOnlyAncient
 	path 'maskedMatrixGenesUbiquitous.txt', emit: maskedMatrixGenesUbiquitous
 	path 'maskedMatrixGenesNoUbiquitous.txt', emit: maskedMatrixGenesNoUbiquitous
