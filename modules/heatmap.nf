@@ -98,7 +98,7 @@ process HEATMAP {
 	paste matrix/matrix.tab *_last_column.txt > final_matrix.tab
 	tr '\n' ' ' < names/sample_names > names_heatmap
 
-	heatmap.py final_matrix.tab names_heatmap threshold_value samples_heatmap
+	heatmap.py final_matrix.tab names_heatmap $threshold_value $samples_heatmap
 
 
 	cp final_matrix.tab ${params.output}/MATRIX
