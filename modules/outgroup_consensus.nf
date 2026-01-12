@@ -24,7 +24,7 @@ process OUTGROUP_CONSENSUS {
         basename=\$(basename "\${bam_file%.bam}")
 
                 bcftools mpileup -f $panGenomeRef -q 30 -Q 20 "\$bam_file" > "\${basename}"_mpileup_file
-                bcftools call -c "\${basename}"_mpileup_file > "\${basename}".vcf
+                bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}".vcf
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
                 bcftools consensus -a - -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
