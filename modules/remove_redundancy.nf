@@ -43,47 +43,82 @@ process REMOVE_REDUNDANCY {
 	find ./ -name "*.fasta" > genomesList.txt
 	fastANI --ql genomesList.txt --rl genomesList.txt --threads $threads -o fastaniOutput.txt
 
-	# awk '\$3 == 100 && \$1 != \$2 fastaniOutput.txt | is a two field input with multiple lines, where lines will have repeated strings on same of different field. Example:
-	# ./NZ_CP009712.1.fasta ./CP009712.1.fasta # line 1
-	# ./CP009712.1.fasta ./NZ_CP009712.1.fasta # line 2
-	# ./NZ_CP009999.1.fasta ./CP009999.1.fasta # line 3
-	# ./CP009999.1.fasta ./NZ_CP009999.1.fasta # line 4
-	# I need to make an array with KEY only names. KEY will be \$1 field. Give priority to RefSeq entries NZ and NC. First line:
-	# nonRedundantSample[\$1]
-	# But then if second line has \$1 OR \$2 that is already in the array, then move to the next line and DON'T append anything to the array.
-	# The final array in this example should only contain two names: NZ_CP009712.1.fasta AND NZ_CP009999.1.fasta.
-	# Output only redundant entries so we can exclude them.
 
-
+	# first step: Ignore identical pairs, find samples with 100% identity and only pick one representative.
 
 	awk '\$3 == 100 && \$1 != \$2 {
-		if (!(seenField[\$1] || seenField[\$2])) {
-			if (\$1 ~ /\\/NZ_/) preferredName = \$1
-			else if (\$2 ~ /\\/NZ_/) preferredName = \$2
-			else if (\$1 ~ /\\/NC_/) preferredName = \$1
-			else if (\$2 ~ /\\/NC_/) preferredName = \$2
-			else preferredName = \$1
 
-				seenField[\$1] = 1
-				seenField[\$2] = 1
-        			nonRedundant[preferredName] = 1
-		}
-	}	
+        if(!(\$1 in groups)) {
+                groups[\$1] = \$1
+        }
+
+        if(index(groups[\$1], \$2) == 0) {
+                groups[\$1] = groups[\$1]","\$2
+        }
+
+        if(!(\$2 in groups)) {
+                groups[\$2] = \$2
+        }
+
+        if(index(groups[\$2], \$1) == 0) {
+                groups[\$2] = groups[\$2]","\$1
+        }
+	}
+
 	END {
-		for (sampleId in seenField) {
-			if (!(sampleId in nonRedundant))
-				redundant[sampleId] = 1
-		}
-		for (id in redundant) print id
-	}' fastaniOutput.txt > redundants.txt 
 
-	echo -e "Removing redundant sequences\n"
-	sed -i 's/\\.\\///g' redundants.txt
+        if (length(groups) == 0) {
+        	print "There were no cluster of samples with 100% identity"
+        } else {
+        	for(id in groups) {
+                	print "Initial cluster:" groups[id] "\n"
+                	n = split(groups[id], arr, ",")
+                        	asort(arr)  # sort the array
+                        	normalized = ""
+                        	for(i=1; i<=n; i++) normalized = normalized (i==1?"":",") arr[i]
+                        	unique_groups[normalized] = 1  # store only unique sets
+                	}
+	
+        	for(cluster in unique_groups) {
+                	print "Non-redundant cluster:" cluster
+	
+	
+                	#find if there are any samples that starts with NZ_ or NC_ and print it, if not, print the first one from the cluster.
+                	n = split(cluster, nonRedArr, ",")
+                	rep = nonRedArr[1]
+	
+                	for(i=1;i<=n;i++) {
+                        	if(nonRedArr[i] ~ /^NZ_/ || nonRedArr[i] ~ /^NC_/) {
+                                	rep = nonRedArr[i]
+                                	break
+                        	}
+                	}
+        	print "Representative sample for cluster: " rep "\n"
+        	}
+    	}
+	}' fastaniOutput.txt > remove_redundancy_summary.txt
 
-	while read -r ID; do
-		rm "\${ID}" "\${ID%.fasta}.gb" 
-	done < redundants.txt 
 
+	if grep -q "There were no cluster of samples with 100% identity" remove_redundancy_summary.txt; then
+        	echo "There were no clusters of samples with 100% identity"
+	else
+        	grep "Non-redundant cluster" remove_redundancy_summary.txt | awk -F"," '{
+        	# Remove prefix from first field
+        	gsub(/^Non-redundant cluster:/, "", $1)
+        	# Print all fields
+        	for(i=1;i<=NF;i++) print $i
+        	}' | sed 's|^\./||' > samples_from_cluster.txt
+	
+        	grep "Representative sample for cluster" remove_redundancy_summary.txt | awk '{print $NF}' | sed 's|^\./||' > to_keep.txt
+        	grep -Fv -f to_keep.txt samples_from_cluster.txt > redundants.txt    #remove representatives from redundants
+
+			echo -e "Removing redundant sequences\n"
+
+			while read -r ID; do
+				rm "\${ID}" "\${ID%.fasta}.gb" 
+			done < redundants.txt 
+	fi
+	
 	mkdir -p cleaned
 
 	mv *fasta cleaned/
