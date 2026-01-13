@@ -104,12 +104,12 @@ process REMOVE_REDUNDANCY {
 	else
         	grep "Non-redundant cluster" remove_redundancy_summary.txt | awk -F"," '{
         	# Remove prefix from first field
-        	gsub(/^Non-redundant cluster:/, "", $1)
+        	gsub(/^Non-redundant cluster:/, "", \$1)
         	# Print all fields
-        	for(i=1;i<=NF;i++) print $i
+        	for(i=1;i<=NF;i++) print \$i
         	}' | sed 's|^\./||' > samples_from_cluster.txt
 	
-        	grep "Representative sample for cluster" remove_redundancy_summary.txt | awk '{print $NF}' | sed 's|^\./||' > to_keep.txt
+        	grep "Representative sample for cluster" remove_redundancy_summary.txt | awk '{print \$NF}' | sed 's|^\./||' > to_keep.txt
         	grep -Fv -f to_keep.txt samples_from_cluster.txt > redundants.txt    #remove representatives from redundants
 
 			echo -e "Removing redundant sequences\n"
