@@ -129,7 +129,9 @@ process REMOVE_REDUNDANCY {
         mkdir -p ${params.output}/DOWNLOADED
 
         cp -r cleaned/* ${params.output}/DOWNLOADED
+        cp remove_redundancy_summary.txt ${params.output}/DOWNLOADED/remove_redundancy_summary.txt
 
         cat .command.out >> CLUSTERING.log
+        cat remove_redundancy_summary.txt >> CLUSTERING.log
         """
 }
