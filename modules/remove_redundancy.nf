@@ -94,7 +94,7 @@ process REMOVE_REDUNDANCY {
                                         break
                                 }
                         }
-                print "Representative sample for cluster: " rep
+                print "Representative sample for non-redundant cluster: " rep
                 print ""
                 }
         }
