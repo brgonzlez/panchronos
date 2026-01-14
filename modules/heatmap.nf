@@ -20,8 +20,8 @@ process HEATMAP {
 	path 'maskedMatrixGenesOnlyAncient.txt', emit: maskedMatrixGenesOnlyAncient
 	path 'maskedMatrixGenesUbiquitous.txt', emit: maskedMatrixGenesUbiquitous
 	path 'maskedMatrixGenesNoUbiquitous.txt', emit: maskedMatrixGenesNoUbiquitous
-	path 'sampleOrdernoUbiquitous.txt', emit: sampleOrdernoUbiquitous 
-	path 'sampleOrderonlyAncient.txt', emit: sampleOrderonlyAncient
+	path 'sampleOrdernoUbiquitous*.txt', emit: sampleOrdernoUbiquitous 
+	path 'sampleOrderonlyAncient*.txt', emit: sampleOrderonlyAncient
 	path 'genesAbovePercentSeries.txt', emit: genesAbovePercentSeries
 	path 'blackListedQualityChecked.txt', emit: blackListed
 	path '*_presence_absence_genes.index' , emit: genesIndex
