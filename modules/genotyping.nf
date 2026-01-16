@@ -11,6 +11,7 @@ process GENOTYPING {
         val parallel
         tuple val(mapq) , val(baseq) , val(call_qual)
         val extension
+		val force_homozygot
 
         output:
         path 'extractedSequences*.fasta', emit: consensusSequences
@@ -28,8 +29,14 @@ process GENOTYPING {
 
                 bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
                 bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}"_raw.vcf
-                bcftools filter -i 'QUAL>$call_qual' "\${basename}"_raw.vcf > "\${basename}".vcf
-                bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
+
+                if [[ $force_homozygot -eq 1 ]]; then
+                        bcftools filter -i 'QUAL>$call_qual && ((DP4[2]+DP4[3]==0) || (DP4[0]+DP4[1]==0))' "\${basename}"_raw.vcf > "\${basename}".vcf
+                else
+                        bcftools filter -i 'QUAL>$call_qual' "\${basename}"_raw.vcf > "\${basename}".vcf
+                fi
+
+				bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
                 bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
                 seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
