@@ -269,7 +269,7 @@ workflow {
 
         GENOTYPING(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
                            ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality),
-                           params.bedtools_slop)
+                           params.bedtools_slop, params.force_homozygosity)
         extractedSequencesFasta = GENOTYPING.out.consensusSequences
 
 
