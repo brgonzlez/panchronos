@@ -254,12 +254,12 @@ workflow {
 
                 ALIGNMENT(TEST.out.test_data, FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config,
                         tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length,
-                        params.alignment_parallel, params.mapping_quality, params.rescale))
+                        params.alignment_parallel, params.mapping_quality), params.rescale)
         } else {
 
                 ALIGNMENT(params.data, FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, params.config,
                         tuple(params.alignment_threads, params.missing_prob, params.seed, params.gap_fraction, params.min_read_length, params.max_read_length,
-                        params.alignment_parallel, params.mapping_quality, params.rescale))
+                        params.alignment_parallel, params.mapping_quality), params.rescale)
         }
 
         MAPDAMAGE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
