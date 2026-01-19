@@ -110,6 +110,7 @@ def print_help() {
 	 println "  --tree_threads                        <INT>  thread usage for IQ-TREE. WARNING: This value will be x4 as there will be 4 phylogenetic runs in parallel. (Current value: ${params.tree_threads})"
 	 println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
 	 println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
+     println "  --rescale                             <1/0>  rescale aligned reads quality instead of trimming them. 1 to activate, 0 to deactivate. If active, panchronos will not trim reads (Current value: ${params.rescale})"
 	 println "  --version                                    print version and exit"
 	 println "  --help                                       print this page and exit"
 
@@ -179,6 +180,7 @@ println "\033[1;37m[bwa/samtools] Min. read length\033[0m: ${params.min_read_len
 println "\033[1;37m[bwa/samtools] Max. read length\033[0m: ${params.max_read_length}"
 println "\033[1;37m[bwa/samtools] Mapping quality\033[0m: ${params.mapping_quality}"
 println "\033[1;37m[bwa/samtools] Parallel\033[0m: ${params.alignment_parallel}"
+println "\033[1;37m[bwa/samtools] mapDamage rescale\033[0m: ${params.rescale}"
 println "======================="
 println "\033[1;31mGenotyping\033[0m"
 println "\033[1;37mForce homozygosity: \033[0m: ${params.force_homozygosity}"
