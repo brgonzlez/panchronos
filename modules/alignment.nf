@@ -10,6 +10,7 @@ process ALIGNMENT {
 	path panRef
 	path configFile
 	tuple val(threadsGlobal), val(missingProb), val(seedAlignment), val(gapFraction),val(minReadLength),val(maxReadLength),val(parallel), val(quality)
+	val rescale
 
 	output:
 	path '*_aligned.bam', emit: postAlignedBams
@@ -48,7 +49,7 @@ process ALIGNMENT {
 
     		bwa aln -l $seedAlignment -n $missingProb -o $gapFraction -t $threadsGlobal $panRef "\$sample" > "\${name}.sai"
     		bwa samse -r "@RG\\tID:\$rg_id\\tSM:\$rg_sm\\tPL:\$rg_pl\\tLB:\$rg_lb\\tPU:\$rg_pu" \
-		$panRef "\${name}.sai" "\$sample" > "\${name}.sam"
+		    $panRef "\${name}.sai" "\$sample" > "\${name}.sam"
     
     		samtools view -bS "\${name}.sam" > "\${name}.bam"
     		samtools quickcheck "\${name}.bam"
@@ -57,12 +58,23 @@ process ALIGNMENT {
     		rm "\${name}.bam"
     		samtools view -b -@ $threadsGlobal -F 4 "\${name}_sorted.bam" > "\${name}_sorted_mappedreads.bam"
     		samtools index "\${name}_sorted_mappedreads.bam"
-    		bam trimBam "\${name}_sorted_mappedreads.bam" "\${name}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
-    		samtools view -q $quality -o "\${name}_qc.bam" "\${name}_softclipped.bam"
-    		samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
-    		samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
-    		samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
-    		samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
+	
+			if [[ $rescale -eq 1 ]]; then
+				mapDamage --rescale -i "\${name}_sorted_mappedreads.bam" -r $panRef 
+				mv results_"\${name}_sorted_mappedreads"/*.rescaled.bam ./"\${name}_softclipped.bam"
+				samtools view -q $quality -o "\${name}_qc.bam" "\${name}_softclipped.bam"
+    			samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
+    			samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
+    			samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
+    			samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
+			else
+				bam trimBam "\${name}_sorted_mappedreads.bam" "\${name}_softclipped.bam" -L "\$softClip" -R "\$softClip" --clip
+    			samtools view -q $quality -o "\${name}_qc.bam" "\${name}_softclipped.bam"
+    			samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
+    			samtools sort -o "\${name}_aligned.bam" -O bam -@ $threadsGlobal "\${name}_lg.bam"
+    			samtools coverage "\${name}_aligned.bam" > "\${name}_genomicsMetrics.txt"
+    			samtools fastq -@ $threadsGlobal "\${name}_aligned.bam" > "\${name}_final.fastq"
+			fi
 	}
 	export -f align
 
