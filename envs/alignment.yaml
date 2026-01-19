@@ -6,6 +6,7 @@ channels:
 dependencies:
 - libgcc-ng
 - bwa
-- samtools=1.19
+- samtools=1.23
 - bamutil=1.0.15
 - picard
+- mapdamage
