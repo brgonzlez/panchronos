@@ -27,7 +27,31 @@ process GENOTYPING {
         bam_file=\$1
         basename=\$(basename "\${bam_file%.bam}")
 
-                bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
+				# flow contrl because mpileup seems to regularly produce corrupted files if server is too busy
+				max_attempts=5
+				attempt=1
+			
+				while [ "\$attempt" -le "\$max_attempts" ]; do
+
+     				bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
+	
+     				if awk '!/^#/ && \$4 != "N" {found=1; exit} END {exit !found}' "\${basename}"_mpileup_file; then
+	        			echo -e "mpileup file for \$basename looks fine. Moving on"
+        				break
+    				else
+	        			echo -e "mpileup has 1 or more N for \$basename. Looks corrupted. Retrying . . ."
+        				rm -rf "\${basename}"_mpileup_file
+    				fi
+	
+    				((attempt++))
+				done
+	
+	
+				if (( attempt > max_attempts )); then
+	    			echo "ERROR: mpileup failed after \${max_attempts} attempts" >&2
+    				exit 1
+				fi
+
                 bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}"_raw.vcf
 
                 if [[ $force_homozygot -eq 1 ]]; then
