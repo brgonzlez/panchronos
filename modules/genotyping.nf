@@ -13,6 +13,9 @@ process GENOTYPING {
         val extension
         val force_homozygot
         val allelic_site
+        path refLength
+        path rawCoverage
+       
 
         output:
         path 'extractedSequences*.fasta', emit: consensusSequences
@@ -24,6 +27,25 @@ process GENOTYPING {
         #!/bin/bash
 
         mkdir -p ${params.output}/GENOTYPING
+
+        #lets get global mean first
+
+
+        global_mean_depth() {
+        file=\$1
+        name=\$(basename "\${file%_rawCoverage.txt}")
+
+                refCount=\$(cat $refLength)
+                globalMean=\$(awk -v count="\$refCount" '{sum += \$3} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
+                finalCount=\$(awk '\$3 > 0{fcount++} END {print fcount}' "\$file")
+                echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
+
+        }
+        export -f global_mean_depth
+        find ./ -name "*_rawCoverage.txt" | parallel -j $parallel global_mean_depth
+
+
+
         bcfconsensus() {
         bam_file=\$1
         basename=\$(basename "\${bam_file%.bam}")
