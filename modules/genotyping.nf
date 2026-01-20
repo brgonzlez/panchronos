@@ -11,12 +11,13 @@ process GENOTYPING {
         val parallel
         tuple val(mapq) , val(baseq) , val(call_qual)
         val extension
-		val force_homozygot
+        val force_homozygot
+        val allelic_site
 
         output:
         path 'extractedSequences*.fasta', emit: consensusSequences
-		path '*_per_site.txt', emit: per_site
-		path '*_per_gene_and_global.txt', emit: per_gene_and_global
+        path '*_per_site.txt', emit: per_site
+        path '*_per_gene_and_global.txt', emit: per_gene_and_global
 
         script:
         """
@@ -27,30 +28,29 @@ process GENOTYPING {
         bam_file=\$1
         basename=\$(basename "\${bam_file%.bam}")
 
-				# flow contrl because mpileup seems to regularly produce corrupted files if server is too busy
-				max_attempts=5
-				attempt=1
-			
-				while [ "\$attempt" -le "\$max_attempts" ]; do
+                # flow contrl because mpileup seems to regularly produce corrupted files if server is too busy
+                max_attempts=5
+                attempt=1
 
-     				bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
-	
-     				if awk '!/^#/ && \$4 != "N" {found=1; exit} END {exit !found}' "\${basename}"_mpileup_file; then
-	        			echo -e "mpileup file for \$basename looks fine. Moving on"
-        				break
-    				else
-	        			echo -e "mpileup has 1 or more N for \$basename. Looks corrupted. Retrying . . ."
-        				rm -rf "\${basename}"_mpileup_file
-    				fi
-	
-    				((attempt++))
-				done
-	
-	
-				if (( attempt > max_attempts )); then
-	    			echo "ERROR: mpileup failed after \${max_attempts} attempts" >&2
-    				exit 1
-				fi
+                while [ "\$attempt" -le "\$max_attempts" ]; do
+                        bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${basename}"_mpileup_file
+
+                        if awk '!/^#/ && \$4 != "N" {found=1; exit} END {exit !found}' "\${basename}"_mpileup_file; then
+                                echo -e "mpileup file for \$basename looks fine. Moving on"
+                                break
+                        else
+                                echo -e "mpileup has 1 or more N for \$basename. Looks corrupted. Retrying . . ."
+                                rm -rf "\${basename}"_mpileup_file
+                        fi
+
+                                ((attempt++))
+                done
+
+
+                                if (( attempt > max_attempts )); then
+                                echo "ERROR: mpileup failed after \${max_attempts} attempts" >&2
+                                exit 1
+                                fi
 
                 bcftools call --ploidy 1 -m "\${basename}"_mpileup_file > "\${basename}"_raw.vcf
 
@@ -60,7 +60,122 @@ process GENOTYPING {
                         bcftools filter -i 'QUAL>$call_qual' "\${basename}"_raw.vcf > "\${basename}".vcf
                 fi
 
-				bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
+
+                #Calculate genome-wide heterozygosity per sample as a measure of contamination, called heteroplasmy analysis
+                #remove intermediate files
+                rm *_raw.vcf
+
+                # first I need to process the VCF file and only get the fields of interest. I need to include the pos field to remove extended sequences.
+
+                awk -F";" 'BEGIN {OFS="\t"} !/^#/ {print \$0}' "\${basename}".vcf | sed -e 's/;/\t/g' -e 's/DP4=//g' | awk '{print \$1, \$2, \$(NF-3)}' | sed -e 's/,/\t/g' -e 's/ /\\t/g' > "\$basename"_vcf_first_filter
+
+                #note to myself. condition ? value_if_true : value_if_false
+
+                awk -v to_trim=$extension '
+                {
+                gene = \$1
+                pos  = \$2
+                maxpos[gene] = (pos > maxpos[gene] ? pos : maxpos[gene])
+                lines[NR] = \$0
+                genes[NR] = gene
+                poss[NR]  = pos
+                }
+                END {
+                for (i = 1; i <= NR; i++) {
+                        g = genes[i]
+                        p = poss[i]
+                        if (p > to_trim && p <= maxpos[g] - to_trim) {
+                        print lines[i]
+                        }
+                }
+                }
+                ' "\$basename"_vcf_first_filter > "\$basename"_vcf_first_filter_no_extd
+
+
+                #Now we can run the AWK script to calculate genome-wide heteroplasmy.
+
+
+                awk 'BEGIN{OFS="\t"}
+                {
+                #per site
+                gene = \$1
+                pos = \$2
+                geneList[gene] = 1
+                geneLength[gene] += 1   #simply sum up +1 for every line for that gene
+                RefSite = \$3 + \$4
+                Altsite = \$5 + \$6
+                heteroplasmySite = RefSite - Altsite
+                if (heteroplasmySite < 0) heteroplasmySite = -heteroplasmySite
+                allreadsSite = RefSite + Altsite
+
+                hetSite = (heteroplasmySite / allreadsSite) * 100
+                print gene, pos, hetSite
+
+                #per gene
+                geneCumulativePersite[gene] = geneCumulativePersite[gene] + hetSite
+
+                #global, sum up everything
+                globalHetsites +=  hetSite
+                }
+
+                END {
+
+                globalHet = (globalHetsites/NR)
+                print "Global heteroplasmy:", globalHet
+
+                #per gene
+                for(gene in geneList) {
+
+                        geneHet[gene] = geneCumulativePersite[gene]/geneLength[gene]
+
+                        print gene, geneHet[gene]
+
+                }
+                }' "\$basename"_vcf_first_filter_no_extd > "\${basename}"_heteroplasmy_per_sample
+
+                awk -v sampleName="\$basename" '
+                /Global heteroplasmy:/ {
+                out = sampleName "_per_gene_and_global.txt"
+                }
+                {
+                print > out
+                }
+                BEGIN {
+                out = sampleName "_per_site.txt"
+                }
+                ' "\${basename}"_heteroplasmy_per_sample
+
+
+                #now apply per site allelic balance threshold on vcf file.
+                awk -v allelic_cutoff=$allelic_site 'BEGIN {OFS="\t"} \$3 < allelic_cutoff { print \$1, \$2 }' "\${basename}"_per_site.txt > "\${basename}"_sites_to_exclude
+
+
+                awk 'BEGIN{
+                    OFS="\t"
+                    # Read sites to exclude into an array
+                    while ( (getline < "'\${basename}_sites_to_exclude'") > 0 ) {
+                        sites[\$1","\$2] = 1
+                    }
+                }
+                # Print headers as is
+                /^#/ { print; next }
+
+                # Trim whitespace from first two columns
+                {
+                    g = \$1
+                    p = \$2
+                    gsub(/^[ \\t]+|[ \\t]+\$/, "", g)
+                    gsub(/^[ \\t]+|[ \\t]+\$/, "", p)
+                }
+
+                # Skip if site is in exclusion list
+                !(g","p in sites) { print }
+                ' "\${basename}.vcf" > "\${basename}.filtered.vcf" && mv "\${basename}.filtered.vcf" ./"\${basename}.vcf"
+
+
+
+
+                bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
                 bcftools index "\${basename}".vcf.gz
                 bcftools consensus -a N -f $panGenomeRef "\${basename}".vcf.gz > extractedSequences"\${basename}".fq
                 seqtk seq -a extractedSequences"\${basename}".fq > extractedSequences"\${basename}".fasta
@@ -108,101 +223,6 @@ process GENOTYPING {
         }
         export -f bcfconsensus
         find ./ -name "*.bam" | parallel -j $parallel bcfconsensus
-
-        #Calculate genome-wide heterozygosity per sample as a measure of contamination, called heteroplasmy analysis
-
-        #remove intermediate files
-        rm *_raw.vcf
-
-        heteroplasmy() {
-        file=\$1
-        name=\$(basename "\${file%.vcf}")
-
-        # first I need to process the VCF file and only get the fields of interest. I need to include the pos field to remove extended sequences.
-
-         awk -F";" 'BEGIN {OFS="\t"} !/^#/ {print \$0}' "\$file" | sed -e 's/;/\t/g' -e 's/DP4=//g' | awk '{print \$1, \$2, \$(NF-3)}' | sed -e 's/,/\t/g' -e 's/ /\\t/g' > "\$name"_vcf_first_filter
-
-        #note to myself. condition ? value_if_true : value_if_false
-
-        awk -v to_trim=$extension '
-        {
-            gene = \$1
-            pos  = \$2
-            maxpos[gene] = (pos > maxpos[gene] ? pos : maxpos[gene])
-            lines[NR] = \$0
-            genes[NR] = gene
-            poss[NR]  = pos
-        }
-        END {
-            for (i = 1; i <= NR; i++) {
-                g = genes[i]
-                p = poss[i]
-                if (p > to_trim && p <= maxpos[g] - to_trim) {
-                    print lines[i]
-                }
-            }
-        }
-        ' "\$name"_vcf_first_filter > "\$name"_vcf_first_filter_no_extd
-
-
-        #Now we can run the AWK script to calculate genome-wide heteroplasmy.
-
-
-        awk 'BEGIN{OFS="\t"}
-        {
-            #per site
-            gene = \$1
-            pos = \$2
-            geneList[gene] = 1
-            geneLength[gene] += 1   #simply sum up +1 for every line for that gene
-            RefSite = \$3 + \$4
-            Altsite = \$5 + \$6
-            heteroplasmySite = RefSite - Altsite
-            if (heteroplasmySite < 0) heteroplasmySite = -heteroplasmySite
-            allreadsSite = RefSite + Altsite
-
-            hetSite = (heteroplasmySite / allreadsSite) * 100
-            print gene, pos, hetSite
-
-            #per gene
-            geneCumulativePersite[gene] = geneCumulativePersite[gene] + hetSite
-
-            #global, sum up everything
-            globalHetsites +=  hetSite
-        }
-
-        END {
-
-            globalHet = (globalHetsites/NR)
-            print "Global heteroplasmy:", globalHet
-
-            #per gene
-            for(gene in geneList) {
-
-                geneHet[gene] = geneCumulativePersite[gene]/geneLength[gene]
-
-                print gene, geneHet[gene]
-
-            }
-        }' "\$name"_vcf_first_filter_no_extd > "\${name}"_heteroplasmy_per_sample
-
-        awk -v sampleName="\$name" '
-        /Global heteroplasmy:/ {
-            out = sampleName "_per_gene_and_global.txt"
-        }
-        {
-            print > out
-        }
-        BEGIN {
-            out = sampleName "_per_site.txt"
-        }
-        ' "\${name}"_heteroplasmy_per_sample
-
-        }
-        export -f heteroplasmy
-        find ./ -name "*vcf" | parallel -j $parallel heteroplasmy
-
-
 
         cp extractedSequences* ${params.output}/GENOTYPING
         cp *.vcf.gz* ${params.output}/GENOTYPING
