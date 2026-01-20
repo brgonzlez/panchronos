@@ -13,7 +13,7 @@ process COVERAGE_BOUNDS {
         val gene_allelic_balance
 
         output:
-        path 'geneNormalizedUpdatedFiltered.tab', emit: geneNormalizedUpdatedFiltered
+        path 'panchronos_normalisation_summary_filtered.tab', emit: geneNormalizedUpdatedFiltered
 
         script:
         """
@@ -22,8 +22,8 @@ process COVERAGE_BOUNDS {
         awk -v DownBound=$normalizedCoverageDown '\$3 > DownBound {print \$0}' TMP1 > TMP2
         awk -v completenessBound=$completenessBound '\$NF> completenessBound {print \$0}' TMP2 > TMP3
         awk -v alblnc=$gene_allelic_balance '\$7 > alblnc { print \$0}' TMP3 > TMP4
-        cat header TMP4 > geneNormalizedUpdatedFiltered.tab
+        cat header TMP4 > panchronos_normalisation_summary_filtered.tab
 
-        cp geneNormalizedUpdatedFiltered.tab ${params.output}/STATS/panchronos_normalisation_summary_filtered.tab
+        cp panchronos_normalisation_summary_filtered.tab ${params.output}/STATS/panchronos_normalisation_summary_filtered.tab
         """
 }
