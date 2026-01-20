@@ -111,6 +111,8 @@ def print_help() {
      println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
      println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
      println "  --rescale                             <1/0>  rescale aligned reads quality instead of trimming them. 1 to activate, 0 to deactivate. If active, panchronos will not trim reads (Current value: ${params.rescale})"
+     println "  --min_gene_allelic_balance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per gene per sample. If less than, gene is removed (Current value: ${params.min_gene_allelic_balance})"
+     println "  --min_site_allelic_balance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per site. If less than, site is masked (Current value: ${params.min_site_allelic_balance})"
      println "  --version                                    print version and exit"
      println "  --help                                       print this page and exit"
 
@@ -138,6 +140,8 @@ println "\033[1;31mBASIC OPTIONS\033[0m"
 println "\033[1;37mData\033[0m: ${params.data}"
 println "\033[1;37mOutput\033[0m: ${params.output}"
 println "\033[1;37mGene completeness\033[0m: ${params.gene_completeness}"
+println "\033[1;37mMin. gene allelic balance\033[0m: ${params.min_gene_allelic_balance}"
+println "\033[1;37mMin. site allelic balance\033[0m: ${params.min_site_allelic_balance}"
 println "\033[1;37mGenomes to download\033[0m: ${params.genomes}"
 println "\033[1;37mConfig\033[0m: ${params.config}"
 println "\033[1;37mParallel\033[0m: ${params.parallel}"
@@ -276,7 +280,7 @@ workflow {
 
         UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
 
-        COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness, params.min_allelic_balance)
+        COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness, params.min_gene_allelic_balance)
 
         PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
                                                                 params.normalised_coverage_boundary_plot)
