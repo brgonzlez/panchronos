@@ -1,10 +1,10 @@
 #!/usr/bin/env nextflow
 
 /*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-This is the main document. To modify CPU usage and parameters fine tuning please go to nextflow.config. 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+This is the main document. To modify CPU usage and parameters fine tuning please go to nextflow.config.
 Do not modify anything here unless you know what you are doing.
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
 
@@ -50,76 +50,76 @@ include { TEST } from './modules/test.nf'
 
 
 /*
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Print pipeline metadata: Version and Help
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-	
-def print_help() {
-	 println "\n\033[1;31mSYNOPSIS\033[0m"	
 
-	 println "\n\033[1;33mUSAGE\033[0m"
-	 println "\nnextflow run main.nf --data <PATH> --output <PATH> --tax_id <INT> --config <PATH/FILE> [..OPTIONS..]"
-	 
-	 println "\n\033[1;33mMANDATORY\033[0m"
-	 println "  --data                               <PATH>  data directory (fastq, fastq.gz)"
-	 println "  --output                             <PATH>  output directory"
-	 println "  --tax_id                              <INT>  taxonomical ID value"
-	 println "  --outgroup_tax_id                     <INT>  outgroup taxonomical ID value"
-	 println "  --config                        <PATH/FILE>  config file PATH"
-	 
-	 println "\n\033[1;33mOPTIONS\033[0m"
-	 println "  --gene_completeness             <INT/FLOAT>  gene completeness/breadth of coverage threshold (Current value: ${params.gene_completeness})"
-	 println "  --upper_coverage_bound                <INT>  maximum normalised coverage threshold (Current value: ${params.upper_coverage_bound})"
-	 println "  --lower_coverage_bound                <INT>  mininum normalised coverage threshold (Current value: ${params.lower_coverage_bound})"
-	 println "  --parallel                            <INT>  global parallel computing value (Current value: ${params.parallel})"
-	 println "  --trusted_data                        <INT>  user curated input data PATH (*FASTA,*gb)"
-	 println "  --genomes                             <INT>  number of genomes to download (Current value: ${params.genomes})"
-	 println "  --get_data_parallel                   <INT>  number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: ${params.get_data_parallel})"
-	 println "  --remove_redundancy_parallel          <INT>  parallel computing value for remove_redundancy.nf module [single core] (Current value: ${params.remove_redundancy_parallel})"
-	 println "  --fastANI_threads                     <INT>  thread usage for fastANI (Current value: ${params.fastANI_threads})"
-	 println "  --gene_identity_clustering            <INT>  gene clustering threshold for CD-HIT (Current value: ${params.gene_identity_clustering})"
-	 println "  --cd_hit_threads                      <INT>  thread usage for CD-HIT (Current value: ${params.cd_hit_threads})"
-	 println "  --prokka_annotate_parallel            <INT>  parallel computing value for gene annotation [multi core] (Current value: ${params.prokka_annotate_parallel})"
-	 println "  --prokka_annotate_threads             <INT>  thread usage for prokka (Current value: ${params.prokka_annotate_threads})"
-	 println "  --pangenome_identity_threshold        <INT>  gene clustering threshold for Panaroo (Current value: ${params.pangenome_identity_threshold})"
-	 println "  --panaroo_pangenome_mode           <STRING>  Panaroo pangenone mode [strict,moderate,sensitive] (Current value: ${params.panaroo_pangenome_mode})"
-	 println "  --panaroo_pangenome_threads           <INT>  thread usage for Panaroo pangenome building (Current value: ${params.panaroo_pangenome_threads})"
-	 println "  --panaroo_alignment_type           <STRING>  Panaroo gene alignment mode [core,pan] (Current value: ${params.panaroo_alignment_type})"
-	 println "  --outgroup_alignment_threads          <INT>  thread usage for outgroup alignment (Current value: ${params.outgroup_alignment_threads})"
-	 println "  --alignment_threads                   <INT>  thread usage for alignment (Current value: ${params.alignment_threads})"
-	 println "  --alignment_parallel                  <INT>  parallel computing value for alignment [multi core] (Current value: ${params.alignment_parallel})"
-	 println "  --missing_prob                  <INT/FLOAT>  missing prob value for [bwa aln] (Current value: ${params.missing_prob})"
-	 println "  --gap_fraction                  <INT/FLOAT>  maximum number or fraction of gap opens [bwa aln] (Current value: ${params.gap_fraction})"
-	 println "  --seed                          <INT/FLOAT>  seed length [bwa aln] (Current value: ${params.seed})"
-	 println "  --min_read_length                     <INT>  minimum read lenght cutoff after alignment (Current value: ${params.min_read_length})"
-	 println "  --max_read_length                     <INT>  maximum read length cutoff after alignment (Current value: ${params.max_read_length})"
-	 println "  --mapping_quality                     <INT>  minimum mapping quality cutoff after alignment (Current value: ${params.mapping_quality})"
-	 println "  --update_normalization_parallel       <INT>  parallel computing value for update_normalization.nf module [single core] (Current value: ${params.update_normalization_parallel})"
-	 println "  --bedtools_slop                       <INT>  extending sequences value (bp) (Current value: ${params.bedtools_slop})"    
-	 println "  --extend_sequences_parallel           <INT>  parallel computing value for extend_sequences.nf module [single core] (Current value: ${params.extend_sequences_parallel})"
-	 println "  --mapdamage_parallel                  <INT>  parallel computing value for mapDamage (Current value: ${params.mapdamage_parallel})"
-	 println "  --realign_parallel                    <INT>  parallel computing value for realign.nf module [multi core] (Current value: ${params.realign_parallel})"
-	 println "  --mafft_threads                       <INT>  thread usage for mafft (Current value: ${params.mafft_threads})"
-	 println "  --bcftools_map_quality                <INT>  minimum mapping quality after genotyping (Current value: ${params.bcftools_map_quality})"
-	 println "  --bcftools_base_quality               <INT>  minimum base quality after genotyping (Current value: ${params.bcftools_base_quality})"
-	 println "  --variant_call_quality                <INT>  minimum variant call quality for genotyping (Current value: ${params.variant_call_quality})"
-	 println "  --force_homozigosity                  <1/0>  exclude any site having both ALT and REF alleles. Set 1 to activate it (Current value: ${params.force_homozygosity})"
-	 println "  --filter_gene_alignments_parallel     <INT>  parallel computing thread usage for filter_gene_alignment.nf module [single core] (Current value: ${params.filter_gene_alignments_parallel})"
-	 println "  --tree_threads                        <INT>  thread usage for IQ-TREE. WARNING: This value will be x4 as there will be 4 phylogenetic runs in parallel. (Current value: ${params.tree_threads})"
-	 println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
-	 println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
+def print_help() {
+     println "\n\033[1;31mSYNOPSIS\033[0m"
+
+     println "\n\033[1;33mUSAGE\033[0m"
+     println "\nnextflow run main.nf --data <PATH> --output <PATH> --tax_id <INT> --config <PATH/FILE> [..OPTIONS..]"
+
+     println "\n\033[1;33mMANDATORY\033[0m"
+     println "  --data                               <PATH>  data directory (fastq, fastq.gz)"
+     println "  --output                             <PATH>  output directory"
+     println "  --tax_id                              <INT>  taxonomical ID value"
+     println "  --outgroup_tax_id                     <INT>  outgroup taxonomical ID value"
+     println "  --config                        <PATH/FILE>  config file PATH"
+
+     println "\n\033[1;33mOPTIONS\033[0m"
+     println "  --gene_completeness             <INT/FLOAT>  gene completeness/breadth of coverage threshold (Current value: ${params.gene_completeness})"
+     println "  --upper_coverage_bound                <INT>  maximum normalised coverage threshold (Current value: ${params.upper_coverage_bound})"
+     println "  --lower_coverage_bound                <INT>  mininum normalised coverage threshold (Current value: ${params.lower_coverage_bound})"
+     println "  --parallel                            <INT>  global parallel computing value (Current value: ${params.parallel})"
+     println "  --trusted_data                        <INT>  user curated input data PATH (*FASTA,*gb)"
+     println "  --genomes                             <INT>  number of genomes to download (Current value: ${params.genomes})"
+     println "  --get_data_parallel                   <INT>  number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: ${params.get_data_parallel})"
+     println "  --remove_redundancy_parallel          <INT>  parallel computing value for remove_redundancy.nf module [single core] (Current value: ${params.remove_redundancy_parallel})"
+     println "  --fastANI_threads                     <INT>  thread usage for fastANI (Current value: ${params.fastANI_threads})"
+     println "  --gene_identity_clustering            <INT>  gene clustering threshold for CD-HIT (Current value: ${params.gene_identity_clustering})"
+     println "  --cd_hit_threads                      <INT>  thread usage for CD-HIT (Current value: ${params.cd_hit_threads})"
+     println "  --prokka_annotate_parallel            <INT>  parallel computing value for gene annotation [multi core] (Current value: ${params.prokka_annotate_parallel})"
+     println "  --prokka_annotate_threads             <INT>  thread usage for prokka (Current value: ${params.prokka_annotate_threads})"
+     println "  --pangenome_identity_threshold        <INT>  gene clustering threshold for Panaroo (Current value: ${params.pangenome_identity_threshold})"
+     println "  --panaroo_pangenome_mode           <STRING>  Panaroo pangenone mode [strict,moderate,sensitive] (Current value: ${params.panaroo_pangenome_mode})"
+     println "  --panaroo_pangenome_threads           <INT>  thread usage for Panaroo pangenome building (Current value: ${params.panaroo_pangenome_threads})"
+     println "  --panaroo_alignment_type           <STRING>  Panaroo gene alignment mode [core,pan] (Current value: ${params.panaroo_alignment_type})"
+     println "  --outgroup_alignment_threads          <INT>  thread usage for outgroup alignment (Current value: ${params.outgroup_alignment_threads})"
+     println "  --alignment_threads                   <INT>  thread usage for alignment (Current value: ${params.alignment_threads})"
+     println "  --alignment_parallel                  <INT>  parallel computing value for alignment [multi core] (Current value: ${params.alignment_parallel})"
+     println "  --missing_prob                  <INT/FLOAT>  missing prob value for [bwa aln] (Current value: ${params.missing_prob})"
+     println "  --gap_fraction                  <INT/FLOAT>  maximum number or fraction of gap opens [bwa aln] (Current value: ${params.gap_fraction})"
+     println "  --seed                          <INT/FLOAT>  seed length [bwa aln] (Current value: ${params.seed})"
+     println "  --min_read_length                     <INT>  minimum read lenght cutoff after alignment (Current value: ${params.min_read_length})"
+     println "  --max_read_length                     <INT>  maximum read length cutoff after alignment (Current value: ${params.max_read_length})"
+     println "  --mapping_quality                     <INT>  minimum mapping quality cutoff after alignment (Current value: ${params.mapping_quality})"
+     println "  --update_normalization_parallel       <INT>  parallel computing value for update_normalization.nf module [single core] (Current value: ${params.update_normalization_parallel})"
+     println "  --bedtools_slop                       <INT>  extending sequences value (bp) (Current value: ${params.bedtools_slop})"
+     println "  --extend_sequences_parallel           <INT>  parallel computing value for extend_sequences.nf module [single core] (Current value: ${params.extend_sequences_parallel})"
+     println "  --mapdamage_parallel                  <INT>  parallel computing value for mapDamage (Current value: ${params.mapdamage_parallel})"
+     println "  --realign_parallel                    <INT>  parallel computing value for realign.nf module [multi core] (Current value: ${params.realign_parallel})"
+     println "  --mafft_threads                       <INT>  thread usage for mafft (Current value: ${params.mafft_threads})"
+     println "  --bcftools_map_quality                <INT>  minimum mapping quality after genotyping (Current value: ${params.bcftools_map_quality})"
+     println "  --bcftools_base_quality               <INT>  minimum base quality after genotyping (Current value: ${params.bcftools_base_quality})"
+     println "  --variant_call_quality                <INT>  minimum variant call quality for genotyping (Current value: ${params.variant_call_quality})"
+     println "  --force_homozigosity                  <1/0>  exclude any site having both ALT and REF alleles. Set 1 to activate it (Current value: ${params.force_homozygosity})"
+     println "  --filter_gene_alignments_parallel     <INT>  parallel computing thread usage for filter_gene_alignment.nf module [single core] (Current value: ${params.filter_gene_alignments_parallel})"
+     println "  --tree_threads                        <INT>  thread usage for IQ-TREE. WARNING: This value will be x4 as there will be 4 phylogenetic runs in parallel. (Current value: ${params.tree_threads})"
+     println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
+     println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
      println "  --rescale                             <1/0>  rescale aligned reads quality instead of trimming them. 1 to activate, 0 to deactivate. If active, panchronos will not trim reads (Current value: ${params.rescale})"
-	 println "  --version                                    print version and exit"
-	 println "  --help                                       print this page and exit"
+     println "  --version                                    print version and exit"
+     println "  --help                                       print this page and exit"
 
     exit 0
 }
 
 def version() {
-	println "You are using panchronos version 1.0"
-	exit 0
+    println "You are using panchronos version 1.0"
+    exit 0
 }
 
 if (params.help) {
@@ -127,7 +127,7 @@ if (params.help) {
 }
 
 if (params.version) {
-	version()
+    version()
 }
 
 // Running check in case we messed up something.
@@ -267,16 +267,14 @@ workflow {
 
         ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel, params.bedtools_slop)
 
-        NORMALIZE(EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel)
-
-        UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
-
-
         GENOTYPING(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
-                           ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality),
-                           params.bedtools_slop, params.force_homozygosity)
+                    ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality),
+                    params.bedtools_slop, params.force_homozygosity)
         extractedSequencesFasta = GENOTYPING.out.consensusSequences
 
+        NORMALIZE(EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel, GENOTYPING.out.per_gene_and_global)
+
+        UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
 
         COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
 
