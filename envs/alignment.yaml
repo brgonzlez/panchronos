@@ -9,4 +9,4 @@ dependencies:
 - samtools=1.23
 - bamutil=1.0.15
 - picard
-- mapdamage
+- mapdamage2
