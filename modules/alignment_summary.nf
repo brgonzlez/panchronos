@@ -97,8 +97,6 @@ process ALIGNMENT_SUMMARY {
 
 	cat *_completenessSummary.tab > completenessSummary.tab
 
-	cp completenessSummary.tab ${params.output}/STATS
-
 	cat .command.out >> alignmentSummary.log
 	"""
 }
