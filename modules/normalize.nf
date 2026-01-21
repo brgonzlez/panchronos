@@ -74,12 +74,12 @@ process NORMALIZE {
 
         #global
         while read -r sample value;do
-                grep -w "\$sample" globalMeanCoverage.txt | awk -v avalue="\${value}" '{print \$0, avalue}' >> panchronos_global_statistics.txt
+                 awk -v s="\$sample" -v v="\$value" '\$1 == s { print \$0, v }' globalMeanCoverage.txt >> panchronos_global_statistics.txt
         done < global_allelic_balance_summary.txt
 
         #per gene
         while read -r sample gene value; do
-                grep -w "\$sample" geneNormalizedSummary.txt | awk -v avalue="\$value" '{print \$0, avalue}' >> panchronos_per_gene_statistics.txt
+                awk -v s="\$sample" -v g="\$gene" -v v="\$value" '\$1 == s && \$2 == g { print \$0, v }' geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
         done < per_gene_allelic_balance_summary.txt
 
         cp panchronos_global_statistics.txt ${params.output}/STATS/
