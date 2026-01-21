@@ -1,5 +1,6 @@
 name: extend_sequences
 channels:
+- conda-forge
 - bioconda
 - defaults
 dependencies:
