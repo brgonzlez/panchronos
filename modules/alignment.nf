@@ -60,7 +60,7 @@ process ALIGNMENT {
     		samtools index "\${name}_sorted_mappedreads.bam"
 	
 			if [[ $rescale -eq 1 ]]; then
-				mapDamage --rescale -i "\${name}_sorted_mappedreads.bam" -r $panRef 
+				mapDamage --rescale --merge-reference-sequences -i "\${name}_sorted_mappedreads.bam" -r $panRef 
 				mv results_"\${name}_sorted_mappedreads"/*.rescaled.bam ./"\${name}_softclipped.bam"
 				samtools view -q $quality -o "\${name}_qc.bam" "\${name}_softclipped.bam"
     			samtools view -e 'length(seq)>$minReadLength && length(seq)<$maxReadLength' -O BAM -o "\${name}_lg.bam" "\${name}_qc.bam"
