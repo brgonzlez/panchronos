@@ -128,9 +128,6 @@ process GENOTYPING {
                         print \$1 , \$2
                 }' "\$basename"_vcf_first_filter_by_DP_no_extd >> "\${basename}"_sites_to_exclude
 
-                #debug
-                cp "\${basename}"_sites_to_exclude ./"\${basename}"_sites_to_exclude_TMP
-
 
                 #Now we can run the AWK script to calculate genome-wide heteroplasmy.
                 awk 'BEGIN{OFS="\t"}
@@ -183,26 +180,20 @@ process GENOTYPING {
                 }
                 ' "\${basename}"_heteroplasmy_per_sample
 
-
                 #now apply per site allelic balance threshold on vcf file.
                 awk -v allelic_cutoff=$allelic_site 'BEGIN {OFS="\t"} \$3 < allelic_cutoff { print \$1, \$2 }' "\${basename}"_per_site.txt >> "\${basename}"_sites_to_exclude
 
-                #Now we need to apply a threshdold for DP values based on global mean. DP shouldnt be higher than N times global mean.
-                globalMean=\$(cat "\${basename}"_globalMeanCoverage.txt  | awk '{print \$2}')
-                DP_threshold=\$(awk -v gM="\$globalMean" -v dp=$dp_threshold 'BEGIN{ print gM * dp}')
-
-
                 awk 'BEGIN{
                     OFS="\t"
-                    # Read sites to exclude into an array
+                    #exclude into an array
                     while ( (getline < "'\${basename}_sites_to_exclude'") > 0 ) {
                         sites[\$1","\$2] = 1
                     }
                 }
-                # Print headers as is
+               
                 /^#/ { print; next }
 
-                # Trim whitespace from first two columns
+                #clean columns
                 {
                     g = \$1
                     p = \$2
@@ -210,11 +201,9 @@ process GENOTYPING {
                     gsub(/^[ \\t]+|[ \\t]+\$/, "", p)
                 }
 
-                # Skip if site is in exclusion list
+                #akip if site is in exclusion list
                 !(g","p in sites) { print }
                 ' "\${basename}.vcf" > "\${basename}.filtered.vcf" && mv "\${basename}.filtered.vcf" ./"\${basename}.vcf"
-
-
 
 
                 bgzip -i -c "\${basename}".vcf > "\${basename}".vcf.gz
