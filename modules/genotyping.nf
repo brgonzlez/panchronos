@@ -15,7 +15,7 @@ process GENOTYPING {
         val allelic_site
         path refLength
         path rawCoverage
-       
+        val dp_threshold
 
         output:
         path 'extractedSequences*.fasta', emit: consensusSequences
@@ -37,9 +37,7 @@ process GENOTYPING {
 
                 refCount=\$(cat $refLength)
                 globalMean=\$(awk -v count="\$refCount" '{sum += \$3} END {if (count > 0) print sum / count; else print "Something went wrong, check log file"}' "\$file")
-                finalCount=\$(awk '\$3 > 0{fcount++} END {print fcount}' "\$file")
-                echo -e "\$name\t\$finalCount\t\$refCount\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
-
+                echo -e "\$name\t\$globalMean" > "\${name}"_globalMeanCoverage.txt
         }
         export -f global_mean_depth
         find ./ -name "*_rawCoverage.txt" | parallel -j $parallel global_mean_depth
@@ -87,9 +85,10 @@ process GENOTYPING {
                 #remove intermediate files
                 rm *_raw.vcf
 
+                cp "\${basename}".vcf ./"\${basename}"COPY.vcf
                 # first I need to process the VCF file and only get the fields of interest. I need to include the pos field to remove extended sequences.
 
-                awk -F";" 'BEGIN {OFS="\t"} !/^#/ {print \$0}' "\${basename}".vcf | sed -e 's/;/\t/g' -e 's/DP4=//g' | awk '{print \$1, \$2, \$(NF-3)}' | sed -e 's/,/\t/g' -e 's/ /\\t/g' > "\$basename"_vcf_first_filter
+                awk -F";" 'BEGIN {OFS="\t"} !/^#/ {print \$0}' "\${basename}".vcf | sed -e 's/;/\t/g' -e 's/DP4=//g' -e 's/DP=//g' |  awk '{print \$1,\$2,\$8,\$(NF-3)}' | sed -e 's/,/\t/g' -e 's/ /\t/g' > "\$basename"_vcf_first_filter
 
                 #note to myself. condition ? value_if_true : value_if_false
 
@@ -113,10 +112,27 @@ process GENOTYPING {
                 }
                 ' "\$basename"_vcf_first_filter > "\$basename"_vcf_first_filter_no_extd
 
+                #split file into two: one for heteroplasmy and one for DP analysis
+                awk 'BEGIN {OFS="\t"} {print \$1, \$2, \$3}' "\$basename"_vcf_first_filter_no_extd > "\$basename"_vcf_first_filter_by_DP_no_extd
+                awk 'BEGIN {OFS="\t"} {print \$1, \$2, \$4, \$5, \$6, \$7}' "\$basename"_vcf_first_filter_no_extd > "\$basename"_vcf_first_filter_no_extd_TMP && mv "\$basename"_vcf_first_filter_no_extd_TMP  ./"\$basename"_vcf_first_filter_no_extd
+
+
+                #DP analysis. DP value cannot be bigger than N times global mean, save output to lines to exclude
+
+                gM=\$(awk '{print \$NF}' "\${basename}"_globalMeanCoverage.txt)
+                gfactor=\$(awk -v cutoff=$dp_threshold -v globalMean="\$gM" 'BEGIN {print (cutoff * globalMean)}')
+                echo -e "gM value: \$gM, gfactor value \$gfactor"
+
+                awk -v dp_threshold="\$gfactor" 'BEGIN {OFS="\t"}
+                        \$3 > dp_threshold {
+                        print \$1 , \$2
+                }' "\$basename"_vcf_first_filter_by_DP_no_extd >> "\${basename}"_sites_to_exclude
+
+                #debug
+                cp "\${basename}"_sites_to_exclude ./"\${basename}"_sites_to_exclude_TMP
+
 
                 #Now we can run the AWK script to calculate genome-wide heteroplasmy.
-
-
                 awk 'BEGIN{OFS="\t"}
                 {
                 #per site
@@ -169,7 +185,11 @@ process GENOTYPING {
 
 
                 #now apply per site allelic balance threshold on vcf file.
-                awk -v allelic_cutoff=$allelic_site 'BEGIN {OFS="\t"} \$3 < allelic_cutoff { print \$1, \$2 }' "\${basename}"_per_site.txt > "\${basename}"_sites_to_exclude
+                awk -v allelic_cutoff=$allelic_site 'BEGIN {OFS="\t"} \$3 < allelic_cutoff { print \$1, \$2 }' "\${basename}"_per_site.txt >> "\${basename}"_sites_to_exclude
+
+                #Now we need to apply a threshdold for DP values based on global mean. DP shouldnt be higher than N times global mean.
+                globalMean=\$(cat "\${basename}"_globalMeanCoverage.txt  | awk '{print \$2}')
+                DP_threshold=\$(awk -v gM="\$globalMean" -v dp=$dp_threshold 'BEGIN{ print gM * dp}')
 
 
                 awk 'BEGIN{
