@@ -25,7 +25,7 @@ process MAPDAMAGE {
 	file=\$1
 	name=\$(basename "\${file%_sorted_mappedreads.bam}")
 	
-		mapDamage -i "\${file}" -r $panRef -d mapdamage_"\${name}"
+		mapDamage --merge-reference-sequences -i "\${file}" -r $panRef -d mapdamage_"\${name}"
 	}
 	export -f run_mapdamage
 	find ./* -name "*.bam" | parallel -j $parallel run_mapdamage
