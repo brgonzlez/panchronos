@@ -83,11 +83,9 @@ process GENOTYPING {
 
                 #Calculate genome-wide heterozygosity per sample as a measure of contamination, called heteroplasmy analysis
                 #remove intermediate files
-                rm *_raw.vcf
+                rm "\${basename}"_raw.vcf
 
-                cp "\${basename}".vcf ./"\${basename}"COPY.vcf
                 # first I need to process the VCF file and only get the fields of interest. I need to include the pos field to remove extended sequences.
-
                 awk -F";" 'BEGIN {OFS="\t"} !/^#/ {print \$0}' "\${basename}".vcf | sed -e 's/;/\t/g' -e 's/DP4=//g' -e 's/DP=//g' |  awk '{print \$1,\$2,\$8,\$(NF-3)}' | sed -e 's/,/\t/g' -e 's/ /\t/g' > "\$basename"_vcf_first_filter
 
                 #note to myself. condition ? value_if_true : value_if_false
