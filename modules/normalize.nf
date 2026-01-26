@@ -77,10 +77,36 @@ process NORMALIZE {
                  awk -v s="\$sample" -v v="\$value" '\$1 == s { print \$0, v }' globalMeanCoverage.txt >> panchronos_global_statistics.txt
         done < global_allelic_balance_summary.txt
 
+
         #per gene
-        while read -r sample gene value; do
-                awk -v s="\$sample" -v g="\$gene" -v v="\$value" '\$1 == s && \$2 == g { print \$0, v }' geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
-        done < per_gene_allelic_balance_summary.txt
+        awk '
+
+        function trim_whitespaces(w) {
+                 gsub(/^[[:space:]]+|[[:space:]]+\$/, "", w)
+                 return w
+        }
+
+        BEGIN {OFS="\t"}
+
+        FNR==NR {
+
+                first_pair = trim_whitespaces(\$1) OFS trim_whitespaces(\$2)
+                value_first_pair[first_pair] = trim_whitespaces(\$3)
+                next
+
+         }
+
+         {
+
+                second_pair = trim_whitespaces(\$1) OFS trim_whitespaces(\$2)
+                whole_line = \$0
+                if(second_pair in value_first_pair) {
+
+                        print whole_line, value_first_pair[second_pair]
+
+                }
+
+         }' per_gene_allelic_balance_summary.txt geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
 
         cp panchronos_global_statistics.txt ${params.output}/STATS/
         """
