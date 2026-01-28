@@ -74,7 +74,7 @@ def print_help() {
      println "  --upper_coverage_bound                <INT>  maximum normalised coverage threshold (Current value: ${params.upper_coverage_bound})"
      println "  --lower_coverage_bound                <INT>  mininum normalised coverage threshold (Current value: ${params.lower_coverage_bound})"
      println "  --parallel                            <INT>  global parallel computing value (Current value: ${params.parallel})"
-     println "  --trusted_data                        <INT>  user curated input data PATH (*FASTA,*gb)"
+     println "  --trusted_data                       <PATH>  user curated input data PATH (*FASTA,*gb)"
      println "  --genomes                             <INT>  number of genomes to download (Current value: ${params.genomes})"
      println "  --get_data_parallel                   <INT>  number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: ${params.get_data_parallel})"
      println "  --remove_redundancy_parallel          <INT>  parallel computing value for remove_redundancy.nf module [single core] (Current value: ${params.remove_redundancy_parallel})"
