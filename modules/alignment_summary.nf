@@ -25,7 +25,7 @@ process ALIGNMENT_SUMMARY {
 
 	mkdir -p ${params.output}/STATS
 
-	awk '{print \$NF}' $configFile | uniq > groups.txt
+	awk '{print \$3}' $configFile | uniq > groups.txt
 
 	while read -r groupID; do
 		groupName=\$(echo "\$groupID")
