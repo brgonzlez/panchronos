@@ -42,7 +42,7 @@ process EXTEND_SEQUENCES {
 	
 		activator {
 	
-			if (\$1 == "centroid" && centroid == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
+			if (\$1 == "longCentroidID" && centroid == "" && \$2 ~ /^"[0-9]/ && \$2 !~ /refound/) {  #id has to start with number
 				split(\$2, parts, ";")
 				centroid = parts[1]
 
