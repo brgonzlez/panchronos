@@ -34,7 +34,7 @@ process UPDATE_NORMALIZATION {
                 grep -w "\$name" $normalized > "\$name"_geneNormalizedSummary
                 grep -w "\$name" $completeness > "\$name"_completenessSummary
 
-                awk 'NR>1{print \$1"XYZ"\$2, \$3, \$4, \$5, \$6, \$7}' "\$name"_geneNormalizedSummary > "\$name"_TMP1
+                awk '{print \$1"XYZ"\$2, \$3, \$4, \$5, \$6, \$7}' "\$name"_geneNormalizedSummary > "\$name"_TMP1
 
                 awk '{print \$1"XYZ"\$2, \$3}' "\$name"_completenessSummary > "\$name"_TMP2
 
