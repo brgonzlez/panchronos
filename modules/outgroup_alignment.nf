@@ -24,7 +24,7 @@ process OUTGROUP_ALIGNMENT {
 	samtools view -@ $threads -bS outgroupFasta.sam > outgroupFasta.bam
 	samtools quickcheck outgroupFasta.bam
 	samtools sort -o outgroupFastaSorted.bam -O bam -@ $threads outgroupFasta.bam
-	samtools index outgroupFastaSorted.bam
+	samtools index -@ $threads outgroupFastaSorted.bam
 	samtools view -b -@ $threads -F 4 outgroupFastaSorted.bam > outgroupFastaSortedMappedreads.bam
 	samtools index -@ $threads outgroupFastaSortedMappedreads.bam
 	samtools sort -o outgroup_aligned.bam -O bam -@ $threads outgroupFastaSortedMappedreads.bam
