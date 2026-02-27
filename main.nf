@@ -45,8 +45,13 @@ include { TREE_THRESHOLD } from './modules/tree_threshold.nf'
 include { TREE_CORE } from './modules/tree_core.nf'
 include { TREE_ACCESSORY } from './modules/tree_accessory.nf'
 include { TREE_ANCIENT } from './modules/tree_ancient.nf'
-include { MAPDAMAGE } from './modules/mapdamage.nf'
 include { TEST } from './modules/test.nf'
+include { SYNTHETIC_READS } from './modules/synthetic_reads.nf'
+include { SYNTHETIC_READS_ALIGNMENT } from './modules/synthetic_reads.nf'
+include { SYNTHETIC_READS_GENOTYPING } from './modules/synthetic_reads.nf'
+include { SYNTHETIC_READS_NORMALIZATION } from './modules/synthetic_reads.nf'
+include { SYNTHETIC_READS_UPDATE_NORMALIZATION } from './modules/synthetic_reads.nf'
+include { SYNTHETIC_READS_ALIGNMENT_SUMMARY } from './modules/synthetic_reads.nf'
 
 
 /*
@@ -268,36 +273,84 @@ workflow {
                         params.alignment_parallel, params.mapping_quality), params.rescale)
         }
 
-        MAPDAMAGE(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference}, ALIGNMENT.out.pan_index, ALIGNMENT.out.bam_mapdamage,
-                params.mapdamage_parallel)
-
         ALIGNMENT_SUMMARY(params.config, ALIGNMENT.out.postAlignedBams, params.alignment_parallel, params.bedtools_slop)
 
         GENOTYPING(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
                     ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality),
-                    params.bedtools_slop, params.force_homozygosity, params.min_site_allelic_balance, EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage, params.max_dp_mean_multiplier)
+                    params.bedtools_slop, params.force_homozygosity, params.min_site_allelic_balance, EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage,
+                    params.max_dp_mean_multiplier, params.config)
+
         extractedSequencesFasta = GENOTYPING.out.consensusSequences
 
         NORMALIZE(EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage, params.alignment_parallel, GENOTYPING.out.per_gene_and_global)
 
         UPDATE_NORMALIZATION(NORMALIZE.out.geneNormalizedSummary, ALIGNMENT_SUMMARY.out.completenessSummary, params.update_normalization_parallel)
 
-        COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+        if (params.use_synthetic_reads) {
 
-        PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
-                                                                params.normalised_coverage_boundary_plot)
+                SYNTHETIC_READS(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, params.synthetic_reads_depth, params.synthetic_reads_lenght, params.synthetic_reads_parallel,
+                                UPDATE_NORMALIZATION.out.key_to_synth)
 
-        UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix , NORMALIZE.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered,
-                params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
+                SYNTHETIC_READS_ALIGNMENT(SYNTHETIC_READS.out.synthetic_reads_files, params.synthetic_reads_parallel, params.synthetic_reads_alignment_threads,
+                                          FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference})
 
-        HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
+                SYNTHETIC_READS_ALIGNMENT_SUMMARY(SYNTHETIC_READS_ALIGNMENT.out.synthetic_bam, params.synthetic_reads_parallel, params.bedtools_slop)
+                synthetic_raw_coverage = SYNTHETIC_READS_ALIGNMENT_SUMMARY.out.synthetic_raw_coverage
 
-        UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
+                SYNTHETIC_READS_GENOTYPING(SYNTHETIC_READS_ALIGNMENT.out.synthetic_bam, params.synthetic_reads_parallel, params.bedtools_slop ,
+                                           FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
+                                                tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality), params.force_homozygosity, params.max_dp_mean_multiplier,
+                                                params.min_site_allelic_balance, EXTEND_SEQUENCES.out.pangenome_length, synthetic_raw_coverage)
+
+                synthetic_reads_seqs = SYNTHETIC_READS_GENOTYPING.out.synthetic_reads_sequences
+
+                SYNTHETIC_READS_NORMALIZATION(EXTEND_SEQUENCES.out.pangenome_length, synthetic_raw_coverage, params.synthetic_reads_parallel, SYNTHETIC_READS_GENOTYPING.out.synthetic_per_gene_and_global)
+
+                SYNTHETIC_READS_UPDATE_NORMALIZATION(SYNTHETIC_READS_NORMALIZATION.out.synthetic_reads_gene_normalized_summary, SYNTHETIC_READS_ALIGNMENT_SUMMARY.out.synthetic_completeness_summary,
+                                                        params.synthetic_reads_parallel)
+
+                mixed_gene_normalized_updated = UPDATE_NORMALIZATION.out.geneNormalizedUpdated.mix(SYNTHETIC_READS_UPDATE_NORMALIZATION.out.synthetic_gene_normalized_updated).collect()
+
+                COVERAGE_BOUNDS(mixed_gene_normalized_updated, params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+
+                PLOT_COVERAGE_COMPLETENESS(mixed_gene_normalized_updated, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
+                                           params.normalised_coverage_boundary_plot)
+
+                mixed_global_mean_coverage = NORMALIZE.out.globalMeanCoverage.mix(SYNTHETIC_READS_NORMALIZATION.out.synthetic_reads_global_mean_coverage).collect()
+
+                UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix, mixed_global_mean_coverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered,
+                                params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
+
+                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
+
+                UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
                                                                                 params.normalised_coverage_boundary_plot)
 
+                mixed_sequences = extractedSequencesFasta.mix(synthetic_reads_seqs).collect()
 
-        FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta },
-                        params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel, EXTEND_SEQUENCES.out.final_list_genes, HEATMAP.out.genesIndex)
+                FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, mixed_sequences, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta },
+                        params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel,
+                        EXTEND_SEQUENCES.out.final_list_genes, HEATMAP.out.genesIndex, params.config, mixed_global_mean_coverage)
+
+        } else {
+
+                COVERAGE_BOUNDS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated,  params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+
+                PLOT_COVERAGE_COMPLETENESS(UPDATE_NORMALIZATION.out.geneNormalizedUpdated, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
+                                           params.normalised_coverage_boundary_plot)
+
+                UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix, NORMALIZE.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered,
+                                params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
+
+                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
+
+                UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
+                                                                                params.normalised_coverage_boundary_plot)
+
+                FILTER_GENE_ALIGNMENTS(MAKE_PANGENOME.out.alignedGenesSeqs, extractedSequencesFasta, REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta },
+                        params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel,
+                        EXTEND_SEQUENCES.out.final_list_genes, HEATMAP.out.genesIndex, params.config, UPDATE_NORMALIZATION.out.geneNormalizedUpdated)
+        }
 
         REALIGN_GENE_ALIGNMENTS(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, params.realign_parallel, params.mafft_threads)
 
