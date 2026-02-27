@@ -28,6 +28,7 @@ process NORMALIZE {
         file=\$1
 
                 name=\$(basename "\${file%_rawCoverage.txt}")
+                name="\${name#postPangenomeAlignment_}"
 
                 #Get allelic balance results per sample
                 grep "Global heteroplasmy" "\$name"_per_gene_and_global.txt | awk -v sample="\$name" 'BEGIN {OFS="\t"} {print sample, \$NF}' > "\$name"_global_allelic_balance.txt
