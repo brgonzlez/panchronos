@@ -11,6 +11,7 @@ process UPDATE_NORMALIZATION {
 
         output:
         path 'panchronos_per_gene_statistics_threshold.tab', emit: geneNormalizedUpdated
+        path 'pass_the_key', emit: key_to_synth
 
         script:
         """
@@ -20,6 +21,8 @@ process UPDATE_NORMALIZATION {
 
         echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tallelicBalance\tgeneCompleteness" > panchronos_per_gene_statistics_threshold.tab
         sed -i -e 's/~/_/g' $normalized
+
+        sed -i -e 's/postPangenomeAlignment_//g' $completeness
 
         awk '{print \$1}' $completeness | uniq > samples.txt
 
@@ -59,5 +62,7 @@ process UPDATE_NORMALIZATION {
         rm -f *TMP1 *TMP2
 
         cp panchronos_per_gene_statistics_threshold.tab ${params.output}/STATS/panchronos_per_gene_statistics_threshold.tab
+
+        touch pass_the_key
         """
 }
