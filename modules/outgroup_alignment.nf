@@ -3,32 +3,33 @@
  */
 
 process OUTGROUP_ALIGNMENT {
-	conda "${projectDir}/envs/alignment.yaml"
-	
-	input:
-	path outgroupReads
-	path panGenomeRef
-	val threads
+        conda "${projectDir}/envs/alignment.yaml"
 
-	output:
-	path 'outgroup_aligned.bam', emit: outgroupFastaPostAlignment
+        input:
+        path outgroupReads
+        path panGenomeRef
+        val threads
 
-	script:
-	"""
-	#!/bin/bash
+        output:
+        path 'outgroup_aligned.bam', emit: outgroupFastaPostAlignment
 
-	mkdir -p ${params.output}/ALIGNMENT
+        script:
+        """
+        #!/bin/bash
 
-	bwa index $panGenomeRef
-	bwa mem -B 1 -E 1 $panGenomeRef $outgroupReads -t $threads > outgroupFasta.sam
-	samtools view -@ $threads -bS outgroupFasta.sam > outgroupFasta.bam
-	samtools quickcheck outgroupFasta.bam
-	samtools sort -o outgroupFastaSorted.bam -O bam -@ $threads outgroupFasta.bam
-	samtools index -@ $threads outgroupFastaSorted.bam
-	samtools view -b -@ $threads -F 4 outgroupFastaSorted.bam > outgroupFastaSortedMappedreads.bam
-	samtools index -@ $threads outgroupFastaSortedMappedreads.bam
-	samtools sort -o outgroup_aligned.bam -O bam -@ $threads outgroupFastaSortedMappedreads.bam
+        mkdir -p ${params.output}/ALIGNMENT
 
-	cp outgroup_aligned.bam ${params.output}/ALIGNMENT
-	"""
+        bwa index $panGenomeRef
+        bwa mem -B 1 -E 1 $panGenomeRef $outgroupReads -t $threads > outgroupFasta.sam
+        samtools view -bS outgroupFasta.sam > outgroupFasta.bam
+        samtools quickcheck outgroupFasta.bam
+        samtools sort -o outgroupFastaSorted.bam -O bam -@ $threads outgroupFasta.bam
+        picard MarkDuplicates OPTICAL_DUPLICATE_PIXEL_DISTANCE=100 REMOVE_DUPLICATES=TRUE I=outgroupFastaSorted.bam  O=outgroup_deduped.bam M=outgroup_deduped.stats
+        samtools index outgroup_deduped.bam
+        samtools view -b -@ 10 -F 4 outgroup_deduped.bam > outgroupFastaSortedMappedreads.bam
+        samtools index outgroupFastaSortedMappedreads.bam
+        samtools sort -o outgroup_aligned.bam -O bam -@ $threads outgroupFastaSortedMappedreads.bam
+
+        cp outgroup_aligned.bam ${params.output}/ALIGNMENT
+        """
 }
