@@ -211,6 +211,13 @@ println "\033[1;37m[mafft] Threads\033[0m: ${params.mafft_threads}"
 println "======================="
 println "\033[1;31mPhylogeny\033[0m"
 println "\033[1;37m[iq-tree] Threads\033[0m: ${params.tree_threads}"
+println "======================="
+println "\033[1;31mProcess: synthetic_reads.nf\033[0m"
+println "\033[1;37mUse synthetic reads \033[0m: ${params.use_synthetic_reads}"
+println "\033[1;37mMean depth of coverage for synthetic reads \033[0m: ${params.synthetic_reads_depth}"
+println "\033[1;37mSynthetic reads length\033[0m: ${params.synthetic_reads_length}"
+println "\033[1;37mSynthetic reads alignment threads\033[0m: ${params.synthetic_reads_alignment_threads}"
+println "\033[1;37mSynthetic reads parallel\033[0m: ${params.synthetic_reads_parallel}"
 println "=======================\n"
 
 
@@ -288,7 +295,7 @@ workflow {
 
         if (params.use_synthetic_reads) {
 
-                SYNTHETIC_READS(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, params.synthetic_reads_depth, params.synthetic_reads_lenght, params.synthetic_reads_parallel,
+                SYNTHETIC_READS(REMOVE_REDUNDANCY.out.nonRedundant_files.map { fasta, gb -> fasta }, params.synthetic_reads_depth, params.synthetic_reads_length, params.synthetic_reads_parallel,
                                 UPDATE_NORMALIZATION.out.key_to_synth)
 
                 SYNTHETIC_READS_ALIGNMENT(SYNTHETIC_READS.out.synthetic_reads_files, params.synthetic_reads_parallel, params.synthetic_reads_alignment_threads,
