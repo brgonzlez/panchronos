@@ -119,6 +119,11 @@ def print_help() {
      println "  --min_site_allelic_balance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per site. If less than, site is masked (Current value: ${params.min_site_allelic_balance})"
      println "  --max_dp_mean_multiplier        <INT/FLOAT>  maximal cutoff for per site coverage multiplied by genome-wide depth of coverage (Current value: ${params.max_dp_mean_multiplier})"
      println "  --skip_trees                   <true/false>  if true, pipeline ends before computing phylogenetic trees (Current value: ${params.skip_trees})"
+     println "  --use_synthetic_reads          <true/false>  use synthetic reads to replace panaroo sequences (Current value: ${params.use_synthetic_reads})"
+     println "  --synthetic_reads_depth               <INT>  mean depth of coverage for synthetic reads FASTQ files (Current value: ${params.synthetic_reads_depth})"
+     println "  --synthetic_reads_length              <INT>  synthetic reads length (Current value: ${params.synthetic_reads_length})"
+     println "  --synthetic_reads_alignment_threads   <INT>  thread usage for alignment for synthetic_reads.nf module (Current value: ${params.synthetic_reads_alignment_threads})"
+     println "  --synthetic_reads_parallel            <INT>  parallel computing threads for synthetic_reads.nf module (Current value: ${params.synthetic_reads_parallel})"
      println "  --version                                    print version and exit"
      println "  --help                                       print this page and exit"
 
