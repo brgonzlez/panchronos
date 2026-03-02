@@ -287,19 +287,34 @@ process FILTER_GENE_ALIGNMENTS {
         #add_user_sample_sequences() adds user sample gene sequences into each panaroo msa and replaces gene name with user sample name
         add_user_sample_sequences() {
         fasta_file=\$1
+        modern_switch=\$2
+
+
                 if [[ -e "\$fasta_file" ]]; then
                         name=\$(basename "\${fasta_file%_parsing_panaroo.fasta}")
 
                         while read -r sampleName; do
                                 grep -w -A 1 "\$name" "user_genes/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${fasta_file}"
                         done < userSampleNames.txt
+
+                        if [[ \$modern_switch -eq 1 ]]; then
+
+                                while read -r sampleName; do
+                                        grep -w -A 1 "\$name" "input_modern/\${sampleName}.fasta" | awk -v newHeader="\$sampleName" '/^>/ {sub(/^>.*/, ">" newHeader, \$0)} {print}' >> "\${fasta_file}"
+                                done < modern_group_as_input.txt
+
+                        fi
                 else
                         echo -e "There are no files with .fasta extension in panaroo_parsed/ folder. Stopping the process.\n"
                         exit 1
                 fi
         }
         export -f add_user_sample_sequences
-        find panaroo_parsed/ -name "*.fasta" | parallel -j $parallel add_user_sample_sequences
+        if [[ "\$input_as_modern_activator" -eq 1 ]]; then
+                find panaroo_parsed/ -name "*.fasta" | parallel -j $parallel add_user_sample_sequences {} 1
+        else
+                find panaroo_parsed/ -name "*.fasta" | parallel -j $parallel add_user_sample_sequences {} 0
+        fi
         echo -e "Done"
 
 
@@ -500,8 +515,12 @@ process FILTER_GENE_ALIGNMENTS {
 
                 total_sample_count=\$(wc -l < "\$input_file")
 
-
                 if [[ "\$sample_count" -ne "\$total_sample_count" ]]; then  #if they are equal then keep going. if not skip current file.
+                        echo "Samples from index and MSA do not match"
+                        echo "Samples in msa file"
+                        cat \$msa_file
+                        echo "Samples in index file"
+                        cat \$input_file
                         return
                 fi
 
