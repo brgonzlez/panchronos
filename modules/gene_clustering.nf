@@ -20,8 +20,10 @@ process GENE_CLUSTERING {
 
 	mkdir -p ${params.output}/GENE_DATABASE/
 
-	cd-hit-est -i $fastaDB -o clustered_non_redundant_genes.fasta -c $clustering -T $threads -d 0 -g 1 -M 0
+	awk '/^>/ {keep = (\$0 !~ /hypothetical/)} keep' $fastaDB > clustered_sequences_no_hypotheticals.fasta
 
+	cd-hit-est -i clustered_sequences_no_hypotheticals.fasta -o clustered_non_redundant_genes.fasta -c $clustering -T $threads -d 0 -g 1 -M 0
+	
 	cp clustered_non_redundant_genes.fasta ${params.output}/GENE_DATABASE/
 
 	cat .command.out >> clustering.log
