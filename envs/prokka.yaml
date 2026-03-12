@@ -6,3 +6,4 @@ channels:
 dependencies:
 - parallel=20250222
 - prokka=1.14.6
+- seqkit=2.13.0
