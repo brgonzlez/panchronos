@@ -19,7 +19,10 @@ process ANNOTATE {
 	"""
 	#!/bin/bash
 
-	mv $clusteredSeqsDB ./clusteredSeqsDB.faa
+	mv $clusteredSeqsDB ./tmp_db.fasta
+
+	seqkit translate tmp_db.fasta > clusteredSeqsDB.faa
+	rm tmp_db.fasta
 
 	ls -l *gb | awk 'NR==2{print \$NF}' > first.txt
 	name=\$(cat first.txt | awk -F'/' '{print \$NF}')
