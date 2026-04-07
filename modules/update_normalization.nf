@@ -19,7 +19,7 @@ process UPDATE_NORMALIZATION {
 
         mkdir -p ${params.output}/STATS
 
-        echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tallelicBalance\tgeneCompleteness" > panchronos_per_gene_statistics_threshold.tab
+        echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tallelicDominance\tgeneCompleteness" > panchronos_per_gene_statistics_threshold.tab
         sed -i -e 's/~/_/g' $normalized
 
         sed -i -e 's/postPangenomeAlignment_//g' $completeness
