@@ -21,8 +21,8 @@ process NORMALIZE {
 
         mkdir -p ${params.output}/STATS
 
-        echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tallelicBalance" > panchronos_per_gene_statistics.txt
-        echo -e "sampleID \t sampleCoverage \t refCount \t globalMean \t allelicBalance"  > panchronos_global_statistics.txt
+        echo -e "sampleID\tgene\tnormalizedGeneSimple\tnormalizedGeneScaled\tnormalizedGenomeSimple\tnormalizedGenomeScaled\tallelic" > panchronos_per_gene_statistics.txt
+        echo -e "sampleID \t sampleCoverage \t refCount \t globalMean \t allelicDominance"  > panchronos_global_statistics.txt
 
         normalization() {
         file=\$1
@@ -30,9 +30,9 @@ process NORMALIZE {
                 name=\$(basename "\${file%_rawCoverage.txt}")
                 name="\${name#postPangenomeAlignment_}"
 
-                #Get allelic balance results per sample
-                grep "Global heteroplasmy" "\$name"_per_gene_and_global.txt | awk -v sample="\$name" 'BEGIN {OFS="\t"} {print sample, \$NF}' > "\$name"_global_allelic_balance.txt
-                grep -v "Global heteroplasmy" "\$name"_per_gene_and_global.txt | awk -v sample="\$name" 'BEGIN {OFS="\t"} {print sample, \$0}' > "\$name"_per_gene_allelic_balance.txt
+                #Get allelic dominance results per sample
+                grep "Global heteroplasmy" "\$name"_per_gene_and_global.txt | awk -v sample="\$name" 'BEGIN {OFS="\t"} {print sample, \$NF}' > "\$name"_global_allelic_dominance.txt
+                grep -v "Global heteroplasmy" "\$name"_per_gene_and_global.txt | awk -v sample="\$name" 'BEGIN {OFS="\t"} {print sample, \$0}' > "\$name"_per_gene_allelic_dominance.txt
 
 
                 #Compute global mean coverage
@@ -68,15 +68,15 @@ process NORMALIZE {
         cat *_geneNormalizedSummary.txt > geneNormalizedSummary.txt
         cat *_globalMeanCoverage.txt > globalMeanCoverage.txt
 
-        #update the files with allelic balance results
+        #update the files with allelic  results
 
-        cat *_global_allelic_balance.txt > global_allelic_balance_summary.txt
-        cat *_per_gene_allelic_balance.txt > per_gene_allelic_balance_summary.txt
+        cat *_global_allelic_.txt > global_allelic__summary.txt
+        cat *_per_gene_allelic_.txt > per_gene_allelic__summary.txt
 
         #global
         while read -r sample value;do
                  awk -v s="\$sample" -v v="\$value" '\$1 == s { print \$0, v }' globalMeanCoverage.txt >> panchronos_global_statistics.txt
-        done < global_allelic_balance_summary.txt
+        done < global_allelic__summary.txt
 
 
         #per gene
@@ -107,7 +107,7 @@ process NORMALIZE {
 
                 }
 
-         }' per_gene_allelic_balance_summary.txt geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
+         }' per_gene_allelic__summary.txt geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
 
         cp panchronos_global_statistics.txt ${params.output}/STATS/
         """
