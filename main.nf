@@ -56,7 +56,7 @@ include { SYNTHETIC_READS_ALIGNMENT_SUMMARY } from './modules/synthetic_reads.nf
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Print pipeline metadata: Version and Help
+Print pipeline metadata: Help and Version
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
@@ -78,7 +78,7 @@ def print_help() {
      println "  --gene_completeness             <INT/FLOAT>  gene completeness/breadth of coverage threshold (Current value: ${params.gene_completeness})"
      println "  --upper_coverage_bound                <INT>  maximum normalised coverage threshold (Current value: ${params.upper_coverage_bound})"
      println "  --lower_coverage_bound                <INT>  mininum normalised coverage threshold (Current value: ${params.lower_coverage_bound})"
-     println "  --parallel                            <INT>  global parallel computing value (Current value: ${params.parallel})"
+     println "  --parallel_msa                        <INT>  parallel computing value for MSA building (Current value: ${params.parallel_msa})"
      println "  --trusted_data                       <PATH>  user curated input data PATH (*FASTA,*gb)"
      println "  --genomes                             <INT>  number of genomes to download (Current value: ${params.genomes})"
      println "  --get_data_parallel                   <INT>  number of samples to be downloaded in parallel. Do not use a value bigger than 3. (Current value: ${params.get_data_parallel})"
@@ -116,7 +116,7 @@ def print_help() {
      println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
      println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
      println "  --rescale                             <1/0>  rescale aligned reads quality instead of trimming them. 1 to activate, 0 to deactivate. If active, panchronos will not trim reads (Current value: ${params.rescale})"
-     println "  --min_site_allelic_balance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per site. If less than, site is masked (Current value: ${params.min_site_allelic_balance})"
+     println "  --min_site_allelic_dominance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per site. If less than, site is masked (Current value: ${params.min_site_allelic_dominance})"
      println "  --max_dp_mean_multiplier        <INT/FLOAT>  maximal cutoff for per site coverage multiplied by genome-wide depth of coverage (Current value: ${params.max_dp_mean_multiplier})"
      println "  --skip_trees                   <true/false>  if true, pipeline ends before computing phylogenetic trees (Current value: ${params.skip_trees})"
      println "  --use_synthetic_reads          <true/false>  use synthetic reads to replace panaroo sequences (Current value: ${params.use_synthetic_reads})"
@@ -131,7 +131,7 @@ def print_help() {
 }
 
 def version() {
-    println "You are using panchronos version 1.0"
+    println "panchronos v1.0"
     exit 0
 }
 
@@ -151,10 +151,10 @@ println "\033[1;31mBASIC OPTIONS\033[0m"
 println "\033[1;37mData\033[0m: ${params.data}"
 println "\033[1;37mOutput\033[0m: ${params.output}"
 println "\033[1;37mGene completeness\033[0m: ${params.gene_completeness}"
-println "\033[1;37mMin. site allelic balance\033[0m: ${params.min_site_allelic_balance}"
+println "\033[1;37mMin. site allelic dominance\033[0m: ${params.min_site_allelic_dominance}"
 println "\033[1;37mGenomes to download\033[0m: ${params.genomes}"
 println "\033[1;37mConfig\033[0m: ${params.config}"
-println "\033[1;37mParallel\033[0m: ${params.parallel}"
+println "\033[1;37mParallel MSA\033[0m: ${params.parallel_msa}"
 println "\033[1;37mTrusted data\033[0m: ${params.trusted_data}"
 println "\033[1;37mSkip trees\033[0m: ${params.skip_trees}"
 println "======================="
@@ -289,7 +289,7 @@ workflow {
 
         GENOTYPING(FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
                     ALIGNMENT_SUMMARY.out.postAlignmentFiles, params.alignment_parallel, tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality),
-                    params.bedtools_slop, params.force_homozygosity, params.min_site_allelic_balance, EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage,
+                    params.bedtools_slop, params.force_homozygosity, params.min_site_allelic_dominance, EXTEND_SEQUENCES.out.pangenome_length, ALIGNMENT_SUMMARY.out.rawCoverage,
                     params.max_dp_mean_multiplier, params.config)
 
         extractedSequencesFasta = GENOTYPING.out.consensusSequences
@@ -312,7 +312,7 @@ workflow {
                 SYNTHETIC_READS_GENOTYPING(SYNTHETIC_READS_ALIGNMENT.out.synthetic_bam, params.synthetic_reads_parallel, params.bedtools_slop ,
                                            FORMATTING_PANGENOME.out.indexed_pangenome.map { pangenome_reference, pangenome_dict, pangenome_index -> pangenome_reference},
                                                 tuple(params.bcftools_map_quality , params.bcftools_base_quality, params.variant_call_quality), params.force_homozygosity, params.max_dp_mean_multiplier,
-                                                params.min_site_allelic_balance, EXTEND_SEQUENCES.out.pangenome_length, synthetic_raw_coverage)
+                                                params.min_site_allelic_dominance, EXTEND_SEQUENCES.out.pangenome_length, synthetic_raw_coverage)
 
                 synthetic_reads_seqs = SYNTHETIC_READS_GENOTYPING.out.synthetic_reads_sequences
 
@@ -367,7 +367,7 @@ workflow {
         REALIGN_GENE_ALIGNMENTS(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, params.realign_parallel, params.mafft_threads)
 
         BUILD_MSA(REALIGN_GENE_ALIGNMENTS.out.re_aligned, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient,
-                HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames, params.parallel)
+                HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames, params.parallel_msa)
 
         if (!params.skip_trees) {
 
