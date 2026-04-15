@@ -1,10 +1,10 @@
 ### Panchronos workflow
-`panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses for the paper: _"The genomic identity of early smallpox in South America"_  It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low-quality and fragmented data (typical of ancient DNA data).
+`panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses for the paper: _"The genomic identity of early smallpox in South America."_  It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low-quality and fragmented data (typical of ancient DNA data).
 
 
 
 # 1/ Installation
-First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recomend using Miniforge: https://github.com/conda-forge/miniforge
+First you need to have `Nextflow` and `Conda/Mamba` installed. To install `Nextflow`, please follow the instructions: https://www.nextflow.io/docs/latest/install.html. For `Conda`, if you don't already have any version installed, we recommend using Miniforge: https://github.com/conda-forge/miniforge
 
 To verify that Nextflow is properly installed and available in your environment, please run: 
 ```
@@ -21,7 +21,7 @@ After cloning the repository, you should see the directories bin/ config/ envs/,
 
 # 2/ Perform test run
 
-To perform test run, please go to the main directory where you cloned `panchronos` (the folder containing the `main.nf` file) and execute the following command:
+To perform a test run, please go to the main directory where `panchronos` was cloned (the folder containing the `main.nf` file) and execute the following command:
 
 **IMPORTANT: When `Nextflow` is installing a `Conda` environment, do not interrupt or cancel the process, as it can result in a corrupted environment that must be deleted and rebuilt.**
 
@@ -31,7 +31,7 @@ mkdir -p "$dir"/test/results_test/
 nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test --tax_id 10255 --outgroup_tax_id 28871 --genomes 5
 ```
 
-This test run will download five modern genomes of _Variola virus_ (`--genomes 5`, `--tax_id 10255`) and one genome of _Taterapox virus_ (`--outgroup_tax_id 28871`) as an outgroup. It will then use one of the _Variola_ genomes as a template to generate short-read data with damage patterns by `gargammel`. The `Conda` environments created during this test run process will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
+This test run will download five modern genomes of _Variola virus_ (`--genomes 5`, `--tax_id 10255`) and one genome of _Taterapox virus_ (`--outgroup_tax_id 28871`) as an outgroup. It will then use one of the _Variola_ genomes as a template to generate short-read data with damage patterns by `gargammel`. The `Conda` environments created during this test run will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
 # 3/ Input
 
@@ -50,23 +50,26 @@ To run `panchronos`, the workflow requires the following four components:
 - Multiple single-end/collapsed libraries from the same individual can be included. Please see `config.tab` below for grouping instructions.
 
 # (2) `config.tab` file
-`config.tab` is a tab-separated text file with three fields:
-| Sample name | Soft-clipping value | Group ID |
-|----------|----------|----------|
-| Sample_A.fastq | 2 | Individual_1  |
-| Sample_B.fastq | 2 | Individual_1  |
-| Sample_C.fastq | 5 | Individual_1  |
+`config.tab` is a tab-separated text file with four fields:
+| Sample name | Trimming value | Group ID | Status |
+|----------|----------|----------|----------|
+| Sample_A.fastq | 2 | Individual_1  | A |
+| Sample_B.fastq | 2 | Individual_1  | A |
+| Sample_C.fastq | 5 | Individual_1  | A |
+| Sample_D.fastq | 0 | Individual_2  | M |
 
 The workflow uses this file to:
-- Apply sample-specific soft clipping, and
-- Merge aligned data belonging to the same individual (i.e., those sharing the same Group ID) after alignment.
+- Apply sample-specific trimming
+- Merge aligned data for samples belonging to the same individual (i.e., those sharing the same Group ID) after alignment.
+- Apply different data processing strategies for ancient (`A`) and modern (`M`) datasets
+
 You can see an example file in the `config/` directory of the repository.
 
 # (3) Required taxonomic IDs
 You need to provide two NCBI taxonomic IDs:
 - Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
 - Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
-You can control how many genomes to download for pangenome building using the `--genomes` parameter.
+You can control how many genomes are downloaded for pangenome construction using the `--genomes` parameter.
 
 If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
 
@@ -88,7 +91,7 @@ See the Configuration section below.
 # 4/ Configuration
 The workflow's configuration is controlled through the `nextflow.config` file. This file contains all available parameters, allowing you to fine-tune the pipeline according to your analysis needs. You can adjust the default values directly to match your setup and computational resources.
 
-Many parameters are associated with specific workflow modules, and CPU/thread usage is particularly important to configure carefully. In addition to threads used by individual tools, the pipeline may spawn parallel jobs, multiplying the total number of threads in use.
+Many parameters are associated with specific workflow modules, and CPU/thread usage is particularly important to configure. In addition to threads used by individual tools, the pipeline may spawn parallel jobs, multiplying the total number of threads in use.
 For example:
 - `--alignment_threads 10`
 - `--alignment_parallel 5`
@@ -97,12 +100,12 @@ For example:
 This combination means the alignment process will use 10 × 5 = 50 threads simultaneously.
 
 **Important NOTE:**
-**Don't assign more than 3 threads to `--get_data_parallel`.**
+**Do not assign more than 3 threads to `--get_data_parallel`.**
 
 NCBI will reject download requests if the number of parallel queries exceeds 3.
 
 # 5/ Running the pipeline
-Once you have configured your settings in the `nextflow.config` file (including all required paths), you can exectue the workflow with: 
+Once you have configured your settings in the `nextflow.config` file (including all required paths), you can execute the workflow with: 
 
 >`nextflow run main.nf -resume` 
 
@@ -111,17 +114,17 @@ It is recommended to include the `-resume` flag for every run, as this enables N
 **Overriding parameters from the command line**
 
 You can override any parameter directly from the terminal by prefixing it with `--`.
-Values provided this way take precedence over those defined in the `nextflow.config` file:
+Values provided this way take precedence over those defined in `nextflow.config`:
 
 >`nextflow run main.nf --data /new/path/ --panaroo_alignment_type core -resume`
 
 In this example, the values `/new/path/` and `core` will be used instead of the corresponding entries in `nextflow.config`.
 
-Whenever the workflow starts, `panchronos` prints a summary of all parameters used for the current run.
+When the workflow starts, `panchronos` prints a summary of all parameters used for the current run.
 This allows you to quickly verify that your settings are being applied correctly.
 
 # 6/ Output
-As the workflow runs, the `--output` directory will begin to populate with results. Files are written as soon as they are generated and are automatically organized into structured subdirectories, making it easy to track each stage of the analysis.
+As the workflow runs, the `--output` directory will begin to populate with results. Files are written as soon as they are generated and automatically organized into structured subdirectories, making it easy to track each stage of the analysis.
 
 | Folder | Description | Format |
 | :--- | :--- | :---: | 
@@ -138,8 +141,9 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 |**TREE**| Results from IQ-TREE, including the concatenated MSAs used for reconstruction | `.fasta`, `.treefile`, other outputs from IQ-TREE |
 
 # 7/ Tools installed by `panchronos`
-`panchronos` has been tested only with the specific tool versions listed below, all of which are installed automatically when the workflow is executed. Compatibility with newer or different releases is not guaranteed.
-- Entrez Direct
+`panchronos` has only been tested with the specific tool versions listed below, all of which are installed automatically when the workflow is executed. Compatibility with newer or different releases is not guaranteed.
+
+- Entrez Direct v24.0
 - Biopython v1.85
 - fastANI v1.34
 - CD-HIT v4.8.1
@@ -155,10 +159,14 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 - bcftools v1.21
 - MAFFT v7.525
 - IQ-TREE v3.0.1
+- picard v3.4.0
+- BLAST v2.16.0+
+- gargammel v1.1.4
+
 
 # 8/ Documentation
 If you are unsure about the available workflow settings or parameters, you can display all options directly from the terminal using:
 
 >`nextflow run main.nf --help`
 
-For more extensive and detailed documentation, you can also refer to the materials available on: https://shigekinakagomelab.com/Software/.
+For more comprehensive documentation, you can also refer to the materials available on: https://shigekinakagomelab.com/Software/.
