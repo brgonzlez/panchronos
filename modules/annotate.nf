@@ -22,6 +22,8 @@ process ANNOTATE {
 	mv $clusteredSeqsDB ./tmp_db.fasta
 
 	seqkit translate tmp_db.fasta > clusteredSeqsDB.faa
+	cp clusteredSeqsDB.faa ${params.output}/GENE_DATABASE/clustered_gene_sequences.fasta
+
 	rm tmp_db.fasta
 
 	ls -l *gb | awk 'NR==2{print \$NF}' > first.txt
