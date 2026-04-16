@@ -70,13 +70,13 @@ process NORMALIZE {
 
         #update the files with allelic  results
 
-        cat *_global_allelic_.txt > global_allelic__summary.txt
-        cat *_per_gene_allelic_.txt > per_gene_allelic__summary.txt
+        cat *_global_allelic_dominance.txt > global_allelic_dominance_summary.txt
+        cat *_per_gene_allelic_dominance.txt > per_gene_allelic_dominance_summary.txt
 
         #global
         while read -r sample value;do
                  awk -v s="\$sample" -v v="\$value" '\$1 == s { print \$0, v }' globalMeanCoverage.txt >> panchronos_global_statistics.txt
-        done < global_allelic__summary.txt
+        done < global_allelic_dominance_summary.txt
 
 
         #per gene
@@ -107,7 +107,7 @@ process NORMALIZE {
 
                 }
 
-         }' per_gene_allelic__summary.txt geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
+         }' per_gene_allelic_dominance_summary.txt geneNormalizedSummary.txt >> panchronos_per_gene_statistics.txt
 
         cp panchronos_global_statistics.txt ${params.output}/STATS/
         """
