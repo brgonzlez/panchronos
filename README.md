@@ -54,7 +54,7 @@ To run `panchronos`, the workflow requires the following four components:
 
 # (2) `config.tab` file
 `config.tab` is a tab-separated text file with four fields:
-| Sample name | Trimming value | Group ID | Status |
+| Sample filename | Trimming value | Sample ID | Status |
 |----------|----------|----------|----------|
 | Sample_A.fastq | 2 | Individual_1  | A |
 | Sample_B.fastq | 2 | Individual_1  | A |
@@ -62,19 +62,37 @@ To run `panchronos`, the workflow requires the following four components:
 | Sample_D.fastq | 0 | Individual_2  | M |
 
 The workflow uses this file to:
-- Apply sample-specific trimming
-- Merge aligned data for samples belonging to the same individual (i.e., those sharing the same Group ID) after alignment.
+- Apply sample-specific trimming*
+- Merge aligned data for samples belonging to the same individual (i.e., those sharing the same Sample ID) after alignment.
 - Apply different data processing strategies for ancient (`A`) and modern (`M`) datasets
+
+**Note:**
+If the `--rescale` option is set to 0, panchronos trims _n_ bases from both ends of each read after alignment, based on the specified trimming value, instead of performing soft-clipping.
+The config.tab file must include all four fields described above, even when the `--rescale` parameter is set to 1.
+
 
 You can see an example file in the `config/` directory of the repository.
 
 # (3) Required taxonomic IDs
 You need to provide two NCBI taxonomic IDs:
+
+
 - Target species taxonomic ID — used for pangenome construction. The workflow will automatically download the necessary genomic data based on this ID.
 - Outgroup taxonomic ID — used only for rooting the phylogenetic tree.
 You can control how many genomes are downloaded for pangenome construction using the `--genomes` parameter.
 
 If you already have your own curated dataset (FASTA + GenBank files), you can provide its path using `--trusted_data`.
+
+
+****How to obtain a NCBI taxonomic ID****
+
+
+Go to the NCBI Taxonomy database:
+https://www.ncbi.nlm.nih.gov/taxonomy
+Enter the name of your organism (e.g., Escherichia coli) in the search bar.
+Click on the relevant entry in the results list.
+The taxonomic ID (TaxID) is displayed on the organism’s page (e.g., Escherichia coli has Taxonomic ID 562).
+
 
 Important requirements:
 - FASTA and GenBank filenames must match exactly (aside from extensions).
@@ -105,7 +123,7 @@ This combination means the alignment process will use 10 × 5 = 50 threads simul
 **Important NOTE:**
 **Do not assign more than 3 threads to `--get_data_parallel`.**
 
-NCBI will reject download requests if the number of parallel queries exceeds 3.
+NCBI may reject download requests if the number of parallel queries exceeds 3.
 
 # 5/ Running the pipeline
 Once you have configured your settings in the `nextflow.config` file (including all required paths), you can execute the workflow with: 
@@ -123,7 +141,7 @@ Values provided this way take precedence over those defined in `nextflow.config`
 
 In this example, the values `/new/path/` and `core` will be used instead of the corresponding entries in `nextflow.config`.
 
-When the workflow starts, `panchronos` prints a summary of all parameters used for the current run.
+When the workflow starts, `panchronos` prints in the terminal a summary of all parameters used for the current run.
 This allows you to quickly verify that your settings are being applied correctly.
 
 # 6/ Output
