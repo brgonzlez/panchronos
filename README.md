@@ -1,3 +1,7 @@
+[![DOI](https://zenodo.org/badge/855715084.svg)](https://doi.org/10.5281/zenodo.19682888)
+
+
+
 ### Panchronos workflow
 `panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses for the paper: _"The genomic identity of early smallpox in South America."_  It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low-quality and fragmented data (typical of ancient DNA data).
 
