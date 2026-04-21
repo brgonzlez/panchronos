@@ -1,5 +1,9 @@
 name: blast
 channels:
+ - conda-forge
  - bioconda
 dependencies:
-- blast
+ - blast=2.16.0
+ - zstd
+ - libgcc-ng
+ - libstdcxx-ng
