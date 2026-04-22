@@ -33,7 +33,7 @@ mkdir -p "$dir"/test/results_test/
 nextflow run main.nf --test --config "$dir"/test/config_test.tab --output "$dir"/test/results_test --tax_id 10255 --outgroup_tax_id 28871 --genomes 5
 ```
 
-This test run will download five modern genomes of _Variola virus_ (`--genomes 5`, `--tax_id 10255`) and one genome of _Taterapox virus_ (`--outgroup_tax_id 28871`) as an outgroup. It will then use one of the _Variola_ genomes as a template to generate short-read data with damage patterns by `gargammel`. The `Conda` environments created during this test run will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
+This test run will download five modern genomes of variola virus (`--genomes 5`, `--tax_id 10255`) and one genome of taterapox virus (`--outgroup_tax_id 28871`) as an outgroup. It will then use one of the _Variola_ genomes as a template to generate short-read data with damage patterns by `gargammel`. The `Conda` environments created during this test run will be reused for future executions. Running the test is optional—these environments will also be created automatically the first time you run the pipeline with real data.
 
 # 3/ Input
 
