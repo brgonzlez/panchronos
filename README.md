@@ -102,9 +102,9 @@ If you already have your own curated dataset (FASTA + GenBank files), you can pr
 
 Go to the NCBI Taxonomy database:
 https://www.ncbi.nlm.nih.gov/taxonomy
-Enter the name of your organism (e.g., Escherichia coli) in the search bar.
+Enter the name of your organism (e.g., _Escherichia coli_) in the search bar.
 Click on the relevant entry in the results list.
-The taxonomic ID (TaxID) is displayed on the organism’s page (e.g., Escherichia coli has Taxonomic ID 562).
+The taxonomic ID (TaxID) is displayed on the organism’s page (e.g., _Escherichia coli_ has Taxonomic ID 562).
 
 
 Important requirements:
