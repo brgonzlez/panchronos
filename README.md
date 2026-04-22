@@ -1,7 +1,21 @@
 [![DOI](https://zenodo.org/badge/855715084.svg)](https://doi.org/10.5281/zenodo.19684212)
 
 ### Panchronos workflow
-`panchronos` is a `Nextflow` pipeline designed to perform the core computational analyses. It provides an end-to-end workflow for microbial phylogenetic reconstruction based on pangenome building, with a particular focus on handling low-quality and fragmented data (typical of ancient DNA data).
+`panchronos` is a `Nextflow` pipeline designed for microbial phylogenetic reconstruction based on pangenome alignment. It provides an end-to-end workflow, with particular emphasis on handling low-quality and fragmented data, as commonly encountered in ancient DNA studies.
+
+
+## Table of Contents
+
+- [Installation](#1-installation)
+- [Perform test run](#2-perform-test-run)
+- [Input](#3-input)
+- [Configuration](#4-configuration)
+- [Running the pipeline](#5-running-the-pipeline)
+- [Output](#6-output)
+- [Tools installed by panchronos](#7-tools-installed-by-panchronos)
+- [Documentation](#8-documentation)
+- [Troubleshooting](#9-troubleshooting)
+
 
 
 
@@ -187,6 +201,26 @@ As the workflow runs, the `--output` directory will begin to populate with resul
 # 8/ Documentation
 If you are unsure about the available workflow settings or parameters, you can display all options directly from the terminal using:
 
->`nextflow run main.nf --help`
+```
+nextflow run main.nf --help
+```
 
-For more comprehensive documentation, you can also refer to the materials available on: https://shigekinakagomelab.com/Software/.
+For more comprehensive documentation, please refer to:
+
+https://shigekinakagomelab.com/Software/
+
+
+# 9/ Troubleshooting
+
+# (1) Errors related to NCBI servers
+
+Sometimes you may encounter errors such as:
+
+
+>`HTTP/1.1 502 Bad Gateway`
+
+
+This is not related to a malfunction of `panchronos`. It indicates a temporary issue with the NCBI servers (e.g., proxy or upstream service problems). In such cases, there is usually nothing to fix on your side. The issue is transient and typically resolves on its own. If the error persists consistently, it may be worth checking your query or network connection, but most occurrences are short-lived server-side issues.
+
+
+If you get an error that is not listed in this section, please raise a new issue desccribing it.
