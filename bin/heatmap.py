@@ -27,10 +27,12 @@ data=sys.argv[1]
 namesfile=sys.argv[2]
 threshold_value_str = sys.argv[3]
 max_samples_per_heatmap_str = sys.argv[4]
+activator_str = sys.argv[5]
 
 try:
     threshold_value = float(threshold_value_str)
     max_samples_per_heatmap = int(max_samples_per_heatmap_str)
+    activator = int(activator_str)
 except ValueError as e:
     print(f"Error converting arguments to float: {e}")
     sys.exit(1)
@@ -220,7 +222,9 @@ def split_and_plot(df, names, label, max_samples):
 
         create_clustered_heatmap(df_chunk, names, chunk_label)
 
-
-split_and_plot(maskedMatrixNoUbiquitous, names, "noUbiquitous", max_samples_per_heatmap)
-split_and_plot(maskedOnlyAncient, names, "onlyAncient", max_samples_per_heatmap)
-split_and_plot(genesAbovePercent, names, "abovePercent", max_samples_per_heatmap)
+if activator == 1:
+	split_and_plot(maskedMatrixNoUbiquitous, names, "noUbiquitous", max_samples_per_heatmap)
+	split_and_plot(maskedOnlyAncient, names, "onlyAncient", max_samples_per_heatmap)
+	split_and_plot(genesAbovePercent, names, "abovePercent", max_samples_per_heatmap)
+else:
+	print("Skipping heatmap")
