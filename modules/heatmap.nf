@@ -13,6 +13,7 @@ process HEATMAP {
 	path names, stageAs: 'names/*'
 	val threshold_value
 	val samples_heatmap
+	val plot_heatmap
 
 	output:
 	path 'final_matrix.tab', emit: finalMatrix 
@@ -20,8 +21,8 @@ process HEATMAP {
 	path 'maskedMatrixGenesOnlyAncient.txt', emit: maskedMatrixGenesOnlyAncient
 	path 'maskedMatrixGenesUbiquitous.txt', emit: maskedMatrixGenesUbiquitous
 	path 'maskedMatrixGenesNoUbiquitous.txt', emit: maskedMatrixGenesNoUbiquitous
-	path 'sampleOrdernoUbiquitous*.txt', emit: sampleOrdernoUbiquitous 
-	path 'sampleOrderonlyAncient*.txt', emit: sampleOrderonlyAncient
+	path 'sampleOrdernoUbiquitous*.txt', emit: sampleOrdernoUbiquitous, optional: true
+	path 'sampleOrderonlyAncient*.txt', emit: sampleOrderonlyAncient, optional: true
 	path 'genesAbovePercentSeries.txt', emit: genesAbovePercentSeries
 	path 'blackListedQualityChecked.txt', emit: blackListed
 	path '*_presence_absence_genes.index' , emit: genesIndex
@@ -98,11 +99,14 @@ process HEATMAP {
 	paste matrix/matrix.tab *_last_column.txt > final_matrix.tab
 	tr '\n' ' ' < names/sample_names > names_heatmap
 
-	heatmap.py final_matrix.tab names_heatmap $threshold_value $samples_heatmap
+	heatmap.py final_matrix.tab names_heatmap $threshold_value $samples_heatmap $plot_heatmap
 
 
 	cp final_matrix.tab ${params.output}/MATRIX
-	cp *png ${params.output}/PLOTS
+
+	if [[ $plot_heatmap == 1 ]]; then	
+		cp *png ${params.output}/PLOTS	
+	fi
 	"""
 }
 
