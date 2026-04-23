@@ -114,6 +114,7 @@ def print_help() {
      println "  --tree_threads                        <INT>  thread usage for IQ-TREE. WARNING: This value will be x4 as there will be 4 phylogenetic runs in parallel. (Current value: ${params.tree_threads})"
      println "  --n_samples_heatmap                   <INT>  maximum number of samples to include per heatmap (Current value: ${params.n_samples_heatmap})"
      println "  --threshold_value_heatmap           <FLOAT>  custom gene set cutoff value. Include a gene if it is present in N percent of samples (Current value: ${params.threshold_value_heatmap})"
+     println "  --plot_heatmap                        <1/0>  if set to 1, panchronos will plot heatmap of presence/absence of genes. Set it to 0 to skip it (Current value: ${params.plot_heatmap})"
      println "  --rescale                             <1/0>  rescale aligned reads quality instead of trimming them. 1 to activate, 0 to deactivate. If active, panchronos will not trim reads (Current value: ${params.rescale})"
      println "  --min_site_allelic_dominance      <INT/FLOAT>  minimal dominance (in percentage) for major allele per site. If less than, site is masked (Current value: ${params.min_site_allelic_dominance})"
      println "  --max_dp_mean_multiplier        <INT/FLOAT>  maximal cutoff for per site coverage multiplied by genome-wide depth of coverage (Current value: ${params.max_dp_mean_multiplier})"
@@ -155,7 +156,9 @@ println "\033[1;37mGenomes to download\033[0m: ${params.genomes}"
 println "\033[1;37mConfig\033[0m: ${params.config}"
 println "\033[1;37mParallel MSA\033[0m: ${params.parallel_msa}"
 println "\033[1;37mTrusted data\033[0m: ${params.trusted_data}"
-println "\033[1;37mSkip trees\033[0m: ${params.skip_trees}"
+println "\033[1;37mNumber of samples per heatmap\033[0m: ${params.n_samples_heatmap}"
+println "\033[1;37mPlot heatmap\033[0m: ${params.plot_heatmap}"
+println "\033[1;37mCutoff value for gene presence across dataset\033[0m: ${params.threshold_value_heatmap}"
 println "======================="
 println "\033[1;31mProcess: get_data.nf\033[0m"
 println "\033[1;37mParallel\033[0m: ${params.get_data_parallel}"
@@ -329,7 +332,8 @@ workflow {
                 UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix, mixed_global_mean_coverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered,
                                 params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
 
-                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
+                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap,
+                         params.plot_heatmap)
 
                 UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
                                                                                 params.normalised_coverage_boundary_plot)
@@ -350,7 +354,8 @@ workflow {
                 UPDATE_MATRIX(MAKE_PANGENOME.out.initialMatrix, NORMALIZE.out.globalMeanCoverage, COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered,
                                 params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound, EXTEND_SEQUENCES.out.final_list_genes)
 
-                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap)
+                HEATMAP(UPDATE_MATRIX.out.finalCsv, UPDATE_MATRIX.out.index ,UPDATE_MATRIX.out.matrix, UPDATE_MATRIX.out.sampleNames, params.threshold_value_heatmap, params.n_samples_heatmap,
+                         params.plot_heatmap)
 
                 UPDATE_PLOT_COVERAGE_COMPLETENESS(COVERAGE_BOUNDS.out.geneNormalizedUpdatedFiltered, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
                                                                                 params.normalised_coverage_boundary_plot)
