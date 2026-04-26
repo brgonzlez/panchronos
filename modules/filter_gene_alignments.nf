@@ -51,18 +51,6 @@ process FILTER_GENE_ALIGNMENTS {
                 echo -e "Fasta files with expected extension .fasta were found. Proceeding with the process."
         fi
 
-
-        mkdir -p blacklisted
-        echo -e "Checking if there are low quality samples"
-        if [[ -s blackListed.txt ]]; then
-                while read -r removeMe; do
-                        mv user_genes/*"\${removeMe}.fasta" blacklisted/"\${removeMe}"
-                        echo "\${removeMe} has been removed from analysis due to low quality."
-                done < blackListed.txt
-        else
-                echo -e "Every sample passed quality checks."
-        fi
-
         #Remove duplicated genes from the dataset
         mkdir ./redundant_genes
 
@@ -91,6 +79,55 @@ process FILTER_GENE_ALIGNMENTS {
         export -f renaming
         find ./user_genes -name "*fasta" | parallel -j $parallel renaming
 
+
+        #if user input data contains modern
+        awk '\$4 == "M" { print \$3 }' $config > modern_group_as_input.txt
+
+        input_as_modern_activator=0
+        if [[ -s modern_group_as_input.txt ]]; then
+                mkdir -p input_modern
+                input_as_modern_activator=1
+
+                while read -r sample;do
+			ls -l ./user_genes/"\${sample}.fasta"
+
+                        mv ./user_genes/"\${sample}.fasta" input_modern/
+                done < modern_group_as_input.txt
+        fi
+
+
+        mkdir -p blacklisted
+        echo -e "Checking if there are low quality samples"
+
+        if [[ -s blackListed.txt ]]; then
+
+                while read -r removeMe; do
+
+			echo "Checking file existence just before mv:"
+			ls -l ./input_modern/"\${removeMe}.fasta"
+
+                		status=\$(grep -w "\$removeMe" $config | awk '{print \$4}')
+
+                		if [[ "\$status" == "A" ]]; then
+				
+					echo "Sample to move: \$removeMe"
+                        		mv ./user_genes/*"\${removeMe}.fasta" ./blacklisted/
+	                        	echo "\${removeMe} has been removed from analysis due to low quality."
+
+         	               elif [[ "\$status" == "M" ]]; then
+				
+					echo "Sample to move: \$removeMe"
+					ls -l ./input_modern/"\${removeMe}.fasta"
+	                        	mv ./input_modern/"\${removeMe}.fasta" ./blacklisted/
+	                        	echo "\${removeMe} has been removed from analysis due to low quality."
+
+                	        fi
+
+                done < blackListed.txt
+        else
+                echo -e "Every sample passed quality checks."
+        fi
+
         synthetics_activator=0
         #Check if there are synthetic reads
         if [[ -f ./synthetic/panchronos_synthetic_reads_global_statistics.tab ]]; then
@@ -110,19 +147,6 @@ process FILTER_GENE_ALIGNMENTS {
         #mask genes that should not be present
         mkdir -p genes_to_mask
         mv *presence_absence_genes.index genes_to_mask
-
-        #if user input data contains modern
-        awk '\$4 == "M" { print \$3 }' $config > modern_group_as_input.txt
-
-        input_as_modern_activator=0
-        if [[ -s modern_group_as_input.txt ]]; then
-                mkdir -p input_modern
-                input_as_modern_activator=1
-
-                while read -r sample;do
-                        mv ./user_genes/"\${sample}.fasta" input_modern/
-                done < modern_group_as_input.txt
-        fi
 
         genes_2_mask() {
         file=\$1
@@ -263,6 +287,11 @@ process FILTER_GENE_ALIGNMENTS {
         fi
 
 
+	#before making the files with filenames I need to exclude blacklisted samples
+        grep -vxFf blackListed.txt userSampleNames.txt | sed '/^\$/d' > tmp1 && mv tmp1 userSampleNames.txt      
+        grep -vxFf blackListed.txt modern_group_as_input.txt | sed '/^\$/d' > tmp2 && mv tmp2 modern_group_as_input.txt      
+
+	
         #make a file with every sample combined
         cat modernSampleNames.txt userSampleNames.txt > sampleNames.txt
 
