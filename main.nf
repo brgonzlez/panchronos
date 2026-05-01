@@ -131,7 +131,7 @@ def print_help() {
 }
 
 def version() {
-    println "panchronos v1.0"
+    println "panchronos v1.0-beta.1.4"
     exit 0
 }
 
