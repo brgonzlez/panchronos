@@ -33,6 +33,59 @@ process BUILD_MSA {
 	sed -i -e 's/~/_/g' $maskedMatrixGenesOnlyAncient
 	sed -i -e 's/~/_/g' $maskedMatrixGenesUbiquitous
 
+  #quality check step to remove sites that contain only non-nucleotide characters: n OR N or -.
+  scanning_and_trimming() {
+  fasta_file=\$1
+
+  awk -v fasta_filename="\$fasta_file" '
+      /^>/ {
+          headers[++count] = \$0
+          next
+      }
+      {
+          seqs[count] = \$0
+          if (count == 1) #store the alignment length
+              aln_len = length(\$0)
+      }
+
+      END {
+          #for each column, check if ALL sites have n OR N OR -
+          for (col = 1; col <= aln_len; col++) {
+              bad = 1
+              for (i = 1; i <= count; i++) {
+                  c = substr(seqs[i], col, 1)
+                  if (c != "n" && c != "N" && c != "-") {
+                      bad = 0
+                      break
+                  }
+              }
+              keep[col] = !bad   #1 = survives, 0 = trim
+          }
+
+          #count trimmed columns
+          dropped = 0
+          for (col = 1; col <= aln_len; col++)
+              if (!keep[col]) dropped++
+
+          if (dropped > 0)
+              print dropped " columns were trimmed from" fasta_filename " alignment as they had only non nucleotide characters" >  "/dev/stderr"
+          else
+              print "No artifact columns containing only non nucleotide characters were found in" fasta_filename " after scanning" >  "/dev/stderr"
+
+          #print each sequence using only kept columns
+          for (i = 1; i <= count; i++) {
+              print headers[i]
+          out     = ""
+              for (col = 1; col <= aln_len; col++)
+                  if (keep[col])
+                      out = out substr(seqs[i], col, 1)
+              print out
+          }
+  }' "\$fasta_file" > "\${fasta_file}_tmp" && mv "\${fasta_file}_tmp" "\$fasta_file"
+  }
+  export -f scanning_and_trimming
+  find genes/ -name "*fasta" | parallel -j $parallel scanning_and_trimming
+
 	build_msa() {
 	inputfile=\$1
 	filename=\$(basename "\${inputfile}")
