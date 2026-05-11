@@ -33,14 +33,6 @@ process BUILD_MSA {
 	sed -i -e 's/~/_/g' $maskedMatrixGenesOnlyAncient
 	sed -i -e 's/~/_/g' $maskedMatrixGenesUbiquitous
 
-	rename() {
-	file=\$1
-
-		mv "\${file}" "\${file%_trimmed.fasta}.fasta"
-	}
-	export -f rename
-	find ./genes/ -name "*.fasta" | parallel -j $parallel rename
-
 	build_msa() {
 	inputfile=\$1
 	filename=\$(basename "\${inputfile}")
