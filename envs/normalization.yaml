@@ -1,15 +1,9 @@
 name: normalization
 channels:  
+- conda-forge  
 - bioconda  
 - anaconda
-- conda-forge  
 - defaults
-dependencies:  
-- python=3.8
-- matplotlib
-- samtools
-- biopython
-- pandas
-- numpy
-- seaborn
-- scypy
+dependencies:
+- parallel=20250222
+- python=3.11
