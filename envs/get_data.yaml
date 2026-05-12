@@ -1,5 +1,8 @@
 name: get_data
 channels:
+  - conda-forge
   - bioconda
+  - defaults
 dependencies:
+  - parallel=20250222
   - entrez-direct=24.0
