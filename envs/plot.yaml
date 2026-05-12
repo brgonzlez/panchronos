@@ -4,6 +4,7 @@ channels:
 - conda-forge
 - defaults
 dependencies:
+- parallel=20250222
 - pandas=2.3.2
 - seaborn
 - matplotlib
