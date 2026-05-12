@@ -1,8 +1,9 @@
 name: biopython
 channels:  
-- anaconda
-- bioconda  
-- conda-forge  
-- defaults
+ - anaconda
+ - bioconda  
+ - conda-forge  
+ - defaults
 dependencies:  
-- biopython=1.85
+ - python=3.11
+ - biopython=1.85
