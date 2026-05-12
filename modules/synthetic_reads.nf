@@ -513,6 +513,7 @@ process SYNTHETIC_READS_NORMALIZATION {
  */
 
 process SYNTHETIC_READS_UPDATE_NORMALIZATION {
+        conda "${projectDir}/envs/normalization.yaml"
 
         input:
         path normalized
