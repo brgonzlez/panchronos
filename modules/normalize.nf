@@ -4,6 +4,7 @@
 
 
 process NORMALIZE {
+        conda "${projectDir}/envs/normalization.yaml"
 
         input:
         path refLength
