@@ -4,5 +4,6 @@ channels:
 - bioconda
 - defaults
 dependencies:
+- parallel=20250222
 - bcftools=1.21
-- seqtk
+- seqtk=1.5
