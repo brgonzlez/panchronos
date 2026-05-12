@@ -3,6 +3,8 @@
  */
 
 process BUILD_MSA {
+	conda "${projectDir}/envs/normalization.yaml"
+
 
 	input:
 	path genesAlnSeq, stageAs: 'genes/*'
