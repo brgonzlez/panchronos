@@ -4,6 +4,7 @@ channels:
 - bioconda
 - defaults
 dependencies:
+- parallel=20250222
 - libgcc-ng
 - bwa
 - samtools=1.23
