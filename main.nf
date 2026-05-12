@@ -333,7 +333,7 @@ workflow {
                                params.genomes, OUTGROUP_CONSENSUS.out.extractedSequencesOutgroupFasta, HEATMAP.out.blackListed, params.filter_gene_alignments_parallel,
                                EXTEND_SEQUENCES.out.final_list_genes, HEATMAP.out.genesIndex, params.config, mixed_global_mean_coverage)
 
-        BUILD_MSA(REALIGN_GENE_ALIGNMENTS.out.re_aligned, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient,
+        BUILD_MSA(FILTER_GENE_ALIGNMENTS.out.genesAlnSeq, HEATMAP.out.maskedMatrixGenesNoUbiquitous, HEATMAP.out.maskedMatrixGenesOnlyAncient,
                   HEATMAP.out.maskedMatrixGenesUbiquitous, HEATMAP.out.genesAbovePercentSeries, FILTER_GENE_ALIGNMENTS.out.sampleNames, params.parallel_msa)
 
         if (!params.skip_trees) {
