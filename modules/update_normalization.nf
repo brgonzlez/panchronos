@@ -3,6 +3,7 @@
  */
 
 process UPDATE_NORMALIZATION {
+        conda "${projectDir}/envs/normalization.yaml"
 
         input:
         path normalized
