@@ -4,5 +4,7 @@ channels:
 - bioconda
 - defaults
 dependencies:
-- samtools=1.19
+- parallel=20250222
+- samtools=1.21
 - bedtools=2.31.1
+- seqtk=1.5
