@@ -398,6 +398,7 @@ process SYNTHETIC_READS_ALIGNMENT_SUMMARY {
 
 
 process SYNTHETIC_READS_NORMALIZATION {
+        conda "${projectDir}/envs/normalization.yaml"
 
         input:
         path refLength
