@@ -25,6 +25,8 @@ process BUILD_MSA {
 	"""
 	#!/bin/bash
 
+	mkdir -p ${params.output}/GENE_MSA
+
 	touch maskedMatrixGenesNoUbiquitous.fasta
 	touch maskedMatrixGenesOnlyAncient.fasta
 	touch maskedMatrixGenesUbiquitous.fasta
@@ -125,5 +127,7 @@ process BUILD_MSA {
 	mv maskedMatrixGenesOnlyAncient.fasta maskedMatrixGenesOnlyAncientMSA.fasta
 	mv maskedMatrixGenesUbiquitous.fasta maskedMatrixGenesUbiquitousMSA.fasta
 	mv genesAbovePercentSeries.fasta genesAbovePercentMSA.fasta
+
+	cp -r ./genes/*fasta ${params.output}/GENE_MSA
 	"""
 }
