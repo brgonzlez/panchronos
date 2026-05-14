@@ -120,7 +120,7 @@ process SYNTHETIC_READS_GENOTYPING {
                 attempt=1
 
                 while [ "\$attempt" -le "\$max_attempts" ]; do
-                        bcftools mpileup -f $panGenomeRef -q $mapq -Q $baseq "\$bam_file" > "\${name}"_mpileup_file
+                        bcftools mpileup -f $panGenomeRef --skip-indels -q $mapq -Q $baseq "\$bam_file" > "\${name}"_mpileup_file
 
                         if awk '!/^#/ && \$4 != "N" {found=1; exit} END {exit !found}' "\${name}"_mpileup_file; then
                                 echo -e "mpileup file for \$name looks fine. Moving on"
