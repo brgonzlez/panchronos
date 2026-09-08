@@ -51,6 +51,33 @@ process FILTER_GENE_ALIGNMENTS {
                 echo -e "Fasta files with expected extension .fasta were found. Proceeding with the process."
         fi
 
+        echo -e "Standardise fasta suffixes"
+
+        #rename genes from panaroo
+        panaroo_fasta_suffix() {
+        fasta_file=\$1
+        filename=\$(basename "\${fasta_file%.aln.fas}" | sed -e 's/~/_/g')
+
+                mv "\${fasta_file}" panaroo_genes/"\${filename}.fasta"
+        }
+        export -f panaroo_fasta_suffix
+        find panaroo_genes/ -name "*.aln.fas" | parallel -j $parallel panaroo_fasta_suffix
+
+        echo -e "Done"
+
+        echo -e "Fixing FASTA headers and sequences formatting with seqtk in existing gene alignments"
+
+        mkdir -p panaroo_parsed
+        parsing_panaroo_msa() {
+        fasta_file=\$1
+                name=\$(basename "\${fasta_file%.fasta}" | sed -e 's/~/_/g') # Also replace  ~ characters with _, with double % to remove two dots
+                seqtk seq "\${fasta_file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > panaroo_parsed/"\${name}_parsing_panaroo.fasta"
+        }
+        export -f parsing_panaroo_msa
+        find panaroo_genes/ -name "*.fasta" | parallel -j $parallel parsing_panaroo_msa
+
+        echo -e "Done"
+
         #Remove duplicated genes from the dataset
         mkdir ./redundant_genes
 
@@ -58,14 +85,12 @@ process FILTER_GENE_ALIGNMENTS {
         grep -F -f $final_list_genes /dev/null >/dev/null 2>&1
 
         #move all files NOT in the list
-        for file in panaroo_genes/*; do
-            base=\$(basename "\$file")
-            gene=\${base%%.*}
-
-            # If gene not in list, move it
-        if ! grep -Fxq "\$gene" $final_list_genes; then
+        for file in panaroo_parsed/*; do
+                gene=\$(basename "\${file%_parsing_panaroo.fasta}")
+                # If gene not in list, move it
+                if ! grep -Fxq "\$gene" $final_list_genes; then
                         mv "\$file" ./redundant_genes/
-        fi
+                fi
         done
 
         renaming() {
@@ -257,34 +282,8 @@ process FILTER_GENE_ALIGNMENTS {
         cat *_modern_TMP >> modernSampleNames.txt
         rm *_modern_TMP
 
-
         # Adding the outgroup to this as it is modern too
         echo outgroup >> modernSampleNames.txt
-        echo -e "Standardise fasta suffixes"
-
-        panaroo_fasta_suffix() {
-        fasta_file=\$1
-        filename=\$(basename "\${fasta_file%.aln.fas}")
-
-                mv "\${fasta_file}" panaroo_genes/"\${filename}.fasta"
-        }
-        export -f panaroo_fasta_suffix
-        find panaroo_genes/ -name "*.aln.fas" | parallel -j $parallel panaroo_fasta_suffix
-
-        echo -e "Done"
-
-        echo -e "Fixing FASTA headers and sequences formatting with seqtk in existing gene alignments"
-
-        mkdir -p panaroo_parsed
-        parsing_panaroo_msa() {
-        fasta_file=\$1
-                name=\$(basename "\${fasta_file%.fasta}" | sed -e 's/~/_/g') # Also replace  ~ characters with _, with double % to remove two dots
-                seqtk seq "\${fasta_file}" | awk '/^>/ {sub(/;.*/, "", \$0)} {print}' > panaroo_parsed/"\${name}_parsing_panaroo.fasta"
-        }
-        export -f parsing_panaroo_msa
-        find panaroo_genes/ -name "*.fasta" | parallel -j $parallel parsing_panaroo_msa
-
-        echo -e "Done"
 
         #index_and_formatting() send user samplenames to userSampleNames.txt and replaces ~ from gene names with _
         index_and_formatting() {
