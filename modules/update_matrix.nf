@@ -28,6 +28,9 @@ process UPDATE_MATRIX {
         
         mkdir -p ${params.output}/MATRIX
 
+        #repalce the wave character with _
+        sed -i -e 's/~/_/g' $pangenomeRtab
+
         awk 'NR==1{print \$0}' $pangenomeRtab > matrix.tab
 
         #now get only the genes from gene_list
@@ -35,8 +38,8 @@ process UPDATE_MATRIX {
                 awk -v gene="\$gene" 'BEGIN {FS=OFS="\t"} NR > 1 && \$1 == gene' $pangenomeRtab >> filtered.Rtab
         done < $gene_list
 
-        awk 'NR>1 {print \$0}' filtered.Rtab | sort -k 1 -t \$'\t' >> matrix.tab
-        awk 'NR>1 {print \$1}' filtered.Rtab | sort -k 1 -t \$'\t' > INDEX
+        awk '{print \$0}' filtered.Rtab | sort -k 1 -t \$'\t' >> matrix.tab
+        awk '{print \$1}' filtered.Rtab | sort -k 1 -t \$'\t' > INDEX
 
 
         if [[ -f panchronos_synthetic_reads_global_statistics.tab ]]; then
