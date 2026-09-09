@@ -311,7 +311,7 @@ workflow {
 
         mixed_gene_normalized_updated = UPDATE_NORMALIZATION.out.geneNormalizedUpdated.mix(SYNTHETIC_READS_UPDATE_NORMALIZATION.out.synthetic_gene_normalized_updated).collect()
 
-        COVERAGE_BOUNDS(mixed_gene_normalized_updated, params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness)
+        COVERAGE_BOUNDS(mixed_gene_normalized_updated, params.lower_coverage_bound, params.upper_coverage_bound, params.gene_completeness, EXTEND_SEQUENCES.out.final_list_genes)
 
         PLOT_COVERAGE_COMPLETENESS(mixed_gene_normalized_updated, params.gene_completeness, params.lower_coverage_bound, params.upper_coverage_bound,
                                    params.normalised_coverage_boundary_plot)
