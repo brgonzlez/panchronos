@@ -10,6 +10,7 @@ process COVERAGE_BOUNDS {
         val normalizedCoverageDown
         val normalizedCoverageUp
         val completenessBound
+        path final_list_genes
 
         output:
         path 'panchronos_normalisation_summary_filtered.tab', emit: geneNormalizedUpdatedFiltered
