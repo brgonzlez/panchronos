@@ -96,6 +96,38 @@ process COVERAGE_BOUNDS {
 
         rm TMP1 TMP2 TMP3 header
 
+        #Check if raw_gene_completeness_matrix.tab contains every gene listed in final_list_genes.txt
+        awk 'BEGIN{OFS="\t"}
+        FNR==NR && NR == 1{
+                print \$0
+                number_of_fields=(NF-1)
+                next
+        }
+        FNR==NR && NR > 1 {
+                matrix_rows[\$1] = \$0
+                next
+        }
+        {
+                list_of_genes[\$1]=1
+                next
+        }
+        END {
+                zeroes_list=0
+                
+                while(z_count <= (number_of_fields-2)) {
+                        zeroes_list = zeroes_list OFS "0"
+                        z_count++
+                        }
+
+                for(gene in list_of_genes) {
+                        if(gene in matrix_rows) {
+                                print matrix_rows[gene]
+                        } else {
+                                print gene, zeroes_list
+                        }
+                }
+        }' raw_gene_completeness_matrix.tab final_list_genes.txt  > tmp_raw_gene_completeness_matrix.tab && mv tmp_raw_gene_completeness_matrix.tab raw_gene_completeness_matrix.tab
+
         cp raw_gene_completeness_matrix.tab ${params.output}/STATS/panchronos_raw_gene_completeness_matrix.tab
         cp panchronos_normalisation_summary_filtered.tab ${params.output}/STATS/panchronos_per_gene_statistics_after_thresholds.tab
         """
