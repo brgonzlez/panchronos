@@ -24,7 +24,7 @@ process PLOT_COVERAGE_COMPLETENESS {
 
         if [[ -f panchronos_synthetic_reads_per_gene_statistics_threshold.tab ]]; then
                 awk 'NR>1{print \$0}' panchronos_synthetic_reads_per_gene_statistics_threshold.tab > panchronos_synthetic_reads_per_gene_statistics_threshold_no_header.tab
-                cat panchronos_per_gene_statistics_threshold.tab panchronos_synthetic_reads_per_gene_statistics_threshold_no_header.tab > panchronos_mixed_per_gene_statistics_threshold.tab
+                cat panchronos_per_gene_statistics.tab panchronos_synthetic_reads_per_gene_statistics_threshold_no_header.tab > panchronos_mixed_per_gene_statistics_threshold.tab
 
                 #clean-up the names
                 sed -i -e 's/postPangenomeAlignment_//g' panchronos_mixed_per_gene_statistics_threshold.tab
@@ -38,16 +38,16 @@ process PLOT_COVERAGE_COMPLETENESS {
                 done < samples.txt
         else
                 #clean-up the names
-                sed -i -e 's/postPangenomeAlignment_//g' $geneNormalizedUpdated
+                sed -i -e 's/postPangenomeAlignment_//g' panchronos_per_gene_statistics.tab
 
                 #we make one file per sample
-                awk 'NR>1 {print \$1}' $geneNormalizedUpdated | sort | uniq > samples.txt
+                awk 'NR>1 {print \$1}' panchronos_per_gene_statistics.tab | sort | uniq > samples.txt
 
 
                 while read -r sample;do
                         name=\$(echo "\${sample#postPangenomeAlignment_}")
-                        awk 'NR==1{print \$0}' $geneNormalizedUpdated > "\$name"_individual_normalised.tab
-                        grep -w "\$sample" $geneNormalizedUpdated >> "\$name"_individual_normalised.tab
+                        awk 'NR==1{print \$0}' panchronos_per_gene_statistics.tab > "\$name"_individual_normalised.tab
+                        grep -w "\$sample" panchronos_per_gene_statistics.tab >> "\$name"_individual_normalised.tab
                 done < samples.txt
         fi
 
