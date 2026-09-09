@@ -45,5 +45,6 @@ process MAKE_PANGENOME {
 	cp gene_data.csv ${params.output}/PANGENOME
 	cp final_graph.gml ${params.output}/PANGENOME
 	cp summary_statistics.txt ${params.output}/PANGENOME
+	cp gene_presence_absence.Rtab ${params.output}/PANGENOME/Panaroo_presence_absence_matrix.tab
 	"""
 }
