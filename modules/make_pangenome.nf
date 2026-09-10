@@ -24,6 +24,7 @@ process MAKE_PANGENOME {
 	#!/bin/bash
 
 	mkdir -p ${params.output}/PANGENOME
+	mkdir -p ${params.output}/MATRIX
 
 	#make pangenome
 	panaroo -i *.gff -o ./ --clean-mode $pangenomeMode -a $alignment --merge_paralogs --core_threshold $pangenomeThreshold -t $threads
@@ -45,6 +46,6 @@ process MAKE_PANGENOME {
 	cp gene_data.csv ${params.output}/PANGENOME
 	cp final_graph.gml ${params.output}/PANGENOME
 	cp summary_statistics.txt ${params.output}/PANGENOME
-	cp gene_presence_absence.Rtab ${params.output}/PANGENOME/Panaroo_presence_absence_matrix.tab
+	cp gene_presence_absence.Rtab ${params.output}/MATRIX/Panaroo_presence_absence_matrix.tab
 	"""
 }
