@@ -126,9 +126,9 @@ process COVERAGE_BOUNDS {
                                 print gene, zeroes_list
                         }
                 }
-        }' raw_gene_completeness_matrix.tab final_list_genes.txt  > tmp_raw_gene_completeness_matrix.tab && mv tmp_raw_gene_completeness_matrix.tab raw_gene_completeness_matrix.tab
+        }' raw_gene_completeness_matrix.tab final_list_genes.txt > tmp_raw_gene_completeness_matrix.tab && mv tmp_raw_gene_completeness_matrix.tab raw_gene_completeness_matrix.tab
 
-        cp raw_gene_completeness_matrix.tab ${params.output}/STATS/panchronos_raw_gene_completeness_matrix.tab
+        cp raw_gene_completeness_matrix.tab ${params.output}/MATRIX/panchronos_raw_gene_completeness_matrix.tab
         cp panchronos_normalisation_summary_filtered.tab ${params.output}/STATS/panchronos_per_gene_statistics_after_thresholds.tab
         """
 }
